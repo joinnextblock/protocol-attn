@@ -1,4 +1,4 @@
-# NIP-XX - PROMOTED NOTE NETWORK - BASIC PROTOCOL
+# NIP-X1 - BASIC PROTOCOL
 `draft mandatory`
 
 ## Abstract
@@ -28,12 +28,12 @@ NIP-XX defines a decentralized protocol for content promotion on Nostr. The prot
 
 - **kind:18888**: Defines buyer promotion parameters
   - Target note ID (event to be promoted)
-  - Bid amount (payment offered per view)
+  - Sats/Second amount (payment offered per view)
   - Duration requirement (viewing time needed)
   - Trusted billboard specification (pubkey and relay)
 
 - **kind:17888**: Defines seller viewing parameters
-  - Asking price (payment required per view)
+  - Sats/Second amount (payment required per view)
   - Maximum duration (upper limit on viewing time)
   - Accepted billboard specification (pubkey and relay)
 

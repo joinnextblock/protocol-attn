@@ -1,6 +1,6 @@
 
-# NIP-XX - BILLBOARD METRICS
-`draft mandatory`
+# NIP-X2 - BILLBOARD METRICS
+`draft optional`
 
 ## Abstract
 NIP-XX defines a standardized event kind and structure for reporting and querying anonymized metrics related to billboard operations in the Promoted Note Network. These metrics enable transparency for promotion buyers while preserving seller privacy.

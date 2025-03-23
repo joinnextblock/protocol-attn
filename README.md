@@ -64,8 +64,8 @@ This design encourages market-driven selection of effective billboard implementa
 - Exercise direct control over promotion parameters
 
 ### NIP List
-- [NIP-XX](./NIP-XX.md): BASIC PROTOCOL
-- NIP-XX: BILLBOARD METRICS (coming soon)
+- [NIP-X1](./NIP-X1.md): BASIC PROTOCOL
+- [NIP-X2](./NIP-X2.md): BILLBOARD METRICS
 - NIP-XX: SELLER PREFERNCES (coming soon)
 - NIP-XX: BUYER PREFERNCES (coming soon)
 - NIP-XX: BILLBOARD STATISTICS (coming soon)
