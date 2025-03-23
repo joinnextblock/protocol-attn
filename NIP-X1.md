@@ -1,8 +1,8 @@
-# PNIP-01 - PROMOTED NOTE NETWORK - BASIC PROTOCOL
+# NIP-X1 - BASIC PROTOCOL
 `draft mandatory`
 
 ## Abstract
-PNIP-01 defines a decentralized protocol for content promotion on Nostr. The protocol establishes a market-driven system connecting content promoters (buyers), content viewers (sellers), and verification nodes (billboards).
+NIP-XX defines a decentralized protocol for content promotion on Nostr. The protocol establishes a market-driven system connecting content promoters (buyers), content viewers (sellers), and verification nodes (billboards).
 
 ## Protocol Components
 
@@ -53,14 +53,11 @@ Event kind:28888 defining billboard operating parameters
         ["max_duration", "<value>", "seconds"],
         ["min_duration", "<value>", "seconds"],
         ["interval", "<value>", "seconds"],
-        ["fee", "<value>", "percent"],
+        ["fee", "<value>", "percent|sats"],
         ["min_fee", "<value>", "sats"],
         ["u", "<url>", "primary"],
         ["u", "<url>", "backup"],
-        ["r", "<relay_url>", "read"],
-        ["r", "<relay_url>", "write"],
-        ["r", "<relay_url>", "both"],
-        ["pnips", "1", ...]
+        ["nip", "X1"]
     ]
 }
 ```
@@ -69,8 +66,7 @@ Event kind:28888 defining billboard operating parameters
 - `interval`: Update frequency in seconds
 - `fee`: Billboard commission (percent or fixed sats)
 - `u`: Billboard endpoint URLs
-- `r`: Operating relay URLs
-- `pnips`: Implemented PNIP versions
+- `nip`: Implemented NIP version
 
 #### Optional Tags
 - `max_duration`: Maximum allowed view duration
@@ -89,7 +85,7 @@ Event kind:18888 from buyers requesting note promotion
     "tags": [
         ["e", "<note_id>"],
         ["duration", "<value>", "seconds"],
-        ["bid", "<value>", "sats"],
+        ["sats_per_second", "<value>"],
         ["b", "<billboard_pubkey>", "<relay_url>"]
     ]
 }
@@ -98,7 +94,7 @@ Event kind:18888 from buyers requesting note promotion
 #### Required Tags
 - `e`: ID of note to promote
 - `duration`: Required view duration
-- `bid`: Payment amount per view
+- `sats_per_second`: Payment amount per view
 - `b`: Trusted billboard pubkey and relay
 
 ### Seller Event
@@ -112,14 +108,14 @@ Event kind:17888 from sellers setting view parameters
     "created_at": UNIX_TIMESTAMP,
     "tags": [
         ["max_duration", "<value>", "seconds"],
-        ["ask", "<value>", "sats"],
+        ["sats_per_second", "<value>"],
         ["b", "<billboard_pubkey>", "<relay_url>"]
     ]
 }
 ```
 
 #### Required Tags
-- `ask`: Required payment per view
+- `sats_per_second`: Required payment per view
 - `b`: Accepted billboard pubkey and relay
 
 #### Optional Tags
@@ -138,7 +134,7 @@ Event kind:17888 from sellers setting view parameters
 
 ### Billboard Requirements
 - MUST validate all duration values against configured limits
-- MUST reject promotions where bid < ask
+- MUST reject promotions where BUYER sats_per_second < SELLER sats_per_second
 - MUST attempt billboard URLs in specified order
 - MUST operate on specified relays according to read/write designation
 - MUST honor fee structure specified in configuration
@@ -165,9 +161,9 @@ sequenceDiagram
     Relay->>Billboard: Publishes kind:17888 event<br/>with promotion request<br/>(note ID, bid, duration)
     Seller->>Billboard: Navigates to billboard
     Billboard->>Seller: Billboard displays best promoted note for seller
-    Note over Relay,Buyer: verification notes defined in PNIP-XX
-    Note over Relay,Buyer: payment notes defined in PNIP-XX
-    Note over Relay,Buyer: statistic notes defined in PNIP-XX
+    Note over Relay,Buyer: verification notes defined in NIP-XX
+    Note over Relay,Buyer: payment notes defined in NIP-XX
+    Note over Relay,Buyer: statistic notes defined in NIP-XX
 ```
 
 ### Trust Model
