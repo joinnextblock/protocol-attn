@@ -67,7 +67,7 @@ This design encourages market-driven selection of effective billboard implementa
 - [NIP-X1](./NIP-X1.md): BASIC PROTOCOL
 - [NIP-X2](./NIP-X2.md): BILLBOARD METRICS
 - [NIP-X3](./NIP-X3.md): SELLER BLACKLIST
-- NIP-XX: SELLER PREFERNCES (coming soon)
+- [NIP-X4](./NIP-X4-seller-prefernces.md): SELLER PREFERNCES (coming soon)
 - NIP-XX: BUYER PREFERNCES (coming soon)
 - NIP-XX: BILLBOARD STATISTICS (coming soon)
 - NIP-XX: LIGHTNING PAYMENTS (coming soon)
