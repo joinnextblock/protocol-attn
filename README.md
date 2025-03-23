@@ -1,17 +1,100 @@
+# ATTN MARKETPLACE PROTOCOL
 
-# THE PROMOTED NOTE PROTOCOL
+## Table of Contents
+- [What is the ATTN MARKETPLACE PROTOCOL?](#what-is-the-attn-marketplace-protocol)
+- [How does it work?](#how-does-it-work)
+- [Why is this better than centralized advertising?](#why-is-this-better-than-centralized-advertising)
+- [How do I participate as a content promoter?](#how-do-i-participate-as-a-content-promoter)
+- [How do I participate as a content viewer?](#how-do-i-participate-as-a-content-viewer)
+- [How do I run a billboard?](#how-do-i-run-a-billboard)
+- [How do promotions begin and end?](#how-do-promotions-begin-and-end)
+- [What's the economic model?](#whats-the-economic-model)
+- [How is trust established?](#how-is-trust-established)
+- [Technical Specifications & Documentation](#technical-specifications--documentation)
 
-## Executive Summary
-The Promoted Note Protocol is a decentralized framework enabling paid content promotion within the Nostr ecosystem. By establishing standardized communication methods for promotional content, the protocol creates new economic opportunities while preserving Nostr's core principles of decentralization and privacy.
+## What is the ATTN MARKETPLACE PROTOCOL?
 
-## Key Features
+A decentralized framework enabling paid content promotion within the Nostr ecosystem. By establishing standardized communication methods for promotional content, the protocol creates new economic opportunities while preserving Nostr's core principles of decentralization and privacy.
+
+### Key Features
 - Pay-per-view content promotion system
-- Satoshi-based payment infrastructure
-- Direct audience targeting capabilities
-- Transparent engagement metrics
-- No centralized intermediaries
+- Satoshi-based payment infrastructure 
+- Market-driven pricing mechanism
 
-## Billboard Operation
+## How does it work?
+
+The protocol connects three types of participants through standardized Nostr events:
+
+### Protocol Components
+- **Event Kind 28888**: Billboard configuration events
+- **Event Kind 18888**: Buyer promotion requests
+- **Event Kind 17888**: Seller availability signals
+- **Standard Relays**: For event propagation between participants
+
+### Basic Workflow
+1. Billboard operators publish configuration events (kind:28888)
+2. Sellers announce availability by publishing kind:17888 events
+3. Buyers request promotion of specific notes via kind:18888 events
+4. Billboards match compatible buyers and sellers
+5. Billboards verify content viewing and facilitate payment
+6. All parties can monitor engagement via statistical events
+
+## Why is this better than centralized advertising?
+
+### Market-Driven Trust Systems
+- Natural competition between billboard operators improves services and lowers fees
+- Specialized billboards can emerge for different content niches and audience segments
+- Operators build reputation as their primary capital, incentivizing honest behavior
+- Similar to how [Cashu](https://cashu.space) mint operators compete in the ecash ecosystem
+
+### Protocol-Level Neutrality
+- Defines communication formats and workflows without dictating implementation details
+- Allows different technical solutions to verification, payment, and matching challenges
+- Enables continuous experimentation and improvement by different operators
+
+### True User Sovereignty
+- Viewers explicitly choose what content to view and for what compensation
+- Promoters determine their own budgets and targeting parameters
+- Direct value exchange without platforms extracting the majority of value
+- All participants select which billboard operators they trust
+
+### Resilience Through Decentralization
+- No single point of failure or censorship
+- Diverse content policies across different billboard operators
+- Lower barrier to entry compared to centralized advertising networks
+- Persistence of the network despite individual node failures
+
+### Scalability Through Composability
+- Specialized implementations can focus on solving specific challenges
+- Leverages existing Nostr infrastructure rather than building from scratch
+- Allows for progressive enhancement as more sophisticated solutions develop
+
+## How do I participate as a content promoter?
+
+As a Buyer in the protocol, you can:
+- Specify Nostr Events to promote
+- Set custom bid amounts in `sats_per_second`
+- Define required viewing durations for content
+- Choose trusted billboard nodes for verification
+- Submit promotion requests through Nostr events (kind: 18888)
+- Exercise direct control over promotion parameters
+
+Buyers publish kind:18888 events to initiate promotions, specifying their bid, the content to promote, and which billboard operators they trust.
+
+## How do I participate as a content viewer?
+
+As a Seller in the protocol, you can:
+- Set personal asking prices in `sats_per_second`
+- Select trusted billboard operators
+- Earn by viewing promoted content
+- Participate through simple Nostr events (kind: 17888)
+- Maintain full control over which content to view
+- Adjust asking prices based on market conditions
+
+Sellers publish kind:17888 events to signal availability, specifying their asking price and which billboard operators they accept.
+
+## How do I run a billboard?
+
 Billboard operators maintain full autonomy over implementation details. The protocol defines only the communication standards, while operators can:
 - Choose how to handle event deletions
 - Implement custom matching algorithms
@@ -21,11 +104,7 @@ Billboard operators maintain full autonomy over implementation details. The prot
 - Deploy anti-fraud measures
 - Define business logic
 
-This design encourages market-driven selection of effective billboard implementations and practices.
-
-## Stakeholder Benefits
-
-### Billboard Operators
+As a Billboard Operator, you:
 - Serve as verification infrastructure
 - Configure viewing duration requirements
 - Set customizable service fees
@@ -33,63 +112,42 @@ This design encourages market-driven selection of effective billboard implementa
 - Update market conditions at configurable intervals
 - Operate through standard Nostr events (kind: 28888)
 
-### Sellers
-- Set personal asking prices in satoshis
-- Select trusted billboard operators
-- Earn by viewing promoted content
-- Participate through simple Nostr events (kind: 17888)
-- Maintain full control over which content to view
-- Adjust asking prices based on market conditions
+This design encourages market-driven selection of effective billboard implementations and practices.
 
-### Buyers
-- Specify Nostr notes to promote (via event IDs)
-- Set custom bid amounts in satoshis
-- Define required viewing durations for content
-- Choose trusted billboard nodes for verification
-- Submit promotion requests through Nostr events (kind: 18888)
-- Exercise direct control over promotion parameters
+## How do promotions begin and end?
 
-### Small Businesses
-- Access cost-effective advertising with flexible budgets
-- Pay only for actual engagement
-- Target audiences directly
-- Manage bids in real-time
-- Operate as their own billboard operator if desired
+### Promotion Lifecycle
+- Promotions begin when buyers publish kind:18888 events
+- Promotions remain active until:
+  1. The buyer publishes a kind:5 event deleting the promotion
+  2. The billboard terminates the promotion based on its criteria
+- Billboards must monitor for and respect deletion events
 
-### Content Creators
-- Access dual revenue opportunities (promotion and viewing)
-- Monetize creative work directly
-- Control promotion strategies
-- Earn satoshis through content viewing
-- Operate as their own billboard operator if desired
+## What's the economic model?
 
-The protocol establishes a sustainable ecosystem where participants can both promote content and earn from viewing others' promotions, all while maintaining creative independence and privacy. Billboard Operators provide the crucial verification layer that ensures trust and transparency in the promotion network.
-
-## Economic Architecture
+### Economic Architecture
 - Market-driven pricing mechanism with no central rate setting
 - Direct peer-to-peer economic relationship between buyers and sellers
 - Billboard fee structure clearly defined in kind:28888 events
 - All monetary values denominated in satoshis for consistency
-- Billboards only match BUYERs and SELLERS when bid ≥ ask
+- Billboards only match BUYERS and SELLERS when bid ≥ ask
 
-## Trust Framework
+## How is trust established?
+
+### Trust Framework
 - Decentralized trust model with no central authority
 - Explicit pubkey-based billboard selection by both buyers and sellers
 - Self-sovereign trust relationships maintained by individual participants
 - Trust signals propagated through successful transaction history
 - Market incentives naturally align with honest operation
 
-## Promoted Note Implementation Possibilities (PNIPs)
-The Promoted Note Protocol is improved through PNIPs (Promoted Note Implementation Possibilities).
+## Technical Specifications & Documentation
 
-### List
-- [PNIP-01](./PNIP-01.md): BASIC PROTOCOL
-- PNIP-02: BILLBOARD METRICS (coming soon)
-- PNIP-03: SELLER PREFERNCES (coming soon)
-- PNIP-04: BUYER PREFERNCES (coming soon)
-- PNIP-05: BILLBOARD STATISTICS (coming soon)
-- PNIP-06: LIGHTNING PAYMENTS (coming soon)
-- PNIP-07: ECASH PAYMENTS (coming soon)
-
-## License
-All PNIPs are public domain.
+### NIP List
+- [NIP-X1](./NIP-X1.md): BASIC PROTOCOL
+- NIP-XX: BILLBOARD METRICS (coming soon)
+- NIP-XX: SELLER PREFERNCES (coming soon)
+- NIP-XX: BUYER PREFERNCES (coming soon)
+- NIP-XX: BILLBOARD STATISTICS (coming soon)
+- NIP-XX: LIGHTNING PAYMENTS (coming soon)
+- NIP-XX: ECASH PAYMENTS (coming soon)
