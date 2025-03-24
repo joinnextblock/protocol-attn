@@ -95,6 +95,22 @@ Sellers publish kind:17888 events to signal availability, specifying their askin
 
 ## How do I run a billboard?
 
+## Economic Architecture
+- Market-driven pricing mechanism with no central rate setting
+- Direct peer-to-peer economic relationship between buyers and sellers
+- Billboard fee structure clearly defined in kind:28888 events
+- All monetary values denominated in satoshis for consistency
+- Billboards only match BUYERs and SELLERS when bid ≥ ask
+
+## Trust Framework
+- Decentralized trust model with no central authority
+- Explicit pubkey-based billboard selection by both buyers and sellers
+- Self-sovereign trust relationships maintained by individual participants
+- Trust signals propagated through successful transaction history
+- Market incentives naturally align with honest operation
+
+## Billboard Operation
+
 Billboard operators maintain full autonomy over implementation details. The protocol defines only the communication standards, while operators can:
 - Choose how to handle event deletions
 - Implement custom matching algorithms
@@ -105,6 +121,7 @@ Billboard operators maintain full autonomy over implementation details. The prot
 - Define business logic
 
 As a Billboard Operator, you:
+
 - Serve as verification infrastructure
 - Configure viewing duration requirements
 - Set customizable service fees
