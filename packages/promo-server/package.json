@@ -1,0 +1,38 @@
+{
+  "name": "@promo-protocol/server",
+  "version": "0.0.1",
+  "description": "A service that manages a billboard's refresh interval and metrics",
+  "main": "dist/index.js",
+  "module": "index.ts",
+  "type": "module",
+  "bin": {
+    "promo-server": "./bin/promo-server"
+  },
+  "files": [
+    "bin/promo-server"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joinnextblock/promo-protocol.git"
+  },  
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outfile dist/index.js",
+    "compile": "bun build ./src/index.ts --compile --outfile ./bin/billboard-service"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/js-yaml": "^4.0.9"
+  },
+  "peerDependencies": {
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.39.1",
+    "cron": "^4.1.4",
+    "js-yaml": "^4.1.0",
+    "nostr-tools": "^2.12.0",
+    "pino": "^9.6.0",
+    "uuid": "^11.1.0"
+  }
+}

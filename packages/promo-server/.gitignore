@@ -1,4 +1,6 @@
-.vscode
+billboard-service
+billboard.config.yaml
+
 # dependencies (bun install)
 node_modules
 
