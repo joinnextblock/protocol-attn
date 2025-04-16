@@ -10,12 +10,16 @@ export type MetricsAllTime = {
   attention: {
     count: number;
     total_seconds: number;
-    average_sats_per_second: number;
+    sats_per_second_average: number;
+    sats_per_second_max: number;
+    sats_per_second_min: number;
   };
   promotion: {
     count: number;
     total_seconds: number;
-    average_sats_per_second: number;
+    sats_per_second_average: number;
+    sats_per_second_max: number;
+    sats_per_second_min: number;
   };
   match: {
     count: number;

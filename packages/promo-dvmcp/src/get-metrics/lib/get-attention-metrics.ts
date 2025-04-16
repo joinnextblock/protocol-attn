@@ -15,6 +15,8 @@ export const get_attention_metrics = (events: Event[] = []) => {
   return {
     count: attention_events.length,
     total_seconds: total_attention || 0,
-    average_sats_per_second: Math.floor(avgerage_attention_price) || 0,
+    sats_per_second_average: Math.floor(avgerage_attention_price) || 0,
+    sats_per_second_max: Math.max(...attention_events.map((event: Event) => JSON.parse(event.content).sats_per_second)) || 0,
+    sats_per_second_min: Math.min(...attention_events.map((event: Event) => JSON.parse(event.content).sats_per_second)) || 0,
   };
 }

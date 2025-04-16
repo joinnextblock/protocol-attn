@@ -21,31 +21,7 @@ NIP-X7 defines a standardized event kind (38388) and structure for BILLBOARDs to
 
 ## Event Specifications
 
-### Match Event
-Event kind:38388 creating a match between PROMOTER PROMOTION and PROMOTION VIEWER
 
-```json
-{
-    "kind": 38388,
-    "pubkey": "<BILLBOARD_pubkey>",
-    "tags": [
-        ["e", "<PROMOTER_event_id>", "<PROMOTER_relay_url>"],
-        ["p", "<PROMOTER_pubkey>"],
-        ["p", "<PROMOTION_VIEWER_pubkey>"],
-        ["sats_per_second", "<value>"],
-        ["duration", "<value>", "seconds"],
-        ["t", "<matched_topic>"],
-        ["t", "<matched_topic>"],
-        ["expiration", "<unix_timestamp>"]
-    ]
-}
-```
-
-#### Required Tags
-- `e`: Event ID of PROMOTION event
-- `p`: First occurrence is PROMOTER pubkey, second is PROMOTION VIEWER pubkey
-- `sats_per_second`: Agreed payment rate for the match
-- `duration`: Required viewing duration
 
 #### Optional Tags
 - `t`: Topic that was used for matching (can appear multiple times)

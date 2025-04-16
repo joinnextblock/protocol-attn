@@ -1,5 +1,5 @@
-import { get_metrics_all_time } from "./get-metrics-all-time";
-import { get_metrics_last_interval } from "./get-metrics-last-interval";
+import { get_metrics_all_time, type MetricsAllTime } from "./get-metrics-all-time";
+import { get_metrics_last_interval, type MetricsLastInterval } from "./get-metrics-last-interval";
 import { RelayHandler } from "../../../promo-commons/nostr/relay-handler";
 import { logger_dvmcp } from "../../../promo-commons/logger";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
@@ -11,12 +11,26 @@ export type GetMetricsHandlerArgs = {
   until: number,
 }
 
-export const get_metrics_handler = async (
+export type GetMetricsHandlerDependencies = {
+  relays: string[];
+}
+
+export type GetMetricsHandler = ( 
+  args: GetMetricsHandlerArgs,
+  dependencies: GetMetricsHandlerDependencies
+) => Promise<CallToolResult>
+
+export type Metrics = {
+  all_time: MetricsAllTime;
+  last_interval: MetricsLastInterval;
+}
+
+export const get_metrics_handler: GetMetricsHandler = async (
   { pubkey,
     since,
     until
   }: GetMetricsHandlerArgs,
-  { relays }: { relays: string[] }
+  { relays }: GetMetricsHandlerDependencies
 ): Promise<CallToolResult> => {
   console.log({ pubkey, since, until });
 
@@ -27,14 +41,16 @@ export const get_metrics_handler = async (
     const metrics_all_time = await get_metrics_all_time({ pubkey }, { relay_handler, logger });
     const metrics_last_interval = await get_metrics_last_interval({ pubkey, since, until }, { relay_handler, logger });
 
+    const metrics: Metrics = {
+      all_time: metrics_all_time,
+      last_interval: metrics_last_interval,
+    };
+
     return {
       content: [
         {
           type: 'text' as const,
-          text: JSON.stringify({
-            all_time: metrics_all_time,
-            last_interval: metrics_last_interval,
-          }),
+          text: JSON.stringify(metrics),
         }
       ],
     };
