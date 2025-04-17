@@ -1,5 +1,6 @@
 {
     "name": "promo-protocol",
+    "repository": "https://github.com/joinnextblock/promo-protocol",
     "scripts": {
       "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,md}\"",
       "publish:commons": "cd packages/promo-commons && npm publish --access public",
