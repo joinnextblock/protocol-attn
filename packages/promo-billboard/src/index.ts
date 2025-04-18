@@ -9,7 +9,9 @@ import { handler } from './handler';
 import { publish_announcement_event } from './lib/publish-announcement-event';
 import { ToolRegistry } from '@dvmcp/discovery/src/tool-registry';
 import assert from 'assert';
-
+import path from 'path';
+import type { PROMO_BILLBOARD } from '../index';
+import type { PROMO_API } from '@promo-api/index';
 
 let relay_handler: RelayHandler;
 let key_manager: KeyManager;
@@ -21,25 +23,30 @@ let logger: Logger;
  * It then creates a cron job to refresh the billboard every 60 seconds.
  */
 (async () => {
-  assert.ok(fs.existsSync('config.promo-server.yaml'), 'config.promo-server.yaml does not exist');
-  assert.ok(fs.existsSync('config.dvmcp.yml'), 'config.dvmcp.yml does not exist');
+  const config_dir = path.join(__dirname, '..', '..');
+  assert.ok(fs.existsSync(path.join(config_dir, 'config.billboard.yaml')), 'config.billboard.yaml does not exist');
+  assert.ok(fs.existsSync(path.join(config_dir, 'config.api.yml')), 'config.dvmcp.yml does not exist');
 
-  default_logger = pino({ level: 'info' });
+  default_logger = pino({ 
+    level: 'info',
+    redact: ['dvmcp_config.nostr.privateKey']
+
+  });
   try {
     default_logger.trace('loading dvmcp config');
-    const dvmcp_config = yaml.load(fs.readFileSync('config.dvmcp.yml', 'utf8')) as DvmcpConfig;
+    const api_config = yaml.load(fs.readFileSync(path.join(config_dir, 'config.api.yml'), 'utf8')) as PROMO_API.ApiConfig;
     default_logger.trace('loading promo server config');
-    const promo_server_config = yaml.load(fs.readFileSync('config.promo-server.yaml', 'utf8')) as PromoServerConfig;
+    const billboard_config = yaml.load(fs.readFileSync(path.join(config_dir, 'config.billboard.yaml'), 'utf8')) as PROMO_BILLBOARD.BillboardConfig;
 
     logger = default_logger.child({});
-    logger.level = promo_server_config.environment.log_level;
+    logger.level = billboard_config.environment.log_level;
 
     logger.trace('creating relay handler');
-    relay_handler = new RelayHandler(dvmcp_config.nostr.relayUrls);
+    relay_handler = new RelayHandler(api_config.nostr.relayUrls);
     logger.trace('creating key manager');
-    key_manager = createKeyManager(promo_server_config.nostr.private_key);
-    logger.debug({ dvmcp_config }, 'dvmcp_config');
-    const mcp_server = new McpServer(dvmcp_config.mcp);
+    key_manager = createKeyManager(api_config.nostr.privateKey);
+    logger.debug({ api_config }, 'api_config');
+    const mcp_server = new McpServer(api_config.mcp);
     logger.trace('creating tool registry');
     const tool_registry = new ToolRegistry(mcp_server);
     logger.trace('listing tools');
@@ -50,11 +57,11 @@ let logger: Logger;
     logger.trace('calling publish_announcement_event');
     const announcement_event_id = await publish_announcement_event(
       {
-        name: promo_server_config.server.name,
-        description: promo_server_config.server.description,
-        image: promo_server_config.server.image,
-        url: promo_server_config.server.url,
-        kinds: promo_server_config.server.kinds,
+        name: billboard_config.server.name,
+        description: billboard_config.server.description,
+        image: billboard_config.server.image,
+        url: billboard_config.server.url,
+        kinds: billboard_config.server.kinds,
       },
       {
         key_manager,
@@ -63,9 +70,9 @@ let logger: Logger;
       }
     );
     logger.debug({ announcement_event_id }, 'announcement_event_id');
-    // // Refresh the billboard every 60 seconds
-    // const since = Date.now();
-    // const until = Date.now() + 60 * 1000;
+    // Refresh the billboard every 60 seconds
+    const since = Date.now();
+    const until = Date.now() + 60 * 1000;
     // const job = CronJob.from({
     //   cronTime: '0 * * * * *',
     //   runOnInit: true,
@@ -84,38 +91,3 @@ let logger: Logger;
     default_logger.error({ err });
   }
 })();
-
-// Types
-export type PromoServerConfig = {
-  nostr: {
-    private_key: string;
-    relays: string[];
-  };
-  server: {
-    name: string;
-    description: string;
-    image: string;
-    url: string;
-    kinds: number[];
-  };
-  environment: {
-    log_level: string;
-  }
-}
-
-export type DvmcpConfig = {
-  nostr: {
-    privateKey: string;
-    relayUrls: string[];
-  };
-  mcp: {
-    version: string;
-    name: string;
-    about: string;
-    clientName: string;
-    clientVersion: string;
-  };
-  whitelist: {
-    allowedDVMs: string[];
-  };
-}

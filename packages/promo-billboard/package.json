@@ -1,15 +1,15 @@
 {
-  "name": "@promo-protocol/server",
+  "name": "@promo-protocol/billboard",
   "version": "0.0.0",
   "description": "A service that manages a billboard's refresh interval and metrics",
   "main": "dist/index.js",
   "module": "index.ts",
   "type": "module",
   "bin": {
-    "promo-server": "./bin/promo-server"
+    "promo-billboard": "./bin/promo-billboard"
   },
   "files": [
-    "bin/promo-server"
+    "bin/promo-billboard"
   ],
   "repository": {
     "type": "git",
@@ -19,8 +19,8 @@
     "init": "cp config.example.yaml billboard.config.yaml",
     "start": "bun run src/index.ts",
     "dev": "bun --watch run src/index.ts",
-    "build": "bun build src/index.ts --outfile dist/index.js",
-    "compile": "bun build ./src/index.ts --compile --outfile ./bin/billboard-service"
+    "build": "bun build src/index.ts --outfile dist/billboard.js",
+    "compile": "bun build ./src/index.ts --compile --outfile ./bin/billboard"
   },
   "devDependencies": {
     "@types/bun": "latest",

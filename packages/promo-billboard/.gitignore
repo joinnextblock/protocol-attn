@@ -1,11 +1,13 @@
 billboard-service
 billboard.config.yaml
 config.dvmcp.yml
+config.billboard.yaml
 
 # dependencies (bun install)
 node_modules
 
 # output
+.bin
 out
 dist
 *.tgz

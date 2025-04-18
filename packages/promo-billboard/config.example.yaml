@@ -4,9 +4,9 @@ environment:
 # Nostr Configuration
 nostr:
   # Your private key in hex format (32-byte hex string)
-  privateKey: "your_private_key_here"
+  private_key: "your_private_key_here"
   # List of relay URLs (must start with ws:// or wss://)
-  relayUrls:
+  relays:
     - "wss://relay1.com"
     - "wss://relay2.net"
 
