@@ -7,6 +7,12 @@ NIP-X1 defines the core PROMO Protocol for content promotion on Nostr, establish
 > For a user-friendly overview of the protocol and its benefits, see the [README.md](./README.md).
 
 ## Protocol Components
+### Protocol Participants
+- **RELAY**: Standard Nostr relay that propagate events between participants
+- **PROMOTION Creators**: Nostr identity that publishes PROMOTION events
+- **PROMOTION Viewer**: Nostr identity that publishes ATTENTION events
+- **BILLBOARD Operator**: Nostr identity that PROMOTION Creators and PROMOTION Viewers signal they trust via trusted BILLBOAD list []()
+- **MATCH MAKER Operator**: Nostr identity that publishes MATCH events
 
 ### NEW EVENT KINDS
 - **kind:38088**: BILLBOARD Announcement Event
@@ -14,15 +20,11 @@ NIP-X1 defines the core PROMO Protocol for content promotion on Nostr, establish
 - **kind:38188**: PROMOTION Event
 - **kind:38888**: ATTENTION Event
 - **kind:38388**: MATCH Event
+- **kind:38488**: PROMOTION ACCEPTANCE Event
+- **kind:38588**: PROMOTION COMPLETION Event
 
-## Key Components
-
-### Protocol Participants
-- **RELAY**: Standard Nostr relay that propagate events between participants
-- **PROMOTION Creators**: Nostr identity that publishes PROMOTION events
-- **PROMOTION Viewer**: Nostr identity that publishes ATTENTION events
-- **BILLBOARD Operator**: Nostr identity that PROMOTION Creators and PROMOTION Viewers signal they trust
-- **MATCH MAKER Operator**: Nostr identity that publishes MATCH events
+### EXISTING EVENT KINDS
+- **kind:30003**: Trusted BILLBOARD list
 
 > For detailed information about participant roles and responsibilities, see the [README.md](./README.md#who-are-the-main-actors-in-the-promo-protocol).
 
@@ -33,6 +35,7 @@ NIP-X1 defines the core PROMO Protocol for content promotion on Nostr, establish
 {
     "kind": 38088,
     "pubkey": "<BILLBOARD_operator_pubkey>", // Operator of more than one BILLBOARD
+    "created_at": <unix_timestamp>,
     "content": "",
     "tags": [
         // required
@@ -64,7 +67,7 @@ NIP-X1 defines the core PROMO Protocol for content promotion on Nostr, establish
 
 #### Optional Tags
 - `u`:
-- `billboard_url`
+- `billboard_url`:
 - `name`:
 - `description`:
 - `image`: 
@@ -76,11 +79,12 @@ NIP-X1 defines the core PROMO Protocol for content promotion on Nostr, establish
 {
     "kind": 28888,
     "pubkey": "<BILLBOARD_pubkey>",
+    "created_at": <unix_timestamp>,
     "content": "<metrics>",
     "tags": [
         ["d", "<BILLBOARD_pubkey>"]
         // BILLBOARD event
-        ["a", "22:<32-bytes lowercase hex of a pubkey>:<d tag value>"],
+        ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"],
         ["p", "<BILLBOARD_pubkey>"],
         ["billboard_id", "<BILLBOARD_EVENT_ID>"], // BILLBOARD_ANNOUNCTMENT_EVENT_ID
         ["billboard_pubkey", "<BILLBOARD_pubkey>"]   
@@ -143,8 +147,9 @@ NIP-X1 defines the core PROMO Protocol for content promotion on Nostr, establish
 ```json
 {
     "kind": 38188,
-    "pubkey": "<PROMOTION_creator_pubkey>",
-    "content": ""
+    "pubkey": "<PROMOTION_CREATOR_pubkey>",
+    "created_at": <unix_timestamp>,
+    "content": "",
     "tags": [
         ["d", "<uuid>"]
         ["e", "<note_id>"],
@@ -166,17 +171,22 @@ NIP-X1 defines the core PROMO Protocol for content promotion on Nostr, establish
 ```json
 {
     "kind": 38888,
-    "pubkey": "<PROMOTION_viewer_pubkey>",
+    "pubkey": "<PROMOTION_VIEWER_pubkey>",
+    "created_at": <unix_timestamp>,
     "content": "",
     "tags": [
         ["d", "<BILLBOARD_pubkey>"]
         // BILLBOARD event
-        ["a", "22:<32-bytes lowercase hex of a pubkey>:<d tag value>"],
+        ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"],
         ["p", "<BILLBOARD_pubkey>"],
         ["billboard_id", "<BILLBOARD_EVENT_ID>"], // BILLBOARD_ANNOUNCTMENT_EVENT_ID
         ["billboard_pubkey", "<BILLBOARD_pubkey>"]
         // ATTENTION EVENT
         ["sats_per_second", "<value>"],
+        ["k", "1"],
+        ["k", "20"],
+        ["k", "21"],
+        ["k", "22"],
         // optional
         ["max_duration", "<value>", "seconds"],
         ["expiration", "<unix_timestamp>"],
@@ -186,35 +196,35 @@ NIP-X1 defines the core PROMO Protocol for content promotion on Nostr, establish
 
 #### Required Tags:
 - `sats_per_second`: Payment rate in sats per second
+- `k`: 
 
 #### Optional Tags:
 - `max_duration`: Maximum viewing duration in seconds
 - `expiration`: Unix timestamp of ATTENTION expiration.
 
-
-
 ### Match Event
-Event kind:38388 creating a match between a PROMOTION and ATTENTION
-
 ```json
 {
     "kind": 38388,
-    "pubkey": "<MATCHER_pubkey>",
+    "pubkey": "<MATCH_MAKER_pubkey>",
+    "created_at": <unix_timestamp>,
+    "content": "",
     "tags": [
+         ["d", "<uuid>"],
         // Promoted Event
         ["e", "<32-bytes lowercase hex of the id of promoted event>", "<recommended relay URL, optional>", "<32-bytes lowercase hex of the author's pubkey, optional>"]
         // BILLBOARD_ANNOUNCTMENT_EVENT
-        ["a", "22:<32-bytes lowercase hex of a pubkey>:<d tag value>"],
+        ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"],
         ["p", "<BILLBOARD_pubkey>"],
         ["billboard_id", "<BILLBOARD_EVENT_ID>"], // BILLBOARD_ANNOUNCTMENT_EVENT_ID
         ["billboard_pubkey", "<BILLBOARD_pubkey>"]
         // PROMOTION_EVENT
-        ["a", "22:<32-bytes lowercase hex of a pubkey>:<d tag value>"], 
+        ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"], 
         ["p", "<PROMOTION_Creator_pubkey>"],
         ["promotion_id", "<PROMOTION_EVENT_ID>"], // PROMOTION_EVENT_ID
         ["promotion_pubkey", "<PROMOTION_pubkey>"]
         // ATTENTION_EVENT
-        ["a", "22:<32-bytes lowercase hex of a pubkey>:<d tag value>"], 
+        ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"], 
         ["p", "<PROMOTION_Viewer_pubkey>"],
         ["attention_id", "<ATTENTION_EVENT_ID>"], // ATTENTION_EVENT_ID
         ["attention_pubkey", "<ATTENTION_pubkey>"]
@@ -229,6 +239,7 @@ Event kind:38388 creating a match between a PROMOTION and ATTENTION
 ```
 
 #### Required Tags
+- `d`: uuid
 - `e`: ID of promoted envet
 - `a`: Events involed witht the MATCH event
 - `p`: Pubkeys involved in the MATCH event
@@ -244,6 +255,125 @@ Event kind:38388 creating a match between a PROMOTION and ATTENTION
 #### Optional Tags
 - `expiration`: Unix timestamp of MATCH expiration.
 
+### PROMOTION ACCEPTANCE Event
+```json
+{
+  "kind": 38488,
+  "pubkey": "<PROMOTION_VIEWER_pubkey>",
+  "created_at": <unix_timestamp>,
+  "tags": [
+     ["d", "<uuid>"],
+    // Promoted Event
+    ["e", "<32-bytes lowercase hex of the id of promoted event>", "<recommended relay URL, optional>", "<32-bytes lowercase hex of the author's pubkey, optional>"]
+    // BILLBOARD
+    ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"],
+    ["p", "<BILLBOARD_pubkey>"],
+    ["billboard_id", "<BILLBOARD_EVENT_ID>"],
+    ["billboard_pubkey", "<BILLBOARD_pubkey>"],
+    // PROMOTION
+    ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"], 
+    ["p", "<PROMOTION_Creator_pubkey>"],
+    ["promotion_id", "<PROMOTION_EVENT_ID>"],
+    ["promotion_pubkey", "<PROMOTION_pubkey>"],
+    // ATTENTION
+    ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"], 
+    ["p", "<PROMOTION_Viewer_pubkey>"],
+    ["attention_id", "<ATTENTION_EVENT_ID>"], 
+    ["attention_pubkey", "<PROMOTION_VIEWER_pubkey>"],
+    // MATCH
+    ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"], 
+    ["p", "<MATCH_MAKER_pubkey>"],
+    ["match_id", "<MATCH_EVENT_ID>"],
+    ["match_maker_pubkey", "<MATCH_MAKER_pubkey>"],
+  ]
+}
+```
+
+#### Required Tags
+- `d`: uuid
+- `e`: ID of promoted envet
+- `a`: Events involed witht the MATCH event
+- `p`: Pubkeys involved in the MATCH event
+- `billboard_id`: ID of BILLBOARD event
+- `promotion_id`: ID of PROMOTION event
+- `attention_id`: ID of ATTENTION event
+- `match_id`: ID of MATCH event
+- `billboard_pubkey`: Pubkey of publisher of BILLBOARD event
+- `promotion_pubkey`: Pubkey of publisher of PROMOTION event
+- `attention_pubkey`: Pubkey of publisher of ATTENTION event
+- `match_maker_pubkey`: Pubkey of publisher of MATCH event
+
+### PROMOTION COMPLETION Event
+```json
+{
+  "kind": 38588,
+  "pubkey": "<BILLBOARD_pubkey>",
+  "created_at": <unix_timestamp>,
+  "tags": [
+    ["d", "<uuid>"],
+    // Promoted Event
+    ["e", "<32-bytes lowercase hex of the id of promoted event>", "<recommended relay URL, optional>", "<32-bytes lowercase hex of the author's pubkey, optional>"]
+    // BILLBOARD
+    ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"],
+    ["p", "<BILLBOARD_pubkey>"],
+    ["billboard_id", "<BILLBOARD_EVENT_ID>"],
+    ["billboard_pubkey", "<BILLBOARD_pubkey>"]
+    // PROMOTION
+    ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"], 
+    ["p", "<PROMOTION_Creator_pubkey>"],
+    ["promotion_id", "<PROMOTION_EVENT_ID>"], 
+    ["promotion_pubkey", "<PROMOTION_pubkey>"]
+    // ATTENTION
+    ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"], 
+    ["p", "<PROMOTION_Viewer_pubkey>"],
+    ["attention_id", "<ATTENTION_EVENT_ID>"], 
+    ["attention_pubkey", "<PROMOTION_VIEWER_pubkey>"]
+    // MATCH
+    ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"], 
+    ["p", "<MATCH_MAKER_pubkey>"],
+    ["match_id", "<MATCH_EVENT_ID>"], 
+    ["match_maker_pubkey", "<MATCH_MAKER_pubkey>"]
+    // PROMOTION ACCEPTANCE
+    ["a", "kind:<32-bytes lowercase hex of a pubkey>:<d tag value>"], 
+    ["promotion_acceptance_id", "<PROMOTION_ACCEPTANCE_EVENT_ID>"],
+    ["promotion_acceptance_pubkey", "<PROMOTION_VIEWER_pubkey>"],
+  ]
+}
+```
+
+#### Required Tags
+- `d`: uuid
+- `e`: ID of promoted envet
+- `a`: Events involed witht the MATCH event
+- `p`: Pubkeys involved in the MATCH event
+- `billboard_id`: ID of BILLBOARD event
+- `promotion_id`: ID of PROMOTION event
+- `attention_id`: ID of ATTENTION event
+- `match_id`: ID of MATCH event
+- `promotion_acceptance_id`: ID of PROMOTION ACCEPTANCE event
+- `billboard_pubkey`: Pubkey of publisher of BILLBOARD event
+- `promotion_pubkey`: Pubkey of publisher of PROMOTION event
+- `attention_pubkey`: Pubkey of publisher of ATTENTION event
+- `match_maker_pubkey`: Pubkey of publisher of MATCH event
+- `promotion_acceptance_pubkey`: Pubkey of publisher of PROMOTION ACCEPTANCE event
+
+### TRUSTED BILLBOARD LIST EVENT
+```json
+{
+  "kind": 30003,
+  "pubkey": "<PROMOTION_VIEWER_pubkey | PROMOTION_CREATOR_pubkey>",
+  "created_at": <unix_timestamp>,
+  "tags": [
+    ["d", "<uuid>"],
+    ["p", "<BILLBOARD_pubkey>", "<relay>"]
+    ["p", "<BILLBOARD_pubkey>", "<relay>"]
+  ]
+}
+```
+
+#### Required Tags
+- `d`: uuid
+- `p`: Pubkey of trusted BILLBOARD
 
 ## PROMO Protocol Behavior
 
@@ -290,10 +420,10 @@ sequenceDiagram
 ```
 
 ### Trust Model
-- Trust is established when PROMOTION Creators and PROMOTION Viewers include a BILLBOARD_OPERATOR_pubkey in their `b` tags
+- Trust is established when PROMOTION Creators and PROMOTION Viewers include a BILLBOARD_pubkey in trusted BILLBOARD list
 - The decision to trust a BILLBOARD OPERATOR is made independently by each participant
 - Each participant is sovereign in choosing which BILLBOARD OPERATORS to trust
-- Multiple BILLBOARD OPERATORS can be trusted simultaneously via multiple `b` tags
+- Multiple BILLBOARD OPERATORS can be trusted simultaneously via multiple `p` tags
 - No central BILLBOARD authority required
 
 > For information about how trust is established in practice and its benefits, see the [README.md](./README.md#how-is-trust-established).
@@ -303,7 +433,8 @@ sequenceDiagram
 1. **BILLBOARD**: BILLBOARD OPERATORS `write` BILLBOARD(kind:38088) event(s) to RELAY LIST(kind:10002)
 2. **PROMOTION**: PROMOTION CREATOR `write` PROMOTION(kind:38188) event(s) to RELAY LIST(kind:10002)
 3. **ATTENTION**: PROMOTION Viewers `write` ATTENTION(kind:38888) event(s) to RELAY LIST(kind:10002)
-4. **DISPLAY**: BILLBOARD OPERATOR displays 'best' PROMOTION event to PROMOTION VIEWER
+4. **MATCH**: MATCH MAKERS `write` MATCH(kind:38388) event(s) to RELAY LIST(kind:10002)
+4. **DISPLAY**: BILLBOARD displays promoted EVENT in PROMOTION event to PROMOTION VIEWER based on 'best' MATCH event
 
 ## References
 - [NIP-65](https://github.com/nostr-protocol/nips/blob/master/65.md): Relay List Metadata - defines kind:10002

@@ -5,19 +5,19 @@ A decentralized framework enabling paid content promotion within the Nostr ecosy
 ## Packages
 This monorepo contains the following packages:
 
-### [`@promo-protocol/server`](./packages/promo-server)
+### [`@promo-protocol/billboard`](./packages/promo-billboard)
 A poc of a service that controls the refresh rate of a billboard
 
-### [`@promo-protocol/dvmcp`](./packages/promo-dvmcp)
+### [`@promo-protocol/api`](./packages/promo-api)
 A poc of a DVMCP server as the compute layer for promo protocol services
 
-### [`@promo-protocol/match-maker`](./packages/promo-match-maker)
+### [`@promo-protocol/broker`](./packages/promo-broker)
 A poc of a service that matches attention to promotions
 
-### [`@promo-protocol/extension`](./packages/promo-extension)
+### [`@promo-protocol/passport`](./packages/promo-passport)
 A poc of a browser extension that notifies you when you can get paid to watch an ad
 
-### [`@promo-protocol/indexer`](./packages/promo-indexer)
+### [`@promo-protocol/highway`](./packages/promo-highway)
 A PoC for listing all billboards that have been announced to a set of relays
 
 ### [`@promo-protocol/marketplace`](./packages/promo-marketplace)
@@ -29,13 +29,13 @@ Common package for common functions and constants
 # Documentation
 - [PROMO Protocl Specification](./docs/)
 
-- [Server Package](./packages/promo-server/README.md)
-- [DVMCP Package](./packages/promo-dvmcp/README.md)
-- [Match Maker Package](./packages/promo-match-maker/README.md)
-- [Verifier Package](./packages/promo-verifier/README.md)
-- [Indexer Package](./packages/promo-indexer/README.md)
+- [Billboard Package](./packages/promo-billboard/README.md)
+- [API Package](./packages/promo-api/README.md)
+- [Broker Package](./packages/promo-broker/README.md)
+- [Integrity Package](./packages/promo-integrity/README.md)
+- [Highway Package](./packages/promo-highway/README.md)
 - [Marketplace Package](./packages/promo-marketplace/README.md)
-- [Extention Package](./packages/promo-extension/README.md)
+- [Passport Package](./packages/promo-passport/README.md)
 - [Widget Package](./packages/promo-widget/README.md)
 - [Commons Package](./packages/promo-commons/README.md)
 
