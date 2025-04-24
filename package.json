@@ -3,6 +3,9 @@
   "repository": "https://github.com/joinnextblock/promo-protocol",
   "scripts": {
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,md}\"",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "publish-packages": "changeset publish",
     "release:commons": "changeset publish --scope=@promo-protocol/commons"
   },
   "workspaces": [
