@@ -1,5 +1,9 @@
 # ROADMAP
 
+## API FUNCTIONS
+
+- [ ] add function `get-performance-by-function-name`
+
 ## BILLBOARD FUNCTIONS
 
 - [ ] add function `list-billboards`

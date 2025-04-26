@@ -13,13 +13,13 @@ Retrieves performance metrics for a specific function by name.
 ## Example Call
 
 ```typescript
-const result = await get_function_performance_by_name_handler(
+const result = await get_performance_by_function_name_handler(
   {
-    name: "function_name"
-  }: GetFunctionPerformanceByNameHandlerParameters,
+    function_name: "function_name"
+  }: GetPerformanceByFunctionNameHandlerParameters,
   {
     relays: ["wss://relay1.example.com", "wss://relay2.example.com"]
-  }: GetFunctionPerformanceByNameHandlerDependencies,
+  }: GetPerformanceByFunctionNameHandlerDependencies,
 );
 ```
 

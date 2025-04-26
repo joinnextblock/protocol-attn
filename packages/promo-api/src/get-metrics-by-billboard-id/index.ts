@@ -44,10 +44,8 @@ export const get_metrics_by_billboard_id_handler: GetMetricsByBillboardIdHandler
       '#p': [billboard_id],
     };
     logger.debug({ filter });
-    console.time('queryEvents');
+
     const events = await relay_handler.queryEvents(filter);
-    console.timeEnd('queryEvents');
-    console.log({ events });
 
     const attention_events = events.filter(event => event.kind === ATTENTION_KIND);
     const promotion_events = events.filter(event => event.kind === PROMOTION_KIND);
