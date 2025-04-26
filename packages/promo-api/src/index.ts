@@ -5,8 +5,7 @@ import { z } from 'zod';
 import { get_metrics_by_billboard_id_handler } from './get-metrics-by-billboard-id/index.js';
 import fs from 'fs';
 import yaml from 'js-yaml';
-import type { PROMO_PROTOCOL } from '../index.js';
-import { get_function_perfomance_by_name_handler } from './get-function-performance-by-name/index.js';
+import { get_performance_by_function_name_handler } from './get-performance-by-function-name/index.js';
 
 if (!fs.existsSync('config.dvmcp.yml')) {
   throw new Error('config.dvmcp.yml does not exist');
@@ -59,14 +58,14 @@ server.tool(
 );
 
 server.tool(
-  'get-function-perfomance-by-name',
+  'get-performance-by-function-name',
   'get function perfomance by name',
   {
-    name: z.string(),
+    function_name: z.string(),
   },
-  async ({ name }) =>
-    get_function_perfomance_by_name_handler(
-      { name },
+  async ({ function_name }) =>
+    get_performance_by_function_name_handler(
+      { function_name },
       { relays: api_config.nostr.relayUrls, key_manager }
     )
 );

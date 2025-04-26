@@ -3,14 +3,14 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-describe('Echo Server', () => {
+describe('PROMO Protocol API', () => {
   let client: Client;
   let transport: StdioClientTransport;
 
   beforeAll(async () => {
     transport = new StdioClientTransport({
       command: 'bun',
-      args: ['run', 'src/mcp-server.ts'],
+      args: ['run', 'src/index.ts'],
     });
 
     client = new Client(
