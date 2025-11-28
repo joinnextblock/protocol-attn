@@ -10,11 +10,14 @@ import { RelayConnection } from './relay/connection.js';
 import type { RelayConnectionConfig } from './relay/connection.js';
 import type {
   HookHandler,
+  BeforeHookHandler,
+  AfterHookHandler,
   HookHandle,
   HookContext,
   RelayConnectContext,
   RelayDisconnectContext,
   SubscriptionContext,
+  NewMarketplaceContext,
   NewBillboardContext,
   NewPromotionContext,
   NewAttentionContext,
@@ -33,7 +36,18 @@ import type {
 } from './hooks/types.js';
 
 export interface AttnConfig {
-  relay?: RelayConnectionConfig;
+  relays: string[];
+  private_key: Uint8Array;
+  node_pubkeys: string[];
+  marketplace_pubkeys?: string[];
+  billboard_pubkeys?: string[];
+  advertiser_pubkeys?: string[];
+  auto_reconnect?: boolean; // Default: true
+  deduplicate?: boolean; // Default: true
+  connection_timeout_ms?: number; // Default: 30000
+  reconnect_delay_ms?: number; // Default: 5000
+  max_reconnect_attempts?: number; // Default: 10
+  auth_timeout_ms?: number; // Default: 10000
 }
 
 /**
@@ -42,15 +56,12 @@ export interface AttnConfig {
  */
 export class Attn {
   private emitter: HookEmitter;
-  private relay_connection: RelayConnection | null = null;
+  private config: AttnConfig;
+  private relay_connections: Map<string, RelayConnection> = new Map();
 
-  constructor(config?: AttnConfig) {
+  constructor(config: AttnConfig) {
     this.emitter = new HookEmitter();
-
-    // Initialize relay connection if config provided
-    if (config?.relay) {
-      this.relay_connection = new RelayConnection(config.relay, this.emitter);
-    }
+    this.config = config;
   }
 
   /**
@@ -67,30 +78,34 @@ export class Attn {
 
   /**
    * Connect to Nostr relay
-   * Requires relay config to be provided in constructor
+   * Requires at least one relay URL and trusted node pubkeys
    */
   async connect(): Promise<void> {
-    if (!this.relay_connection) {
-      throw new Error('Relay connection not initialized. Provide relay config in constructor.');
-    }
-    await this.relay_connection.connect();
+    this.validate_config();
+    const connect_promises = this.config.relays.map((relay_url) => this.connect_relay(relay_url));
+    await Promise.all(connect_promises);
   }
 
   /**
    * Disconnect from Nostr relay
    */
   async disconnect(reason?: string): Promise<void> {
-    if (!this.relay_connection) {
-      return;
-    }
-    await this.relay_connection.disconnect(reason);
+    const disconnect_promises = Array.from(this.relay_connections.values()).map((connection) =>
+      connection.disconnect(reason)
+    );
+    await Promise.all(disconnect_promises);
   }
 
   /**
    * Check if relay is currently connected
    */
   get connected(): boolean {
-    return this.relay_connection?.connected ?? false;
+    for (const connection of this.relay_connections.values()) {
+      if (connection.connected) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Infrastructure hooks
@@ -124,6 +139,13 @@ export class Attn {
   }
 
   // Event lifecycle hooks
+
+  /**
+   * Register handler for new marketplace events
+   */
+  on_new_marketplace(handler: HookHandler<NewMarketplaceContext>): HookHandle {
+    return this.emitter.register(HOOK_NAMES.NEW_MARKETPLACE, handler);
+  }
 
   /**
    * Register handler for new billboard events
@@ -191,6 +213,20 @@ export class Attn {
   }
 
   /**
+   * Register handler before block events fire
+   */
+  before_new_block(handler: BeforeHookHandler<NewBlockContext>): HookHandle {
+    return this.emitter.register(HOOK_NAMES.BEFORE_NEW_BLOCK, handler);
+  }
+
+  /**
+   * Register handler after block events fire
+   */
+  after_new_block(handler: AfterHookHandler<NewBlockContext>): HookHandle {
+    return this.emitter.register(HOOK_NAMES.AFTER_NEW_BLOCK, handler);
+  }
+
+  /**
    * Register handler for block gap detection
    */
   on_block_gap_detected(handler: HookHandler<BlockGapDetectedContext>): HookHandle {
@@ -227,6 +263,47 @@ export class Attn {
    */
   on_new_nip51_list(handler: HookHandler<NewNip51ListContext>): HookHandle {
     return this.emitter.register(HOOK_NAMES.NEW_NIP51_LIST, handler);
+  }
+
+  /**
+   * Validate base configuration
+   */
+  private validate_config(): void {
+    if (!this.config?.relays?.length) {
+      throw new Error('At least one relay URL is required');
+    }
+    if (!this.config.private_key || !(this.config.private_key instanceof Uint8Array)) {
+      throw new Error('private_key (Uint8Array) is required');
+    }
+    if (!this.config.node_pubkeys || this.config.node_pubkeys.length === 0) {
+      throw new Error('node_pubkeys configuration is required for block synchronization');
+    }
+  }
+
+  /**
+   * Connect (or reuse connection) for a specific relay URL
+   */
+  private async connect_relay(relay_url: string): Promise<void> {
+    let connection = this.relay_connections.get(relay_url);
+    if (!connection) {
+      const relay_config: RelayConnectionConfig = {
+        relay_url,
+        private_key: this.config.private_key,
+        node_pubkeys: this.config.node_pubkeys,
+        marketplace_pubkeys: this.config.marketplace_pubkeys,
+        billboard_pubkeys: this.config.billboard_pubkeys,
+        advertiser_pubkeys: this.config.advertiser_pubkeys,
+        connection_timeout_ms: this.config.connection_timeout_ms,
+        reconnect_delay_ms: this.config.reconnect_delay_ms,
+        max_reconnect_attempts: this.config.max_reconnect_attempts,
+        auth_timeout_ms: this.config.auth_timeout_ms,
+        auto_reconnect: this.config.auto_reconnect,
+        deduplicate: this.config.deduplicate,
+      };
+      connection = new RelayConnection(relay_config, this.emitter);
+      this.relay_connections.set(relay_url, connection);
+    }
+    await connection.connect();
   }
 }
 

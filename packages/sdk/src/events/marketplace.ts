@@ -1,5 +1,5 @@
 /**
- * MARKETPLACE Event builder (kind 38088)
+ * MARKETPLACE Event builder (kind 38188)
  */
 
 import { finalizeEvent } from "nostr-tools";
@@ -7,7 +7,7 @@ import type { Event } from "nostr-tools";
 import type { MarketplaceEventParams } from "../types/index.js";
 
 /**
- * Create MARKETPLACE event (kind 38088)
+ * Create MARKETPLACE event (kind 38188)
  */
 export function create_marketplace_event(
   private_key: Uint8Array,
@@ -59,8 +59,8 @@ export function create_marketplace_event(
     tags.push(["k", kind.toString()]);
   }
 
-  // Required p tag (marketplace owner pubkey)
-  tags.push(["p", params.owner_pubkey]);
+  // Required p tag (marketplace pubkey)
+  tags.push(["p", params.marketplace_pubkey]);
 
   // Required r tags (multiple allowed, one per relay)
   for (const relay of params.relay_list) {
@@ -73,7 +73,7 @@ export function create_marketplace_event(
   }
 
   const event_template = {
-    kind: 38088,
+    kind: 38188,
     created_at: params.created_at ?? Math.floor(Date.now() / 1000),
     content: JSON.stringify(content_object),
     tags,

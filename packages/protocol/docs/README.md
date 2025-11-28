@@ -80,24 +80,24 @@ The ATTN Protocol ecosystem consists of four primary actors, each with distinct 
    - Create and fund promotional campaigns
    - Set total bid (satoshis for duration) they're willing to pay for attention owner attention
    - Select billboard and marketplace for promotion
-   - Publish kind:38288 events with promotion requests
+   - Publish kind:38388 events with promotion requests
 
 2. **Attention Owners**: Individual Nostr users who opt-in to viewing promotional content
    - Receive satoshis for viewing promotions
    - Set their minimum ask price for viewing content
    - Define content preferences and blocklists
-   - Publish kind:38388 events indicating viewing availability
+   - Publish kind:38488 events indicating viewing availability
 
 3. **BILLBOARD Operators**: Infrastructure providers that connect PROMOTION Creators with Attention Owners
    - Match compatible PROMOTION Creators and Attention Owners
    - Verify promotion viewing
    - Facilitate payment transactions
    - Provide analytics and reporting
-   - Publish kind:38888 MATCH events and confirmation events (kind:38488, 38588, 38688)
+   - Publish kind:38888 MATCH events and confirmation events (kind:38588, 38688, 38788)
 
 4. **MARKETPLACE Operators**: Entities that define and operate attention marketplaces
    - Define marketplace parameters (min/max duration, supported event kinds)
-   - Publish kind:38088 MARKETPLACE events
+   - Publish kind:38188 MARKETPLACE events
    - May operate BILLBOARDs within their marketplace
 
 > For detailed event specifications and protocol requirements, see [ATTN-01](./nips/ATTN-01.md).
@@ -114,12 +114,12 @@ sequenceDiagram
     participant PROMOTION Creator
     participant Attention Owner
 
-    Note over MARKETPLACE Service: Subscribes to MARKETPLACE (38088), BILLBOARD (38188),<br/>PROMOTION (38288), ATTENTION (38388), MATCH (38888),<br/>and confirmation events (38488, 38588, 38688)
-    MARKETPLACE Service->>RELAY: Publishes MARKETPLACE event (38088)
-    BILLBOARD->>RELAY: Publishes BILLBOARD event (38188)
-    PROMOTION Creator->>RELAY: Publishes PROMOTION event (38288)
+    Note over MARKETPLACE Service: Subscribes to BLOCK (38088), MARKETPLACE (38188), BILLBOARD (38288),<br/>PROMOTION (38388), ATTENTION (38488), MATCH (38888), and confirmation events (38588, 38688, 38788)
+    MARKETPLACE Service->>RELAY: Publishes MARKETPLACE event (38188)
+    BILLBOARD->>RELAY: Publishes BILLBOARD event (38288)
+    PROMOTION Creator->>RELAY: Publishes PROMOTION event (38388)
     RELAY->>MARKETPLACE Service: Forwards PROMOTION event
-    Attention Owner->>RELAY: Publishes ATTENTION event (38388)
+    Attention Owner->>RELAY: Publishes ATTENTION event (38488)
     RELAY->>MARKETPLACE Service: Forwards ATTENTION event
     Note over MARKETPLACE Service: Matching engine: bid ≥ ask, duration within range
     MARKETPLACE Service->>RELAY: Publishes MATCH event (38888)
@@ -127,12 +127,12 @@ sequenceDiagram
     RELAY->>Attention Owner: Forwards MATCH event
     Note over BILLBOARD: Displays promotion to attention owner
     Note over BILLBOARD: Verifies viewing duration
-    BILLBOARD->>RELAY: Publishes BILLBOARD_CONFIRMATION (38488)
+    BILLBOARD->>RELAY: Publishes BILLBOARD_CONFIRMATION (38588)
     RELAY->>MARKETPLACE Service: Forwards BILLBOARD_CONFIRMATION
-    Attention Owner->>RELAY: Publishes VIEWER_CONFIRMATION (38588)
+    Attention Owner->>RELAY: Publishes VIEWER_CONFIRMATION (38688)
     RELAY->>MARKETPLACE Service: Forwards VIEWER_CONFIRMATION
     Note over MARKETPLACE Service: Both confirmations received
-    MARKETPLACE Service->>RELAY: Publishes MARKETPLACE_CONFIRMATION (38688)
+    MARKETPLACE Service->>RELAY: Publishes MARKETPLACE_CONFIRMATION (38788)
     Note over RELAY,Attention Owner: Payment flows defined in future NIP
 ```
 
@@ -142,18 +142,18 @@ Each step in this workflow is recorded through standardized Nostr events, creati
 
 The ATTN Protocol operates through standardized Nostr event kinds that enable communication between the primary actors:
 
-1. **Marketplace Definition**: MARKETPLACE Operators publish kind:38088 events defining marketplace parameters (min/max duration, supported event kinds, relay lists).
+1. **Marketplace Definition**: MARKETPLACE Operators publish kind:38188 events defining marketplace parameters (min/max duration, supported event kinds, relay lists).
 
-2. **Billboard Announcement**: BILLBOARD Operators publish kind:38188 events announcing their billboard within a marketplace.
+2. **Billboard Announcement**: BILLBOARD Operators publish kind:38288 events announcing their billboard within a marketplace.
 
-3. **Promotion Creation**: PROMOTION Creators create kind:38288 events containing:
+3. **Promotion Creation**: PROMOTION Creators create kind:38388 events containing:
    - The content to be promoted (via video coordinate `a` tag)
    - Total bid price (in satoshis for the duration)
    - Duration (in milliseconds)
    - Billboard and marketplace coordinates
    - All custom data stored in JSON content field
 
-4. **Attention Owner Availability**: Attention Owners publish kind:38388 events with:
+4. **Attention Owner Availability**: Attention Owners publish kind:38488 events with:
    - Total ask price (in satoshis for the duration)
    - Minimum and maximum duration preferences (in milliseconds)
    - Kind preferences (types of notes they're willing to see)
@@ -173,9 +173,9 @@ The ATTN Protocol operates through standardized Nostr event kinds that enable co
 7. **Verification**: BILLBOARDs verify the promotion was viewed for the required duration.
 
 8. **Confirmations**: Three confirmation events are published:
-   - BILLBOARD publishes kind:38488 BILLBOARD_CONFIRMATION event
-   - Attention Owner publishes kind:38588 VIEWER_CONFIRMATION event
-   - MARKETPLACE publishes kind:38688 MARKETPLACE_CONFIRMATION event after both confirmations received
+   - BILLBOARD publishes kind:38588 BILLBOARD_CONFIRMATION event
+   - Attention Owner publishes kind:38688 VIEWER_CONFIRMATION event
+   - MARKETPLACE publishes kind:38788 MARKETPLACE_CONFIRMATION event after both confirmations received
 
 9. **Payment**: Satoshis flow from the PROMOTION CREATOR to the Attention Owner (and potentially the BILLBOARD as a service fee).
 
@@ -261,7 +261,7 @@ To participate as a PROMOTION CREATOR in the ATTN Protocol:
    - Set call-to-action text and URL
    - All parameters stored in JSON content field
 
-3. **Publish the Promotion**: Your client will create and publish a kind:38288 event with block height in `t` tag
+3. **Publish the Promotion**: Your client will create and publish a kind:38388 event with block height in `t` tag
 
 ### Managing Campaigns
 
@@ -296,10 +296,10 @@ To participate as an Attention Owner and earn satoshis:
 2. **Define Content Preferences**:
    - Set minimum and maximum duration (in milliseconds)
    - Select event kinds you're willing to view (kind_list in JSON content)
-   - Create or reference a block list (kind 38988) via coordinate `a` tag
+   - Create or reference NIP-51 block lists (kind 30000) using `org.attnprotocol:promotion:blocked` and `org.attnprotocol:promoter:blocked` identifiers
    - All preferences stored in JSON content field
 
-3. **Publish Availability**: Your client will create and publish a kind:38388 event with block height in `t` tag
+3. **Publish Availability**: Your client will create and publish a kind:38488 event with block height in `t` tag
 
 ### Viewing Promotions
 
@@ -335,11 +335,11 @@ Running a BILLBOARD is a technical undertaking that enables you to facilitate th
 ### Implementation Steps
 
 1. **Set Up Infrastructure**:
-   - Deploy Nostr relay listeners for MARKETPLACE (38088), BILLBOARD (38188), PROMOTION (38288), ATTENTION (38388), MATCH (38888), and confirmation events (38488, 38588, 38688)
+   - Deploy Nostr relay listeners for BLOCK (38088), MARKETPLACE (38188), BILLBOARD (38288), PROMOTION (38388), ATTENTION (38488), MATCH (38888), and confirmation events (38588, 38688, 38788)
    - Implement a matching engine based on protocol specifications (bid ≥ ask, duration within range)
    - Configure payment channels for satoshi transfers
    - Create verification mechanisms for viewing confirmation
-   - Publish kind:38188 BILLBOARD event announcing your billboard
+   - Publish kind:38288 BILLBOARD event announcing your billboard
 
 2. **Establish Policies**:
    - Define fee structure for your BILLBOARD services
@@ -350,8 +350,8 @@ Running a BILLBOARD is a technical undertaking that enables you to facilitate th
 3. **Launch Operations**:
    - Begin identifying and matching compatible promotions and attention owners
    - Publish kind:38888 MATCH events when matches are found
-   - Verify views and publish kind:38488 BILLBOARD_CONFIRMATION events
-   - Wait for kind:38588 VIEWER_CONFIRMATION events
+   - Verify views and publish kind:38588 BILLBOARD_CONFIRMATION events
+   - Wait for kind:38688 VIEWER_CONFIRMATION events
    - Process payments between parties
 
 ### Monetization Options
@@ -417,16 +417,16 @@ After a match is created (kind:38888), the confirmation flow proceeds:
 
 1. **Content Viewing**: The Attention Owner sees the promoted content for the required duration, resulting in a successful view
 
-2. **BILLBOARD Confirmation**: The BILLBOARD publishes a kind:38488 BILLBOARD_CONFIRMATION event after successful viewing, including:
+2. **BILLBOARD Confirmation**: The BILLBOARD publishes a kind:38588 BILLBOARD_CONFIRMATION event after successful viewing, including:
    - Block height as integer
    - References to match, promotion, attention, and marketplace events via `e` tags
 
-3. **Attention Owner Confirmation**: The Attention Owner publishes a kind:38588 VIEWER_CONFIRMATION event confirming receipt, including:
+3. **Attention Owner Confirmation**: The Attention Owner publishes a kind:38688 VIEWER_CONFIRMATION event confirming receipt, including:
    - Block height at confirmation
    - Satoshis received
    - References to match, promotion, attention, and marketplace events via `e` tags
 
-4. **MARKETPLACE Confirmation**: The MARKETPLACE publishes a kind:38688 MARKETPLACE_CONFIRMATION event after both confirmations are received, including:
+4. **MARKETPLACE Confirmation**: The MARKETPLACE publishes a kind:38788 MARKETPLACE_CONFIRMATION event after both confirmations are received, including:
    - Block height at confirmation
    - Total satoshis settled
    - Payout breakdown (attention owner, billboard)
@@ -448,7 +448,7 @@ The ATTN Protocol empowers Attention Owners with comprehensive content filtering
 
 ### Implementation Approach
 
-Content preferences are primarily expressed through kind:38388 events, where Attention Owners specify their requirements:
+Content preferences are primarily expressed through kind:38488 events, where Attention Owners specify their requirements:
 
 - **JSON Content Fields**: All custom data stored in JSON content field:
   - `ask` (number): Total satoshis for duration
@@ -459,8 +459,9 @@ Content preferences are primarily expressed through kind:38388 events, where Att
 
 - **Tags for Indexing**:
   - `["t", "<block_height>"]`: Block height for filtering
-  - `["a", "<marketplace_coordinate>"]`: Marketplace reference (format: `38088:pubkey:id`)
-  - `["a", "<block_list_coordinate>"]`: Block list reference (format: `38988:pubkey:d_tag`)
+  - `["a", "<marketplace_coordinate>"]`: Marketplace reference (format: `38188:pubkey:id`)
+  - `["a", "<blocked_promotions_coordinate>"]`: Blocked promotions list reference (`30000:<attention_pubkey>:org.attnprotocol:promotion:blocked`)
+  - `["a", "<blocked_promoters_coordinate>"]`: Blocked promoters list reference (`30000:<attention_pubkey>:org.attnprotocol:promoter:blocked`)
   - `["p", "<pubkey>"]`: Pubkeys for indexing
   - `["r", "<relay_url>"]`: Relay URLs for indexing
   - `["k", "<kind>"]`: Event kinds for indexing
@@ -570,59 +571,52 @@ The ATTN Protocol's flexible tagging system allows Attention Owners to create hi
 
 ## How do Attention Owner block lists work?
 
-Block lists give Attention Owners precise control over what content they never want to see. These are implemented through protocol-specific lists (kind:38988) referenced in ATTENTION events via coordinate `a` tags:
+Block lists give Attention Owners precise control over what content they never want to see. ATTN standardizes on NIP-51 lists (kind:30000) with the `org.attnprotocol:<resource>:<action>` naming scheme so every client interprets preferences the same way.
 
 ### Block List Types
 
-1. **PROMOTION-Level Blocks**:
-   - Block specific PROMOTION event IDs
-   - Implemented using `["e", "<objectionable_promotion>"]` tags in NIP-51 list
-   - Once blocked, that specific promotion will never be shown
+1. **Blocked Promotions (`org.attnprotocol:promotion:blocked`)**
+   - References specific promotion coordinates via `a` tags (`38388:<promoter_pubkey>:<promotion_id>`)
+   - Used when you never want to see a particular promotion again
 
-2. **PROMOTER-Level Blocks**:
-   - Block all content from specific PROMOTERS by their pubkeys
-   - Implemented using `["p", "<objectionable_promoter>"]` tags in NIP-51 list
-   - Prevents seeing any promotions from blocked PROMOTERS
+2. **Blocked Promoters (`org.attnprotocol:promoter:blocked`)**
+   - Uses `p` tags to block every promotion from a pubkey
+   - Ideal for excluding entire advertisers
 
 ### Implementation
 
-1. **Block List Creation**:
-   - Attention Owners create a kind:38988 block list
-   - List uses `["d", "<block_list_identifier>"]` as identifier
-   - Can contain multiple `e` and `p` tags for different blocks
+1. **List Creation**
+   - Publish two kind:30000 events, one per list type, with the required `d` tag (`org.attnprotocol:promotion:blocked` / `org.attnprotocol:promoter:blocked`)
+   - Lists can start empty; they still establish the coordinates ATTENTION events must reference
 
-2. **Block List Reference**:
-   - ATTENTION events (kind:38388) reference the block list via `a` tag
-   - Uses coordinate format: `["a", "38988:<list_owner_pubkey>:<list_d_tag>"]`
-   - MARKETPLACE services fetch and honor referenced block lists
-   - Block list coordinate is required in ATTENTION events (even if list is empty)
+2. **List Reference**
+   - ATTENTION events (kind:38488) include two `a` tags:
+     - `["a", "30000:<attention_pubkey>:org.attnprotocol:promotion:blocked"]`
+     - `["a", "30000:<attention_pubkey>:org.attnprotocol:promoter:blocked"]`
+   - MARKETPLACE services and BILLBOARDs fetch these lists and honor the blocks during matching
 
 ### Block List Behavior
 
-1. **Default Allow**:
-   - All PROMOTIONS are implicitly allowed unless explicitly blocked
-   - Block list acts as an exclusion mechanism
+1. **Default Allow**
+   - Promotions are shown unless explicitly blocked via either list
 
-2. **Priority Rules**:
-   - PROMOTION-level blocks take precedence
-   - PROMOTER-level blocks apply to all their PROMOTIONS
-   - BILLBOARDs MUST NOT show blocked content under any circumstances
+2. **Priority Rules**
+   - Promotion-level blocks override every other consideration
+   - Promoter-level blocks apply to all promotions from that pubkey
+   - BILLBOARDs MUST NOT deliver content that appears on either list
 
 ### Privacy Considerations
 
-- Block lists are public Nostr events
-- Consider using separate identities for different content preferences
-- Block list changes are immediately effective
-- BILLBOARDs MUST NOT reveal block list details in metrics
+- Lists are public, so consider alternate identities for specialized filters
+- Updates propagate immediately once relays receive the new kind:30000 events
+- BILLBOARD metrics should never leak an Attention Owner's block preferences
 
 ### Client Support
 
-- Most clients provide user-friendly block interfaces
-- Clients SHOULD make blocking actions simple
-- Some clients support block list import/export
-- Clients MAY suggest blocks based on user behavior
+- Clients SHOULD expose simple UI for both lists and allow import/export
+- Suggested blocks are optional; final authority always remains with the user
 
-Block lists are essential for ensuring Attention Owners maintain control over their content experience while participating in the promotional ecosystem.
+These interoperable NIP-51 lists preserve user sovereignty while keeping the protocol aligned with Bitcoin-native values.
 
 ## How do PROMOTIONS begin and end?
 
@@ -631,7 +625,7 @@ PROMOTIONS in the ATTN Protocol have well-defined lifecycle stages:
 ### Promotion Creation and Activation
 
 1. **Promotion Definition**:
-   - PROMOTION CREATOR creates a kind:38288 event
+   - PROMOTION CREATOR creates a kind:38388 event
    - Includes content to promote (via video coordinate `a` tag), total bid (satoshis), and duration (milliseconds) in JSON content
    - References marketplace, billboard, and video via coordinate `a` tags
    - Includes block height in `t` tag
@@ -658,7 +652,7 @@ Promotions can end through several mechanisms:
    - View count reached (if maximum views specified)
 
 2. **Manual Termination**:
-   - PROMOTION CREATOR publishes a replaceable event (kind:38288) with updated status or publishes a kind:5 event referencing the promotion
+   - PROMOTION CREATOR publishes a replaceable event (kind:38388) with updated status or publishes a kind:5 event referencing the promotion
    - Explicitly ends the promotion before natural completion
    - Remaining budget is returned or held based on client policy
 
@@ -718,9 +712,9 @@ The ATTN Protocol implements several mechanisms to verify genuine promotion view
 3. **Engagement Monitoring**: Optional tracking of interaction signals
 4. **Threshold Confirmation**: Verification when required duration is reached
 5. **Confirmation Publication**: Three confirmation events published:
-   - BILLBOARD publishes kind:38488 BILLBOARD_CONFIRMATION
-   - Attention Owner publishes kind:38588 VIEWER_CONFIRMATION
-   - MARKETPLACE publishes kind:38688 MARKETPLACE_CONFIRMATION after both received
+   - BILLBOARD publishes kind:38588 BILLBOARD_CONFIRMATION
+   - Attention Owner publishes kind:38688 VIEWER_CONFIRMATION
+   - MARKETPLACE publishes kind:38788 MARKETPLACE_CONFIRMATION after both received
 
 ### Fraud Prevention
 
@@ -810,12 +804,12 @@ When selecting relays for ATTN Protocol participation, consider:
 ### Selection Criteria
 
 1. **MARKETPLACE Support**:
-   - Choose relays listed in MARKETPLACE kind:38088 events (relay_list in JSON content)
-   - Verify relay URLs listed in BILLBOARD kind:38188 events
+   - Choose relays listed in MARKETPLACE kind:38188 events (relay_list in JSON content)
+   - Verify relay URLs listed in BILLBOARD kind:38288 events
    - Prioritize relays with consistent uptime and performance
 
 2. **Protocol Compatibility**:
-   - Ensure relays support all required event kinds: 38088 (MARKETPLACE), 38188 (BILLBOARD), 38288 (PROMOTION), 38388 (ATTENTION), 38488 (BILLBOARD_CONFIRMATION), 38588 (VIEWER_CONFIRMATION), 38688 (MARKETPLACE_CONFIRMATION), 38888 (MATCH)
+   - Ensure relays support all required event kinds: 38088 (BLOCK), 38188 (MARKETPLACE), 38288 (BILLBOARD), 38388 (PROMOTION), 38488 (ATTENTION), 38588 (BILLBOARD_CONFIRMATION), 38688 (VIEWER_CONFIRMATION), 38788 (MARKETPLACE_CONFIRMATION), 38888 (MATCH)
    - Check for any relay-specific event or content restrictions
    - Verify support for required NIP implementations (NIP-51 for block lists)
 
@@ -855,8 +849,8 @@ BILLBOARDs have specific relay requirements to ensure reliable protocol operatio
 ### Implementation Guidelines
 
 1. **Primary Relays**:
-   - Listed in MARKETPLACE kind:38088 events (relay_list in JSON content)
-   - Listed in BILLBOARD kind:38188 events (via `r` tags)
+   - Listed in MARKETPLACE kind:38188 events (relay_list in JSON content)
+   - Listed in BILLBOARD kind:38288 events (via `r` tags)
    - Monitored continuously for availability
    - Used for critical protocol operations
 

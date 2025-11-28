@@ -1,5 +1,5 @@
 /**
- * ATTENTION Event builder (kind 38388)
+ * ATTENTION Event builder (kind 38488)
  */
 
 import { finalizeEvent } from "nostr-tools";
@@ -25,6 +25,8 @@ export function create_attention_event(
     marketplace_pubkey: params.marketplace_pubkey,
     attention_id: params.attention_id,
     marketplace_id: params.marketplace_id,
+    blocked_promotions_id: params.blocked_promotions_id,
+    blocked_promoters_id: params.blocked_promoters_id,
   };
 
   const tags: string[][] = [];
@@ -37,9 +39,10 @@ export function create_attention_event(
     tags.push(["t", params.block_height.toString()]);
   }
 
-  // Required a tags (marketplace and block_list coordinates)
+  // Required a tags (marketplace and block list coordinates)
   tags.push(["a", params.marketplace_coordinate]);
-  tags.push(["a", params.block_list_coordinate]);
+  tags.push(["a", params.blocked_promotions_coordinate]);
+  tags.push(["a", params.blocked_promoters_coordinate]);
 
   // Required p tags (attention and marketplace)
   tags.push(["p", params.attention_pubkey]);
@@ -56,7 +59,7 @@ export function create_attention_event(
   }
 
   const event_template = {
-    kind: 38388,
+    kind: 38488,
     created_at: params.created_at ?? Math.floor(Date.now() / 1000),
     content: JSON.stringify(content_object),
     tags,

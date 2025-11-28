@@ -28,6 +28,7 @@ export function create_match_event(
     billboard_id: params.billboard_id,
     promotion_id: params.promotion_id,
     attention_id: params.attention_id,
+    match_id: params.match_id,
   };
 
   const tags: string[][] = [];
@@ -36,9 +37,10 @@ export function create_match_event(
   tags.push(["d", params.match_id]);
 
   // Required t tag (block height)
-  if (params.block_height !== undefined) {
-    tags.push(["t", params.block_height.toString()]);
+  if (params.block_height === undefined) {
+    throw new Error("block_height is required for MATCH events");
   }
+  tags.push(["t", params.block_height.toString()]);
 
   // Required a tags (marketplace, billboard, promotion, attention coordinates)
   tags.push(["a", params.marketplace_coordinate]);
@@ -46,19 +48,31 @@ export function create_match_event(
   tags.push(["a", params.promotion_coordinate]);
   tags.push(["a", params.attention_coordinate]);
 
-  // Required p tags (marketplace, promotion, attention)
+  // Required p tags (marketplace, promotion, attention, billboard)
   tags.push(["p", params.marketplace_pubkey]);
   tags.push(["p", params.promotion_pubkey]);
   tags.push(["p", params.attention_pubkey]);
+  tags.push(["p", params.billboard_pubkey]);
 
   // Required r tags (multiple allowed, one per relay)
-  for (const relay of params.relays) {
+  const relay_targets =
+    params.relays && params.relays.length > 0
+      ? params.relays
+      : params.relay_list || [];
+  for (const relay of relay_targets) {
     tags.push(["r", relay]);
   }
 
-  // Required k tag (multiple allowed)
-  const kind_array = Array.isArray(params.kind) ? params.kind : [params.kind];
-  for (const k of kind_array) {
+  // Required k tags (multiple allowed)
+  const tag_kinds =
+    params.kind_list && params.kind_list.length > 0
+      ? params.kind_list
+      : params.kind !== undefined
+        ? Array.isArray(params.kind)
+          ? params.kind
+          : [params.kind]
+        : [];
+  for (const k of tag_kinds) {
     tags.push(["k", k.toString()]);
   }
 

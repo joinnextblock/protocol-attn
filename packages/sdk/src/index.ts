@@ -10,6 +10,7 @@ export type { AttnSdkConfig } from "./sdk.js";
 
 // Event builders
 export {
+  create_block_event,
   create_marketplace_event,
   create_billboard_event,
   create_promotion_event,
@@ -23,6 +24,7 @@ export {
 // Types
 export type {
   BaseEventParams,
+  BlockEventParams,
   MarketplaceEventParams,
   BillboardEventParams,
   PromotionEventParams,

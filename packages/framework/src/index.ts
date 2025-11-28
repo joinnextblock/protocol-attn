@@ -13,6 +13,8 @@ export type { AttnConfig } from './attn.js';
 export { HOOK_NAMES } from './hooks/index.js';
 export type {
   HookHandler,
+  BeforeHookHandler,
+  AfterHookHandler,
   HookHandle,
   HookContext,
   BlockHeight,
@@ -21,6 +23,7 @@ export type {
   RelayConnectContext,
   RelayDisconnectContext,
   SubscriptionContext,
+  NewMarketplaceContext,
   NewBillboardContext,
   NewPromotionContext,
   NewAttentionContext,
@@ -30,6 +33,7 @@ export type {
   ViewerConfirmContext,
   MarketplaceConfirmedContext,
   NewBlockContext,
+  BlockData,
   BlockGapDetectedContext,
   RateLimitContext,
   HealthChangeContext,
@@ -43,4 +47,7 @@ export type { RelayConnectionConfig } from './relay/index.js';
 
 // Core types (only export unique types from types/index, BlockHeight/Pubkey/EventId come from hooks/types)
 export type { RelayUrl } from './types/index.js';
+
+// Shared constants
+export { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from './constants.js';
 

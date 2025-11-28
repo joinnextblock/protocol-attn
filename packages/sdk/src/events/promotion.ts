@@ -1,5 +1,5 @@
 /**
- * PROMOTION Event builder (kind 38288)
+ * PROMOTION Event builder (kind 38388)
  */
 
 import { finalizeEvent } from "nostr-tools";
@@ -63,7 +63,7 @@ export function create_promotion_event(
   tags.push(["u", params.url]);
 
   const event_template = {
-    kind: 38288,
+    kind: 38388,
     created_at: params.created_at ?? Math.floor(Date.now() / 1000),
     content: JSON.stringify(content_object),
     tags,

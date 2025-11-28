@@ -2,6 +2,7 @@
  * Event builder exports
  */
 
+export { create_block_event } from "./block.js";
 export { create_marketplace_event } from "./marketplace.js";
 export { create_billboard_event } from "./billboard.js";
 export { create_promotion_event } from "./promotion.js";

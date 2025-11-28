@@ -6,6 +6,8 @@
 export { HookEmitter } from './emitter.js';
 export type {
   HookHandler,
+  BeforeHookHandler,
+  AfterHookHandler,
   HookHandle,
   HookContext,
   BlockHeight,
@@ -14,6 +16,7 @@ export type {
   RelayConnectContext,
   RelayDisconnectContext,
   SubscriptionContext,
+  NewMarketplaceContext,
   NewBillboardContext,
   NewPromotionContext,
   NewAttentionContext,
@@ -42,6 +45,7 @@ export const HOOK_NAMES = {
   RATE_LIMIT: 'on_rate_limit',
 
   // Event lifecycle hooks
+  NEW_MARKETPLACE: 'on_new_marketplace',
   NEW_BILLBOARD: 'on_new_billboard',
   NEW_PROMOTION: 'on_new_promotion',
   NEW_ATTENTION: 'on_new_attention',
@@ -52,7 +56,9 @@ export const HOOK_NAMES = {
   MARKETPLACE_CONFIRMED: 'on_marketplace_confirmed',
 
   // Block synchronization hooks
+  BEFORE_NEW_BLOCK: 'before_new_block',
   NEW_BLOCK: 'on_new_block',
+  AFTER_NEW_BLOCK: 'after_new_block',
   BLOCK_GAP_DETECTED: 'on_block_gap_detected',
 
   // Health hooks

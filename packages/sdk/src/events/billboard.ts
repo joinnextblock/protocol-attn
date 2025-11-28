@@ -1,5 +1,5 @@
 /**
- * BILLBOARD Event builder (kind 38188)
+ * BILLBOARD Event builder (kind 38288)
  */
 
 import { finalizeEvent } from "nostr-tools";
@@ -56,7 +56,7 @@ export function create_billboard_event(
   tags.push(["u", params.url]);
 
   const event_template = {
-    kind: 38188,
+    kind: 38288,
     created_at: params.created_at ?? Math.floor(Date.now() / 1000),
     content: JSON.stringify(content_object),
     tags,

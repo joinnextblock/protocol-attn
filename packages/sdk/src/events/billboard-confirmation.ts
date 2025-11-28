@@ -1,5 +1,5 @@
 /**
- * BILLBOARD_CONFIRMATION Event builder (kind 38488)
+ * BILLBOARD_CONFIRMATION Event builder (kind 38588)
  */
 
 import { finalizeEvent } from "nostr-tools";
@@ -15,9 +15,31 @@ export function create_billboard_confirmation_event(
 ): Event {
   const content_object: Record<string, unknown> = {
     block: params.block,
+    price: params.price,
+    marketplace_event_id: params.marketplace_ref,
+    promotion_event_id: params.promotion_ref,
+    attention_event_id: params.attention_ref,
+    match_event_id: params.match_ref,
+    marketplace_pubkey: params.marketplace_pubkey,
+    promotion_pubkey: params.promotion_pubkey,
+    attention_pubkey: params.attention_pubkey,
+    billboard_pubkey: params.billboard_pubkey,
+    marketplace_id: params.marketplace_id,
+    promotion_id: params.promotion_id,
+    attention_id: params.attention_id,
+    match_id: params.match_id,
   };
 
   const tags: string[][] = [];
+
+  // Required t tag
+  tags.push(["t", params.block.toString()]);
+
+  // Required a tag references
+  tags.push(["a", params.marketplace_coordinate]);
+  tags.push(["a", params.promotion_coordinate]);
+  tags.push(["a", params.attention_coordinate]);
+  tags.push(["a", params.match_coordinate]);
 
   // Required e tag references
   tags.push(["e", params.marketplace_ref]);
@@ -25,8 +47,22 @@ export function create_billboard_confirmation_event(
   tags.push(["e", params.attention_ref]);
   tags.push(["e", params.match_ref]);
 
+  // Required p tags
+  tags.push(["p", params.marketplace_pubkey]);
+  tags.push(["p", params.promotion_pubkey]);
+  tags.push(["p", params.attention_pubkey]);
+  tags.push(["p", params.billboard_pubkey]);
+
+  // Required r tags
+  for (const relay of params.relays) {
+    tags.push(["r", relay]);
+  }
+
+  // Required u tag
+  tags.push(["u", params.url]);
+
   const event_template = {
-    kind: 38488,
+    kind: 38588,
     created_at: params.created_at ?? Math.floor(Date.now() / 1000),
     content: JSON.stringify(content_object),
     tags,

@@ -7,15 +7,18 @@ The attn-framework follows a deterministic lifecycle sequence. Hooks fire in thi
 ```mermaid
 graph TD
     Start([Start]) --> relay_connect[1. on_relay_connect<br/>Connect to Nostr relay]
-    relay_connect -->     receive_events[2. Receive Events<br/>on_new_promotion<br/>on_new_attention<br/>on_new_match]
+    relay_connect --> receive_events[2. Receive Events<br/>on_new_marketplace<br/>on_new_billboard<br/>on_new_promotion<br/>on_new_attention<br/>on_new_match]
     receive_events --> match[3. on_match_published<br/>Publish MATCH event]
     match --> confirmations[4. Receive Confirmations<br/>on_billboard_confirm<br/>on_viewer_confirm]
     confirmations --> final[5. on_marketplace_confirmed<br/>Publish final MARKETPLACE_CONFIRMATION]
 
     subgraph Block Synchronization
+        block_before[before_new_block]
         block_finalized[on_new_block<br/>New Bitcoin block detected]
+        block_after[after_new_block]
         block_gap[on_block_gap_detected<br/>Gap between expected/actual height]
     end
+    block_before --> block_finalized --> block_after
 
     subgraph Error Handling
         relay_disconnect[on_relay_disconnect]
@@ -37,20 +40,24 @@ graph TD
 - **on_relay_connect**: Nostr relay connected (event source/sink)
 
 ### 2. Event Reception
-- **on_new_promotion**: PROMOTION event received (kind 38288)
-- **on_new_attention**: ATTENTION event received (kind 38388)
+- **on_new_marketplace**: MARKETPLACE event received (kind 38188)
+- **on_new_billboard**: BILLBOARD event received (kind 38288)
+- **on_new_promotion**: PROMOTION event received (kind 38388)
+- **on_new_attention**: ATTENTION event received (kind 38488)
 - **on_new_match**: MATCH event received (kind 38888)
-- **on_new_block**: New Bitcoin block detected (triggers event processing)
+- **before_new_block**: Fires before each BLOCK event (kind 38088) to prepare state
+- **on_new_block**: BLOCK event received from trusted node services (kind 38088)
+- **after_new_block**: Fires after block processing completes (kind 38088)
 
 ### 3. Matching & Publication
 - **on_match_published**: MATCH event published (kind 38888) - backward compatibility hook with promotion/attention IDs
 
 ### 4. Confirmation Reception
-- **on_billboard_confirm**: Billboard confirmation received (kind 38488)
-- **on_viewer_confirm**: Viewer confirmation received (kind 38588)
+- **on_billboard_confirm**: Billboard confirmation received (kind 38588)
+- **on_viewer_confirm**: Viewer confirmation received (kind 38688)
 
 ### 5. Final Settlement
-- **on_marketplace_confirmed**: Final MARKETPLACE_CONFIRMATION published (kind 38688)
+- **on_marketplace_confirmed**: Final MARKETPLACE_CONFIRMATION published (kind 38788)
 
 ## Error & Health Hooks
 

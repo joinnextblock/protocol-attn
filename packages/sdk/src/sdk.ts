@@ -5,6 +5,7 @@
 import { getPublicKey, nip19 } from "nostr-tools";
 import type { Event } from "nostr-tools";
 import {
+  create_block_event,
   create_marketplace_event,
   create_billboard_event,
   create_promotion_event,
@@ -18,6 +19,7 @@ import type {
   PromotionEventParams,
   AttentionEventParams,
   MatchEventParams,
+  BlockEventParams,
   PublishResult,
   PublishResults,
 } from "./types/index.js";
@@ -77,14 +79,21 @@ export class AttnSdk {
   }
 
   /**
-   * Create MARKETPLACE event (kind 38088)
+   * Create BLOCK event (kind 38088)
+   */
+  create_block(params: BlockEventParams): Event {
+    return create_block_event(this.private_key, params);
+  }
+
+  /**
+   * Create MARKETPLACE event (kind 38188)
    */
   create_marketplace(params: MarketplaceEventParams): Event {
     return create_marketplace_event(this.private_key, params);
   }
 
   /**
-   * Create BILLBOARD event (kind 38188)
+   * Create BILLBOARD event (kind 38288)
    */
   create_billboard(
     params: BillboardEventParams
@@ -93,14 +102,14 @@ export class AttnSdk {
   }
 
   /**
-   * Create PROMOTION event (kind 38288)
+   * Create PROMOTION event (kind 38388)
    */
   create_promotion(params: PromotionEventParams): Event {
     return create_promotion_event(this.private_key, params);
   }
 
   /**
-   * Create ATTENTION event (kind 38388)
+   * Create ATTENTION event (kind 38488)
    */
   create_attention(params: AttentionEventParams): Event {
     return create_attention_event(this.private_key, params);

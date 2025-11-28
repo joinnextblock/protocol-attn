@@ -8,11 +8,14 @@ import type { Event } from 'nostr-tools';
 import { finalizeEvent, getPublicKey, utils } from 'nostr-tools';
 import { HookEmitter } from '../hooks/emitter.js';
 import { HOOK_NAMES } from '../hooks/index.js';
+import { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from '../constants.js';
 import type {
   RelayConnectContext,
   RelayDisconnectContext,
   SubscriptionContext,
   NewBlockContext,
+  BlockData,
+  NewMarketplaceContext,
   NewBillboardContext,
   NewPromotionContext,
   NewAttentionContext,
@@ -28,18 +31,22 @@ import type {
 
 export interface RelayConnectionConfig {
   relay_url: string;
-  private_key?: Uint8Array;
-  bridge_pubkey_hex?: string; // Bridge service pubkey (hex) for filtering kind 30078 events
-  marketplace_coordinates?: string[]; // Marketplace coordinates (format: "38088:pubkey:id") for filtering ATTN Protocol events by #a tag
+  private_key: Uint8Array;
+  node_pubkeys: string[];
+  marketplace_pubkeys?: string[];
+  billboard_pubkeys?: string[];
+  advertiser_pubkeys?: string[];
   connection_timeout_ms?: number;
   reconnect_delay_ms?: number;
   max_reconnect_attempts?: number;
   auth_timeout_ms?: number; // Timeout for NIP-42 authentication (default 10000ms)
+  auto_reconnect?: boolean;
+  deduplicate?: boolean;
 }
 
 /**
  * Nostr relay connection manager
- * Manages connection to Nostr relay and listens for block events (kind 30078)
+ * Manages connection to Nostr relay and listens for block events (kind 38088)
  */
 export class RelayConnection {
   private ws: WebSocket | null = null;
@@ -53,8 +60,11 @@ export class RelayConnection {
   private auth_timeout_ms: number;
   private reconnect_attempts: number = 0;
   private reconnect_timeout: NodeJS.Timeout | null = null;
-  private subscription_id: string; // For block events (kind 30078)
-  private attn_subscription_id: string; // For ATTN Protocol events
+  private auto_reconnect: boolean;
+  private subscription_id: string; // For block events (kind 38088)
+  private attn_subscription_id: string; // Base ID for ATTN Protocol events
+  private attn_subscription_ids: string[] = [];
+  private attn_filter_map: Map<string, { kinds: number[]; [key: string]: unknown }> = new Map();
   private standard_subscription_id: string; // For standard Nostr events (kind 0, 10002, 30000)
   private message_handler: ((data: WebSocket.Data) => void) | null = null;
   private auth_timeout: NodeJS.Timeout | null = null;
@@ -68,6 +78,7 @@ export class RelayConnection {
     this.reconnect_delay_ms = config.reconnect_delay_ms ?? 5000;
     this.max_reconnect_attempts = config.max_reconnect_attempts ?? 10;
     this.auth_timeout_ms = config.auth_timeout_ms ?? 10000;
+    this.auto_reconnect = config.auto_reconnect !== false;
     this.subscription_id = `attn-blocks-${Date.now()}`;
     this.attn_subscription_id = `attn-events-${Date.now()}`;
     this.standard_subscription_id = `attn-standard-${Date.now()}`;
@@ -80,6 +91,13 @@ export class RelayConnection {
   async connect(): Promise<void> {
     if (this.is_connected && this.ws && this.ws.readyState === WebSocket.OPEN) {
       return;
+    }
+
+    if (!this.config.private_key) {
+      throw new Error('private_key required for relay connection');
+    }
+    if (!this.config.node_pubkeys || this.config.node_pubkeys.length === 0) {
+      throw new Error('node_pubkeys configuration is required');
     }
 
     return new Promise((resolve, reject) => {
@@ -170,7 +188,7 @@ export class RelayConnection {
                   if (subscription_id === this.subscription_id) {
                     // Block events subscription
                     this.handle_block_event(event);
-                  } else if (subscription_id === this.attn_subscription_id) {
+                  } else if (this.attn_subscription_ids.includes(subscription_id)) {
                     // ATTN Protocol events subscription - route by kind
                     this.handle_attn_event(event);
                   } else if (subscription_id === this.standard_subscription_id) {
@@ -182,33 +200,26 @@ export class RelayConnection {
 
                   if (subscription_id === this.subscription_id) {
                     // End of stored events - block subscription confirmed
-                    const filter: { kinds: number[]; authors?: string[] } = {
-                      kinds: [30078],
-                    };
-                    if (this.config.bridge_pubkey_hex) {
-                      filter.authors = [this.config.bridge_pubkey_hex];
-                    }
+                  const filter: { kinds: number[]; authors: string[] } = {
+                    kinds: [ATTN_EVENT_KINDS.BLOCK],
+                    authors: this.config.node_pubkeys,
+                  };
                     const confirmed_context: SubscriptionContext = {
                       relay_url: this.config.relay_url,
                       subscription_id: this.subscription_id,
-                      filter: { ...filter },
+                    filter: { ...filter },
                       status: 'confirmed',
                     };
                     this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, confirmed_context).catch(() => {
                       // Ignore errors in hook handlers
                     });
-                  } else if (subscription_id === this.attn_subscription_id) {
+                  } else if (this.attn_subscription_ids.includes(subscription_id)) {
                     // End of stored events - ATTN Protocol subscription confirmed
-                    const filter: { kinds: number[]; '#a'?: string[] } = {
-                      kinds: [38188, 38288, 38388, 38488, 38588, 38688, 38888],
-                    };
-                    if (this.config.marketplace_coordinates && this.config.marketplace_coordinates.length > 0) {
-                      filter['#a'] = this.config.marketplace_coordinates;
-                    }
+                    const filter = this.attn_filter_map.get(subscription_id) ?? { kinds: [] };
                     const confirmed_context: SubscriptionContext = {
                       relay_url: this.config.relay_url,
-                      subscription_id: this.attn_subscription_id,
-                      filter: { kinds: filter.kinds },
+                      subscription_id,
+                      filter: { ...filter },
                       status: 'confirmed',
                     };
                     this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, confirmed_context).catch(() => {
@@ -216,13 +227,19 @@ export class RelayConnection {
                     });
                   } else if (subscription_id === this.standard_subscription_id) {
                     // End of stored events - standard Nostr events subscription confirmed
-                    const filter: { kinds: number[] } = {
-                      kinds: [0, 10002, 30000, 38988],
+                  const filter: { kinds: number[]; [key: string]: unknown } = {
+                    kinds: [0, 10002, 30000],
+                    '#d': [
+                      NIP51_LIST_TYPES.BLOCKED_PROMOTIONS,
+                      NIP51_LIST_TYPES.BLOCKED_PROMOTERS,
+                      NIP51_LIST_TYPES.TRUSTED_BILLBOARDS,
+                      NIP51_LIST_TYPES.TRUSTED_MARKETPLACES,
+                    ],
                     };
                     const confirmed_context: SubscriptionContext = {
                       relay_url: this.config.relay_url,
                       subscription_id: this.standard_subscription_id,
-                      filter: { kinds: filter.kinds },
+                    filter: { ...filter },
                       status: 'confirmed',
                     };
                     this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, confirmed_context).catch(() => {
@@ -245,21 +262,16 @@ export class RelayConnection {
           this.ws!.on('message', this.message_handler);
 
           // Wait for AUTH challenge - do NOT subscribe until authentication completes
-          if (this.config.private_key) {
-            console.log('[attn] Private key provided, waiting for AUTH challenge...');
-            // Set timeout: if no AUTH challenge received within timeout, reject connection
-            this.auth_timeout = setTimeout(() => {
-              if (!this.auth_challenge_received) {
-                console.log('[attn] No AUTH challenge received within timeout');
-                reject(new Error('No AUTH challenge received from relay - NIP-42 authentication required'));
-              }
-            }, this.auth_timeout_ms);
-            // Do NOT subscribe here - wait for authentication to complete
-            // Subscription will happen in the OK response handler after successful authentication
-          } else {
-            // No private key provided - cannot authenticate, reject connection
-            reject(new Error('private_key required for NIP-42 authentication'));
-          }
+          console.log('[attn] Private key provided, waiting for AUTH challenge...');
+          // Set timeout: if no AUTH challenge received within timeout, reject connection
+          this.auth_timeout = setTimeout(() => {
+            if (!this.auth_challenge_received) {
+              console.log('[attn] No AUTH challenge received within timeout');
+              reject(new Error('No AUTH challenge received from relay - NIP-42 authentication required'));
+            }
+          }, this.auth_timeout_ms);
+          // Do NOT subscribe here - wait for authentication to complete
+          // Subscription will happen in the OK response handler after successful authentication
         });
 
         this.ws.on('error', (error) => {
@@ -383,122 +395,139 @@ export class RelayConnection {
       return;
     }
 
-    // Subscribe to block events (kind 30078 from Bridge service)
-    const block_filter: { kinds: number[]; authors?: string[] } = {
-      kinds: [30078],
+    // Subscribe to block events (kind 38088 from trusted node services)
+    const block_filter: { kinds: number[]; authors: string[] } = {
+      kinds: [ATTN_EVENT_KINDS.BLOCK],
+      authors: this.config.node_pubkeys,
     };
 
-    // Filter by Bridge service pubkey if provided
-    if (this.config.bridge_pubkey_hex) {
-      block_filter.authors = [this.config.bridge_pubkey_hex];
-    }
-
-    const block_req_message = JSON.stringify([
-      'REQ',
-      this.subscription_id,
-      block_filter,
-    ]);
+    const block_req_message = JSON.stringify(['REQ', this.subscription_id, block_filter]);
     console.log('[attn] Sending REQ subscription for block events:', JSON.stringify(block_filter));
     this.ws.send(block_req_message);
 
-    // Emit subscription hook (subscribed status) for block events
     const block_subscription_context: SubscriptionContext = {
       relay_url: this.config.relay_url,
       subscription_id: this.subscription_id,
       filter: { ...block_filter },
       status: 'subscribed',
     };
-    this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, block_subscription_context).catch(() => {
-      // Ignore errors in hook handlers
-    });
+    this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, block_subscription_context).catch(() => {});
 
-    // Subscribe to ATTN Protocol events (38188, 38288, 38388, 38488, 38588, 38688, 38888)
-    const attn_filter: { kinds: number[]; '#a'?: string[] } = {
-      kinds: [38188, 38288, 38388, 38488, 38588, 38688, 38888],
+    // Subscribe to ATTN Protocol events
+    const attn_filters: { kinds: number[]; [key: string]: unknown }[] = [];
+    this.attn_subscription_ids = [];
+    this.attn_filter_map.clear();
+
+    const market_filter: { kinds: number[]; [key: string]: unknown } = {
+      kinds: [ATTN_EVENT_KINDS.MARKETPLACE, ATTN_EVENT_KINDS.MARKETPLACE_CONFIRMATION],
     };
+    if (this.config.marketplace_pubkeys?.length) {
+      market_filter['#p'] = this.config.marketplace_pubkeys;
+    }
+    attn_filters.push(market_filter);
 
-    // Filter by marketplace coordinates if provided
-    if (this.config.marketplace_coordinates && this.config.marketplace_coordinates.length > 0) {
-      attn_filter['#a'] = this.config.marketplace_coordinates;
+    const billboard_filter: { kinds: number[]; [key: string]: unknown } = {
+      kinds: [ATTN_EVENT_KINDS.BILLBOARD, ATTN_EVENT_KINDS.BILLBOARD_CONFIRMATION],
+    };
+    if (this.config.billboard_pubkeys?.length) {
+      billboard_filter['#p'] = this.config.billboard_pubkeys;
+    }
+    attn_filters.push(billboard_filter);
+
+    const promotion_filter: { kinds: number[]; [key: string]: unknown } = {
+      kinds: [ATTN_EVENT_KINDS.PROMOTION, ATTN_EVENT_KINDS.ATTENTION, ATTN_EVENT_KINDS.VIEWER_CONFIRMATION, ATTN_EVENT_KINDS.MATCH],
+    };
+    if (this.config.advertiser_pubkeys?.length) {
+      promotion_filter['#p'] = this.config.advertiser_pubkeys;
+    }
+    attn_filters.push(promotion_filter);
+
+    let filter_index = 0;
+    for (const filter of attn_filters) {
+      const subscription_id = `${this.attn_subscription_id}-${filter_index++}`;
+      this.attn_subscription_ids.push(subscription_id);
+      this.attn_filter_map.set(subscription_id, filter);
+      const req_message = JSON.stringify(['REQ', subscription_id, filter]);
+      console.log('[attn] Sending REQ subscription for ATTN Protocol events:', JSON.stringify(filter));
+      this.ws.send(req_message);
+
+      const attn_subscription_context: SubscriptionContext = {
+        relay_url: this.config.relay_url,
+        subscription_id,
+        filter: { ...filter },
+        status: 'subscribed',
+      };
+      this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, attn_subscription_context).catch(() => {});
     }
 
-    const attn_req_message = JSON.stringify([
-      'REQ',
-      this.attn_subscription_id,
-      attn_filter,
-    ]);
-    console.log('[attn] Sending REQ subscription for ATTN Protocol events:', JSON.stringify(attn_filter));
-    this.ws.send(attn_req_message);
-
-    // Emit subscription hook (subscribed status) for ATTN Protocol events
-    const attn_subscription_context: SubscriptionContext = {
-      relay_url: this.config.relay_url,
-      subscription_id: this.attn_subscription_id,
-      filter: { kinds: attn_filter.kinds },
-      status: 'subscribed',
-    };
-    this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, attn_subscription_context).catch(() => {
-      // Ignore errors in hook handlers
-    });
-
-    // Subscribe to standard Nostr events (kind 0, 10002, 30000) and protocol block lists (kind 38988)
-    const standard_filter: { kinds: number[] } = {
-      kinds: [0, 10002, 30000, 38988],
+    // Subscribe to standard Nostr events (profiles, relay lists, NIP-51 lists)
+    const standard_filter: { kinds: number[]; [key: string]: unknown } = {
+      kinds: [0, 10002, 30000],
+      '#d': [
+        NIP51_LIST_TYPES.BLOCKED_PROMOTIONS,
+        NIP51_LIST_TYPES.BLOCKED_PROMOTERS,
+        NIP51_LIST_TYPES.TRUSTED_BILLBOARDS,
+        NIP51_LIST_TYPES.TRUSTED_MARKETPLACES,
+      ],
     };
 
-    const standard_req_message = JSON.stringify([
-      'REQ',
-      this.standard_subscription_id,
-      standard_filter,
-    ]);
+    const standard_req_message = JSON.stringify(['REQ', this.standard_subscription_id, standard_filter]);
     console.log('[attn] Sending REQ subscription for standard Nostr events:', JSON.stringify(standard_filter));
     this.ws.send(standard_req_message);
 
-    // Emit subscription hook (subscribed status) for standard Nostr events
     const standard_subscription_context: SubscriptionContext = {
       relay_url: this.config.relay_url,
       subscription_id: this.standard_subscription_id,
-      filter: { kinds: standard_filter.kinds },
+      filter: { ...standard_filter },
       status: 'subscribed',
     };
-    this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, standard_subscription_context).catch(() => {
-      // Ignore errors in hook handlers
-    });
+    this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, standard_subscription_context).catch(() => {});
   }
 
   /**
-   * Handle block event from relay (kind 30078)
+   * Handle block event from relay (kind 38088)
    */
   private async handle_block_event(event: Event): Promise<void> {
     try {
-      // Extract block height from event
-      // Bridge service publishes kind 30078 with block_height in content or tags
-      const block_height_tag = event.tags.find((tag) => tag[0] === 't' && tag[1]);
-      const block_height = block_height_tag ? parseInt(block_height_tag[1]!, 10) : undefined;
+      let block_data: BlockData | null = null;
+      try {
+        block_data = JSON.parse(event.content) as BlockData;
+      } catch {
+        block_data = null;
+      }
 
-      if (!block_height || isNaN(block_height)) {
+      const block_height_from_content =
+        typeof block_data?.height === 'number'
+          ? block_data.height
+          : block_data?.height !== undefined
+          ? parseInt(String(block_data.height), 10)
+          : undefined;
+      const block_height_tag = event.tags.find((tag) => tag[0] === 't' && tag[1]);
+      const block_height = block_height_from_content ?? (block_height_tag ? parseInt(block_height_tag[1]!, 10) : undefined);
+
+      if (!block_height || Number.isNaN(block_height)) {
         console.warn(`[attn] Block event missing or invalid block_height: ${event.id}`);
         return;
       }
 
-      // Parse block hash from content if available
-      let block_hash: string | undefined;
-      try {
-        const content_data = JSON.parse(event.content);
-        block_hash = content_data.block_hash || content_data.hash;
-      } catch {
-        // Content might not be JSON, try to extract from tags
-        const hash_tag = event.tags.find((tag) => tag[0] === 'hash' || tag[0] === 'block_hash');
-        block_hash = hash_tag?.[1];
-      }
-
-      // Emit new block hook
       const context: NewBlockContext = {
         block_height,
-        block_hash,
+        block_hash: block_data?.hash,
+        block_time: block_data?.time,
+        raw_block_data: block_data ?? undefined,
+        event,
+        relay_url: this.config.relay_url,
       };
 
+      if (this.hooks.has_handlers(HOOK_NAMES.BEFORE_NEW_BLOCK)) {
+        await this.hooks.emit(HOOK_NAMES.BEFORE_NEW_BLOCK, context);
+      }
+
       await this.hooks.emit(HOOK_NAMES.NEW_BLOCK, context);
+
+      if (this.hooks.has_handlers(HOOK_NAMES.AFTER_NEW_BLOCK)) {
+        await this.hooks.emit(HOOK_NAMES.AFTER_NEW_BLOCK, context);
+      }
     } catch (error) {
       console.error(`[attn] Error handling block event:`, error);
     }
@@ -510,25 +539,28 @@ export class RelayConnection {
   private async handle_attn_event(event: Event): Promise<void> {
     try {
       switch (event.kind) {
-        case 38188: // BILLBOARD
+        case ATTN_EVENT_KINDS.MARKETPLACE:
+          await this.handle_marketplace_event(event);
+          break;
+        case ATTN_EVENT_KINDS.BILLBOARD:
           await this.handle_billboard_event(event);
           break;
-        case 38288: // PROMOTION
+        case ATTN_EVENT_KINDS.PROMOTION:
           await this.handle_promotion_event(event);
           break;
-        case 38388: // ATTENTION
+        case ATTN_EVENT_KINDS.ATTENTION:
           await this.handle_attention_event(event);
           break;
-        case 38488: // BILLBOARD_CONFIRMATION
+        case ATTN_EVENT_KINDS.BILLBOARD_CONFIRMATION:
           await this.handle_billboard_confirmation_event(event);
           break;
-        case 38588: // VIEWER_CONFIRMATION
+        case ATTN_EVENT_KINDS.VIEWER_CONFIRMATION:
           await this.handle_viewer_confirmation_event(event);
           break;
-        case 38688: // MARKETPLACE_CONFIRMATION
+        case ATTN_EVENT_KINDS.MARKETPLACE_CONFIRMATION:
           await this.handle_marketplace_confirmation_event(event);
           break;
-        case 38888: // MATCH
+        case ATTN_EVENT_KINDS.MATCH:
           await this.handle_match_event(event);
           break;
         default:
@@ -540,7 +572,36 @@ export class RelayConnection {
   }
 
   /**
-   * Handle BILLBOARD event (kind 38188)
+   * Handle MARKETPLACE event (kind 38188)
+   */
+  private async handle_marketplace_event(event: Event): Promise<void> {
+    try {
+      let marketplace_data: unknown;
+      try {
+        marketplace_data = JSON.parse(event.content);
+      } catch {
+        marketplace_data = event.content;
+      }
+
+      const block_height_tag = event.tags.find((tag) => tag[0] === 't' && tag[1]);
+      const block_height = block_height_tag ? parseInt(block_height_tag[1]!, 10) : undefined;
+
+      const context: NewMarketplaceContext = {
+        event_id: event.id,
+        pubkey: event.pubkey,
+        marketplace_data,
+        block_height,
+        event,
+      };
+
+      await this.hooks.emit(HOOK_NAMES.NEW_MARKETPLACE, context);
+    } catch (error) {
+      console.error(`[attn] Error handling marketplace event:`, error);
+    }
+  }
+
+  /**
+   * Handle BILLBOARD event (kind 38288)
    */
   private async handle_billboard_event(event: Event): Promise<void> {
     try {
@@ -571,7 +632,7 @@ export class RelayConnection {
   }
 
   /**
-   * Handle PROMOTION event (kind 38288)
+   * Handle PROMOTION event (kind 38388)
    */
   private async handle_promotion_event(event: Event): Promise<void> {
     try {
@@ -602,7 +663,7 @@ export class RelayConnection {
   }
 
   /**
-   * Handle ATTENTION event (kind 38388)
+   * Handle ATTENTION event (kind 38488)
    */
   private async handle_attention_event(event: Event): Promise<void> {
     try {
@@ -633,7 +694,7 @@ export class RelayConnection {
   }
 
   /**
-   * Handle BILLBOARD_CONFIRMATION event (kind 38488)
+   * Handle BILLBOARD_CONFIRMATION event (kind 38588)
    */
   private async handle_billboard_confirmation_event(event: Event): Promise<void> {
     try {
@@ -673,7 +734,7 @@ export class RelayConnection {
   }
 
   /**
-   * Handle VIEWER_CONFIRMATION event (kind 38588)
+   * Handle VIEWER_CONFIRMATION event (kind 38688)
    */
   private async handle_viewer_confirmation_event(event: Event): Promise<void> {
     try {
@@ -712,7 +773,7 @@ export class RelayConnection {
   }
 
   /**
-   * Handle MARKETPLACE_CONFIRMATION event (kind 38688)
+   * Handle MARKETPLACE_CONFIRMATION event (kind 38788)
    */
   private async handle_marketplace_confirmation_event(event: Event): Promise<void> {
     try {
@@ -768,11 +829,11 @@ export class RelayConnection {
       let attention_event_id: string | undefined;
 
       for (const a_tag of a_tags) {
-        if (a_tag[1]?.startsWith('38288:')) {
+        if (a_tag[1]?.startsWith(`${ATTN_EVENT_KINDS.PROMOTION}:`)) {
           // Promotion coordinate - extract event ID would require looking up the event
           // For now, we'll use the coordinate itself
           promotion_event_id = a_tag[1];
-        } else if (a_tag[1]?.startsWith('38388:')) {
+        } else if (a_tag[1]?.startsWith(`${ATTN_EVENT_KINDS.ATTENTION}:`)) {
           // Attention coordinate
           attention_event_id = a_tag[1];
         }
@@ -819,11 +880,8 @@ export class RelayConnection {
         case 10002: // Relay List Metadata
           await this.handle_relay_list_event(event);
           break;
-        case 30000: // NIP-51 Lists (trusted billboards, trusted marketplaces)
+        case 30000: // NIP-51 Lists
           await this.handle_nip51_list_event(event);
-          break;
-        case 38988: // Block lists (protocol-specific)
-          await this.handle_block_list_event(event);
           break;
         default:
           console.warn(`[attn] Unknown standard Nostr event kind: ${event.kind}`);
@@ -886,33 +944,6 @@ export class RelayConnection {
   }
 
   /**
-   * Handle Block List event (kind 38988)
-   */
-  private async handle_block_list_event(event: Event): Promise<void> {
-    try {
-      // Parse content
-      let list_data: unknown;
-      try {
-        list_data = JSON.parse(event.content);
-      } catch {
-        list_data = event.content;
-      }
-
-      const context: NewNip51ListContext = {
-        event_id: event.id,
-        pubkey: event.pubkey,
-        list_data,
-        list_type: 'blocked_promotion',
-        event,
-      };
-
-      await this.hooks.emit(HOOK_NAMES.NEW_NIP51_LIST, context);
-    } catch (error) {
-      console.error(`[attn] Error handling block list event:`, error);
-    }
-  }
-
-  /**
    * Handle NIP-51 List event (kind 30000)
    */
   private async handle_nip51_list_event(event: Event): Promise<void> {
@@ -927,18 +958,22 @@ export class RelayConnection {
 
       // Determine list type from d tag
       const d_tag = event.tags.find((tag) => tag[0] === 'd')?.[1] || '';
-      let list_type: 'trusted_billboard' | 'trusted_marketplace' | 'blocked_promotion';
+      let list_type: NewNip51ListContext['list_type'];
 
-      // Heuristic: determine list type from d tag pattern
-      if (d_tag.toLowerCase().includes('billboard') || d_tag.toLowerCase().includes('trusted-billboard')) {
-        list_type = 'trusted_billboard';
-      } else if (d_tag.toLowerCase().includes('marketplace') || d_tag.toLowerCase().includes('trusted-marketplace')) {
-        list_type = 'trusted_marketplace';
-      } else if (d_tag.toLowerCase().includes('block') || d_tag.toLowerCase().includes('blocked') || d_tag.toLowerCase().includes('promotion')) {
-        list_type = 'blocked_promotion';
-      } else {
-        // Default to blocked_promotion if unclear (most common use case)
-        list_type = 'blocked_promotion';
+      switch (d_tag) {
+        case NIP51_LIST_TYPES.TRUSTED_BILLBOARDS:
+          list_type = 'trusted_billboard';
+          break;
+        case NIP51_LIST_TYPES.TRUSTED_MARKETPLACES:
+          list_type = 'trusted_marketplace';
+          break;
+        case NIP51_LIST_TYPES.BLOCKED_PROMOTERS:
+          list_type = 'blocked_promoter';
+          break;
+        case NIP51_LIST_TYPES.BLOCKED_PROMOTIONS:
+        default:
+          list_type = 'blocked_promotion';
+          break;
       }
 
       const context: NewNip51ListContext = {
@@ -946,6 +981,7 @@ export class RelayConnection {
         pubkey: event.pubkey,
         list_data,
         list_type,
+        list_identifier: d_tag,
         event,
       };
 
@@ -980,8 +1016,12 @@ export class RelayConnection {
         if (this.ws.readyState === WebSocket.OPEN) {
           const close_block_message = JSON.stringify(['CLOSE', this.subscription_id]);
           this.ws.send(close_block_message);
-          const close_attn_message = JSON.stringify(['CLOSE', this.attn_subscription_id]);
-          this.ws.send(close_attn_message);
+          for (const attn_id of this.attn_subscription_ids) {
+            const close_attn_message = JSON.stringify(['CLOSE', attn_id]);
+            this.ws.send(close_attn_message);
+          }
+          this.attn_subscription_ids = [];
+          this.attn_filter_map.clear();
           const close_standard_message = JSON.stringify(['CLOSE', this.standard_subscription_id]);
           this.ws.send(close_standard_message);
         }
@@ -1035,6 +1075,9 @@ export class RelayConnection {
    * Schedule reconnection attempt
    */
   private schedule_reconnect(): void {
+    if (!this.auto_reconnect) {
+      return;
+    }
     if (this.reconnect_timeout) {
       return; // Already scheduled
     }

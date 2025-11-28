@@ -22,6 +22,22 @@ const sdk = new AttnSdk({
   private_key: "your_private_key_here", // hex or nsec
 });
 
+// Create and publish a BLOCK event for the current height
+const block_event = sdk.create_block({
+  height: 862626,
+  hash: "00000000000000000001a7c...",
+  time: 1732680000,
+  tx_count: 2345,
+  difficulty: "97345261772782.69",
+  size: 1234567,
+  weight: 3999999,
+  version: 2,
+  merkle_root: "1111...",
+  nonce: 1234567890,
+  block_identifier: "node-service-alpha:block#862626",
+});
+await sdk.publish(block_event, "wss://relay.nextblock.city");
+
 // Create and publish a PROMOTION event that matches ATTN-01
 const promotion_event = sdk.create_promotion({
   promotion_id: "promo-001", // d tag + content identifier
@@ -31,9 +47,9 @@ const promotion_event = sdk.create_promotion({
   description: "Watch my amazing content",
   call_to_action: "Watch Now",
   call_to_action_url: "https://example.com/watch",
-  marketplace_coordinate: "38088:marketplace_pubkey:marketplace_001",
+  marketplace_coordinate: "38188:marketplace_pubkey:marketplace_001",
   video_coordinate: "34236:video_author_pubkey:video_d_tag",
-  billboard_coordinate: "38188:billboard_pubkey:billboard_001",
+  billboard_coordinate: "38288:billboard_pubkey:billboard_001",
   marketplace_pubkey: "marketplace_pubkey_hex",
   promotion_pubkey: sdk.get_public_key(),
   relays: ["wss://relay.nextblock.city"],
@@ -59,7 +75,35 @@ Every builder implements the schemas and tag layout defined in `@attn-protocol/p
 
 Each subsection restates the ATTN-01 content + tag requirements so builders stay in lockstep with the Cityscape snapshot model. When the SDK does not yet expose a specific field/tag (for example, `relay_list` inside the PROMOTION content), treat that as a TODO before publishing—extend the helper or compose the JSON manually so every required field lands on-chain of record.
 
-### PROMOTION Event (kind 38288)
+### BLOCK Event (kind 38088)
+
+ATTN-01 content requirements:
+- `height`, `hash`, `time`
+- Optional: `difficulty`, `tx_count`, `size`, `weight`, `version`, `merkle_root`, `nonce`
+- `node_pubkey` is derived automatically from the provided private key unless overridden
+- `block_identifier` defaults to `block#<height>`; override when multiple node services co-exist
+
+ATTN-01 tag requirements:
+- `["d", block_identifier]`
+- `["t", block_height]` (block height defaults to `height` unless explicitly provided)
+
+```typescript
+const block_event = sdk.create_block({
+  height: 862626,
+  hash: "00000000000000000001a7c...",
+  time: 1732680000,
+  tx_count: 2345,
+  difficulty: "97345261772782.69",
+  size: 1234567,
+  weight: 3999999,
+  version: 2,
+  merkle_root: "1111...",
+  nonce: 1234567890,
+  block_identifier: "node-service-alpha:block#862626",
+});
+```
+
+### PROMOTION Event (kind 38388)
 
 ATTN-01 content requirements:
 - `duration`, `bid`, `event_id`, `description?`, `call_to_action`, `call_to_action_url`
@@ -83,9 +127,9 @@ const promotion_event = sdk.create_promotion({
   description: "Watch my amazing content",
   call_to_action: "Watch Now",
   call_to_action_url: "https://example.com/watch",
-  marketplace_coordinate: "38088:marketplace_pubkey:marketplace_001",
+  marketplace_coordinate: "38188:marketplace_pubkey:marketplace_001",
   video_coordinate: "34236:video_author_pubkey:video_d_tag",
-  billboard_coordinate: "38188:billboard_pubkey:billboard_001",
+  billboard_coordinate: "38288:billboard_pubkey:billboard_001",
   marketplace_pubkey: "marketplace_pubkey_hex",
   promotion_pubkey: sdk.get_public_key(),
   relays: ["wss://relay.nextblock.city"],
@@ -96,17 +140,19 @@ const promotion_event = sdk.create_promotion({
 });
 ```
 
-### ATTENTION Event (kind 38388)
+### ATTENTION Event (kind 38488)
 
 ATTN-01 content requirements:
 - `ask`, `min_duration`, `max_duration`, `kind_list`, `relay_list`
 - `attention_pubkey`, `marketplace_pubkey`, `attention_id`, `marketplace_id`
+- `blocked_promotions_id`, `blocked_promoters_id` (NIP-51 list identifiers)
 
 ATTN-01 tag requirements:
 - `["d", attention_id]`
 - `["t", block_height]`
 - `["a", marketplace_coordinate]`
-- `["a", block_list_coordinate]` (required even if the list is empty)
+- `["a", blocked_promotions_coordinate]` (`30000:<attention_pubkey>:org.attnprotocol:promotion:blocked`)
+- `["a", blocked_promoters_coordinate]` (`30000:<attention_pubkey>:org.attnprotocol:promoter:blocked`)
 - `["p", attention_pubkey]`, `["p", marketplace_pubkey]`
 - Multiple `["r", relay_url]`
 - Multiple `["k", kind]`
@@ -119,8 +165,11 @@ const attention_event = sdk.create_attention({
   max_duration: 60_000,
   kind_list: [34236, 1, 30023],
   relay_list: ["wss://relay.nextblock.city"],
-  marketplace_coordinate: "38088:marketplace_pubkey:marketplace_001",
-  block_list_coordinate: "38988:block_list_owner_pubkey:block_list_id",
+  marketplace_coordinate: "38188:marketplace_pubkey:marketplace_001",
+  blocked_promotions_coordinate: "30000:attention_pubkey:org.attnprotocol:promotion:blocked",
+  blocked_promoters_coordinate: "30000:attention_pubkey:org.attnprotocol:promoter:blocked",
+  blocked_promotions_id: "org.attnprotocol:promotion:blocked",
+  blocked_promoters_id: "org.attnprotocol:promoter:blocked",
   attention_pubkey: sdk.get_public_key(),
   marketplace_pubkey: "marketplace_pubkey_hex",
   relays: ["wss://relay.nextblock.city"],
@@ -141,17 +190,18 @@ ATTN-01 tag requirements:
 - `["d", match_id]`
 - `["t", block_height]`
 - `["a", marketplace_coordinate]`, `["a", billboard_coordinate]`, `["a", promotion_coordinate]`, `["a", attention_coordinate]`
-- `["p", marketplace_pubkey]`, `["p", promotion_pubkey]`, `["p", attention_pubkey]`
+- `["p", marketplace_pubkey]`, `["p", promotion_pubkey]`, `["p", attention_pubkey]`, `["p", billboard_pubkey]`
 - Multiple `["r", relay_url]`
 - Multiple `["k", kind]`
+- **Block height is mandatory**; the SDK throws if `block_height` is missing.
 
 ```typescript
 const match_event = sdk.create_match({
   match_id: "match-001",
-  marketplace_coordinate: "38088:marketplace_pubkey:marketplace_001",
-  billboard_coordinate: "38188:billboard_pubkey:billboard_001",
-  promotion_coordinate: "38288:promotion_pubkey:promo_001",
-  attention_coordinate: "38388:attention_pubkey:attention_001",
+  marketplace_coordinate: "38188:marketplace_pubkey:marketplace_001",
+  billboard_coordinate: "38288:billboard_pubkey:billboard_001",
+  promotion_coordinate: "38388:promotion_pubkey:promo_001",
+  attention_coordinate: "38488:attention_pubkey:attention_001",
   marketplace_pubkey: "marketplace_pubkey_hex",
   promotion_pubkey: "promotion_pubkey_hex",
   attention_pubkey: "attention_pubkey_hex",
@@ -166,12 +216,11 @@ const match_event = sdk.create_match({
   kind_list: [34236],
   relay_list: ["wss://relay.nextblock.city"],
   relays: ["wss://relay.nextblock.city"],
-  kind: [34236],
   block_height: 862626,
 });
 ```
 
-### MARKETPLACE Event (kind 38088)
+### MARKETPLACE Event (kind 38188)
 
 ATTN-01 content requirements:
 - `name`, `description`, `image?`, `kind_list`, `relay_list`, `url?`
@@ -182,7 +231,7 @@ ATTN-01 tag requirements:
 - `["d", marketplace_id]`
 - `["t", block_height]`
 - Multiple `["k", kind]`
-- `["p", owner_pubkey]`
+- `["p", marketplace_pubkey]`
 - Multiple `["r", relay_url]`
 - Optional `["u", website_url]`
 
@@ -194,7 +243,6 @@ const marketplace_event = sdk.create_marketplace({
   kind_list: [34236, 1, 30023],
   relay_list: ["wss://relay.nextblock.city"],
   admin_pubkey: sdk.get_public_key(),
-  owner_pubkey: sdk.get_public_key(),
   marketplace_pubkey: sdk.get_public_key(),
   image: "https://example.com/image.png",
   url: "https://marketplace.nextblock.app",
@@ -206,7 +254,7 @@ const marketplace_event = sdk.create_marketplace({
 });
 ```
 
-### BILLBOARD Event (kind 38188)
+### BILLBOARD Event (kind 38288)
 
 ATTN-01 content requirements:
 - `name`, `description?`
@@ -227,7 +275,7 @@ const billboard_event = sdk.create_billboard({
   billboard_id: "billboard-001",
   name: "My Billboard",
   description: "A great billboard for promotions",
-  marketplace_coordinate: "38088:marketplace_pubkey:marketplace_001",
+  marketplace_coordinate: "38188:marketplace_pubkey:marketplace_001",
   billboard_pubkey: sdk.get_public_key(),
   marketplace_pubkey: "marketplace_pubkey_hex",
   relays: ["wss://relay.nextblock.city"],
@@ -238,10 +286,10 @@ const billboard_event = sdk.create_billboard({
 });
 ```
 
-### BILLBOARD_CONFIRMATION Event (kind 38488)
+### BILLBOARD_CONFIRMATION Event (kind 38588)
 
 ATTN-01 content requirements:
-- `block`
+- `block`, `price`
 - `marketplace_event_id`, `promotion_event_id`, `attention_event_id`, `match_event_id`
 - `marketplace_pubkey`, `promotion_pubkey`, `attention_pubkey`, `billboard_pubkey`
 - `marketplace_id`, `promotion_id`, `attention_id`, `match_id`
@@ -265,21 +313,33 @@ const billboard_confirmation = create_billboard_confirmation_event(
   private_key,
   {
     block: 862626,
+    price: 2_000,
     marketplace_ref: "marketplace_event_id",
     promotion_ref: "promotion_event_id",
     attention_ref: "attention_event_id",
     match_ref: "match_event_id",
+    marketplace_coordinate: "38188:marketplace_pubkey:marketplace_001",
+    promotion_coordinate: "38388:promotion_pubkey:promo_001",
+    attention_coordinate: "38488:attention_pubkey:attention_001",
+    match_coordinate: "38888:marketplace_pubkey:match_001",
+    marketplace_pubkey: "marketplace_pubkey_hex",
+    promotion_pubkey: "promotion_pubkey_hex",
+    attention_pubkey: "attention_pubkey_hex",
+    billboard_pubkey: "billboard_pubkey_hex",
+    marketplace_id: "marketplace_001",
+    promotion_id: "promo_001",
+    attention_id: "attention_001",
+    match_id: "match_001",
+    relays: ["wss://relay.nextblock.city"],
+    url: "https://billboard.example.com/confirmation",
   }
 );
-
 ```
 
-_Note:_ the helper above currently emits the block height plus `e` references. Add the remaining ATTN-01 content fields and tags (coordinates, pubkeys, relay URLs, confirmation URL) when composing the final event template so that the Lighthouse snapshot stays honest.
-
-### VIEWER_CONFIRMATION Event (kind 38588)
+### VIEWER_CONFIRMATION Event (kind 38688)
 
 ATTN-01 content requirements:
-- `block`
+- `block`, `price`, `sats_delivered`, optional `proof_payload`
 - `marketplace_event_id`, `promotion_event_id`, `attention_event_id`, `match_event_id`
 - `marketplace_pubkey`, `promotion_pubkey`, `attention_pubkey`, `billboard_pubkey`
 - `marketplace_id`, `promotion_id`, `attention_id`, `match_id`
@@ -302,24 +362,37 @@ const private_key = decoded.data as Uint8Array;
 const viewer_confirmation = create_viewer_confirmation_event(
   private_key,
   {
-    block_height: 862626,
+    block: 862626,
+    price: 3_000,
     sats_delivered: 3_000,
     proof_payload: "viewer_proof_data",
     marketplace_ref: "marketplace_event_id",
     promotion_ref: "promotion_event_id",
     attention_ref: "attention_event_id",
     match_ref: "match_event_id",
+    marketplace_coordinate: "38188:marketplace_pubkey:marketplace_001",
+    promotion_coordinate: "38388:promotion_pubkey:promo_001",
+    attention_coordinate: "38488:attention_pubkey:attention_001",
+    match_coordinate: "38888:marketplace_pubkey:match_001",
+    marketplace_pubkey: "marketplace_pubkey_hex",
+    promotion_pubkey: "promotion_pubkey_hex",
+    attention_pubkey: "attention_pubkey_hex",
+    billboard_pubkey: "billboard_pubkey_hex",
+    marketplace_id: "marketplace_001",
+    promotion_id: "promo_001",
+    attention_id: "attention_001",
+    match_id: "match_001",
+    relays: ["wss://relay.nextblock.city"],
+    url: "https://viewer.example.com/confirmation",
   }
 );
 ```
 
-_Note:_ ATTN-01 expects the viewer confirmation to reference the same coordinates/pubkeys used throughout the block snapshot. Extend the event template to include those `a`, `p`, `r`, and `u` tags before publishing so the Harbor and Lighthouse counters stay verifiable.
-
-### MARKETPLACE_CONFIRMATION Event (kind 38688)
+### MARKETPLACE_CONFIRMATION Event (kind 38788)
 
 ATTN-01 content requirements:
-- `block`
-- `sats_settled`, `payout_breakdown.viewer?`, `payout_breakdown.billboard?`
+- `block`, `duration`, `ask`, `bid`, `price`, `sats_settled`
+- `payout_breakdown.viewer?`, `payout_breakdown.billboard?`
 - `marketplace_event_id`, `promotion_event_id`, `attention_event_id`, `match_event_id`
 - `billboard_confirmation_event_id`, `viewer_confirmation_event_id`
 - `marketplace_pubkey`, `promotion_pubkey`, `attention_pubkey`, `billboard_pubkey`
@@ -344,7 +417,11 @@ const private_key = decoded.data as Uint8Array;
 const marketplace_confirmation = create_marketplace_confirmation_event(
   private_key,
   {
-    block_height: 862626,
+    block: 862626,
+    duration: 30_000,
+    ask: 3_000,
+    bid: 5_000,
+    price: 5_000,
     sats_settled: 5_000,
     payout_breakdown: {
       viewer: 3_000,
@@ -356,11 +433,23 @@ const marketplace_confirmation = create_marketplace_confirmation_event(
     match_ref: "match_event_id",
     billboard_confirmation_ref: "billboard_confirmation_event_id",
     viewer_confirmation_ref: "viewer_confirmation_event_id",
+    marketplace_coordinate: "38188:marketplace_pubkey:marketplace_001",
+    promotion_coordinate: "38388:promotion_pubkey:promo_001",
+    attention_coordinate: "38488:attention_pubkey:attention_001",
+    match_coordinate: "38888:marketplace_pubkey:match_001",
+    marketplace_pubkey: "marketplace_pubkey_hex",
+    promotion_pubkey: "promotion_pubkey_hex",
+    attention_pubkey: "attention_pubkey_hex",
+    billboard_pubkey: "billboard_pubkey_hex",
+    marketplace_id: "marketplace_001",
+    promotion_id: "promo_001",
+    attention_id: "attention_001",
+    match_id: "match_001",
+    relays: ["wss://relay.nextblock.city"],
+    url: "https://marketplace.nextblock.city/confirmation",
   }
 );
 ```
-
-_Note:_ Just like the other confirmations, add the `a`, `p`, `r`, and `u` tags plus the various IDs demanded by ATTN-01 before finalizing the event that heads to the Relay. The SDK helper signs the block data and references; you control the remaining settlement payload.
 
 **Note:** Confirmation event builders require a `Uint8Array` private key. You can decode from hex or nsec format as shown above.
 

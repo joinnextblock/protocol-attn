@@ -25,6 +25,9 @@ export interface HookContext {
  */
 export type HookHandler<T extends HookContext = HookContext> = (context: T) => Promise<void> | void;
 
+export type BeforeHookHandler<T extends HookContext = HookContext> = HookHandler<T>;
+export type AfterHookHandler<T extends HookContext = HookContext> = HookHandler<T>;
+
 /**
  * Hook registration handle for unregistering
  */
@@ -51,6 +54,7 @@ export interface SubscriptionContext extends HookContext {
   filter: {
     kinds: number[];
     authors?: string[];
+    [key: string]: unknown;
   };
   status: 'subscribed' | 'confirmed'; // 'subscribed' when REQ sent, 'confirmed' when EOSE received
 }
@@ -58,6 +62,13 @@ export interface SubscriptionContext extends HookContext {
 /**
  * Event lifecycle hook contexts
  */
+export interface NewMarketplaceContext extends HookContext {
+  event_id: EventId;
+  pubkey: Pubkey;
+  marketplace_data: unknown;
+  event: Event;
+}
+
 export interface NewBillboardContext extends HookContext {
   event_id: EventId;
   pubkey: Pubkey;
@@ -120,9 +131,27 @@ export interface MarketplaceConfirmedContext extends HookContext {
 /**
  * Block synchronization hook contexts
  */
+export interface BlockData {
+  height: BlockHeight;
+  hash?: string;
+  time?: number;
+  difficulty?: string;
+  tx_count?: number;
+  size?: number;
+  weight?: number;
+  version?: number;
+  merkle_root?: string;
+  nonce?: number;
+  node_pubkey?: string;
+}
+
 export interface NewBlockContext extends HookContext {
   block_height: BlockHeight;
   block_hash?: string;
+  block_time?: number;
+  raw_block_data?: BlockData;
+  event?: Event;
+  relay_url?: string;
 }
 
 export interface BlockGapDetectedContext extends HookContext {
@@ -167,7 +196,8 @@ export interface NewNip51ListContext extends HookContext {
   event_id: EventId;
   pubkey: Pubkey;
   list_data: unknown;
-  list_type: 'trusted_billboard' | 'trusted_marketplace' | 'blocked_promotion';
+  list_type: 'trusted_billboard' | 'trusted_marketplace' | 'blocked_promotion' | 'blocked_promoter';
+  list_identifier?: string;
   event: Event;
 }
 
