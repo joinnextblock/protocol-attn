@@ -23,16 +23,22 @@ _No critical issues at this time. Add items as they are identified._
 ## ⚠️ High Priority (Address Soon)
 
 - [ ] [M4] Add comprehensive test coverage for hook system, relay connection, and event handling
-  - File: Missing test files throughout codebase
-  - Issue: No test coverage for critical framework functionality
-  - Impact: Regression risk, difficult to verify fixes, no confidence in refactoring
+  - File: Missing test files throughout codebase (no test infrastructure exists)
+  - Issue: No test coverage for critical framework functionality including hook system, relay connection lifecycle, event handling, block processing, and error handling
+  - Impact: High regression risk, difficult to verify fixes, no confidence in refactoring, potential production bugs
+  - Recommendation: Add comprehensive test suite using Jest or Vitest with unit tests for hook emitter, connection manager, event handlers; integration tests with mock Nostr relay; end-to-end tests for full framework lifecycle
   - Priority: **HIGH** - Framework is core infrastructure for attention marketplace
 
 - [ ] [M4] Implement block gap detection logic
-  - File: `src/relay/connection.ts`
-  - Issue: Hook `on_block_gap_detected` exists in types and can be registered, but detection logic is not implemented. Framework receives block events but doesn't track expected vs actual block heights to detect gaps.
-  - Impact: Block synchronization issues may go undetected, services may miss blocks without knowing
-  - Recommendation: Track last block height, compare with new block height, emit `on_block_gap_detected` hook when gap detected
+  - File: `src/relay/connection.ts` - `RelayConnection` class, `handle_block_event()` method
+  - Issue: Hook `on_block_gap_detected` exists in types (`BlockGapDetectedContext`) and can be registered via `attn.on_block_gap_detected()`, but detection logic is not implemented. The `RelayConnection` class receives block events but does not track the last block height or compare expected vs actual block heights to detect gaps.
+  - Impact: Block synchronization issues may go undetected, services may miss blocks without knowing, breaking the block-synchronized marketplace architecture. Critical for Bitcoin-native timing.
+  - Recommendation:
+    - Add `private last_block_height: number | null = null;` property to `RelayConnection` class
+    - In `handle_block_event()`, after extracting block height, compare with `last_block_height`
+    - If `last_block_height !== null` and `block_height !== last_block_height + 1`, emit `on_block_gap_detected` hook with `{ expected_height: last_block_height + 1, actual_height: block_height, gap_size: block_height - last_block_height - 1 }`
+    - Update `last_block_height = block_height` after successful processing
+    - Handle initial block (when `last_block_height === null`) by setting it without gap detection
 
 **Format:** `- [ ] [M#] Task description`
   - File: Path to file(s) affected
@@ -44,21 +50,21 @@ _No critical issues at this time. Add items as they are identified._
 
 - [ ] [M4] Add JSDoc comments to all public methods and classes
   - File: `src/attn.ts`, `src/hooks/emitter.ts`, `src/relay/connection.ts`
-  - Issue: Some methods have JSDoc, but not all public APIs are fully documented
-  - Impact: Reduced developer experience, unclear API usage
-  - Recommendation: Add comprehensive JSDoc with parameter descriptions and examples
+  - Issue: Some methods have JSDoc, but not all public APIs are fully documented. Main `Attn` class has good documentation, but `RelayConnection` and `HookEmitter` could use more comprehensive JSDoc.
+  - Impact: Reduced developer experience, unclear API usage, harder for new developers to understand the framework
+  - Recommendation: Add comprehensive JSDoc with parameter descriptions, return types, examples, and usage notes for all public methods
 
 - [ ] [M4] Add error handling improvements for edge cases in relay connection
   - File: `src/relay/connection.ts`
-  - Issue: Some edge cases in connection lifecycle may not be fully handled
-  - Impact: Unexpected behavior during connection failures or edge cases
-  - Recommendation: Review and improve error handling for all connection states
+  - Issue: Some edge cases in connection lifecycle may not be fully handled (e.g., rapid connect/disconnect cycles, authentication timeout edge cases, WebSocket close codes, network interruptions during subscription)
+  - Impact: Unexpected behavior during connection failures or edge cases, potential memory leaks from unhandled timeouts
+  - Recommendation: Review and improve error handling for all connection states, add cleanup for all timeouts, handle WebSocket close codes appropriately, add retry logic for transient failures
 
 - [ ] [M4] Add TypeScript strict mode and improve type safety
   - File: `tsconfig.json`
-  - Issue: TypeScript configuration may not be in strict mode
-  - Impact: Potential runtime errors from loose type checking
-  - Recommendation: Enable strict mode and fix any resulting type errors
+  - Issue: TypeScript configuration may not be in strict mode, allowing potential type safety issues
+  - Impact: Potential runtime errors from loose type checking, `any` types may exist, null/undefined checks may be missing
+  - Recommendation: Enable strict mode (`strict: true`), fix any resulting type errors, eliminate `any` types, add proper null checks
 
 **Format:** `- [ ] [M#] Task description`
   - File: Path to file(s) affected
@@ -94,11 +100,13 @@ _No critical issues at this time. Add items as they are identified._
 
 ## ✅ Recently Completed
 
-_No completed items yet. Mark items as completed here when finished._
+- ✅ Framework README documentation - Comprehensive documentation added with examples, hook system details, and configuration options
+- ✅ Removed ZMQ test file - Empty `test-zmq.ts` file deleted (ZMQ support removed from protocol)
+- ✅ Validation comment verification - Confirmed no outdated protocol references in validation utilities
 
 ---
 
-**Last Updated:** 2024-12-20
+**Last Updated:** 2025-01-27
 
 **Project Description:** Hook-based framework for building Bitcoin-native attention marketplace implementations using the ATTN Protocol on Nostr
 

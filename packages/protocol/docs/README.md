@@ -41,7 +41,7 @@
 
 A decentralized framework enabling paid content promotion within the Nostr ecosystem. By establishing standardized communication methods for promotional content, the protocol creates new economic opportunities while preserving Nostr's core principles of decentralization and privacy.
 
-It also functions as the Bitcoin-native attention interchange for block-synced marketplaces. Every Bitcoin node service heartbeat (kind 30078) announces a new block height, services react in lockstep, and marketplace state freezes so block-synchronized snapshots remain truthful. Promotions, matches, confirmations, and payouts all ride Nostr events, which keeps independent services synchronized without trusting a central coordinator.
+It also functions as the Bitcoin-native attention interchange for block-synced marketplaces. Every Bitcoin node service heartbeat (kind 38088) announces a new block height, services react in lockstep, and marketplace state freezes so block-synchronized snapshots remain truthful. Promotions, matches, confirmations, and payouts all ride Nostr events, which keeps independent services synchronized without trusting a central coordinator.
 
 ### Why it exists
 
@@ -218,7 +218,7 @@ Trust in the ATTN Protocol is established through:
 
 - **Digital Signatures**: All events are cryptographically signed using Nostr keys
 - **Immutable Records**: Published events create a permanent public record of all transactions
-- **Confirmation Events**: Three confirmation event kinds (38488, 38588, 38688) provide proof of completed views
+- **Confirmation Events**: Three confirmation event kinds (38588, 38688, 38788) provide proof of completed views
 - **Event References**: All confirmations reference the original MATCH event via `e` tags
 
 ### Transparent Operation

@@ -28,25 +28,53 @@ The ATTN Protocol uses only official Nostr tags. All custom data is stored in th
 
 **Tags used:** `d` (identifier), `t` (block height), `a` (event coordinates), `e` (event references), `p` (pubkeys), `r` (relays), `k` (kinds), `u` (URLs)
 
+### Schema Quick Reference
+
+| Event Kind | Name | Published By | Key Content Fields | Key Tags |
+|------------|------|--------------|-------------------|----------|
+| 38088 | BLOCK | Bitcoin node services | `height`, `hash`, `time` | `["t", "<block_height>"]` |
+| 38188 | MARKETPLACE | Marketplace operators | `name`, `kind_list`, `min_duration`, `max_duration` | `["d", "<marketplace_id>"]`, `["p", "<marketplace_pubkey>"]`, `["k", "<kind>"]`, `["r", "<relay_url>"]` |
+| 38288 | BILLBOARD | Billboard operators | `name`, `billboard_id`, `marketplace_id` | `["d", "<billboard_id>"]`, `["a", "<marketplace_coordinate>"]`, `["p", "<billboard_pubkey>"]` |
+| 38388 | PROMOTION | Promotion creators | `bid`, `duration`, `event_id` | `["d", "<promotion_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<video_coordinate>"]`, `["a", "<billboard_coordinate>"]` |
+| 38488 | ATTENTION | Attention owners | `ask`, `min_duration`, `max_duration`, `kind_list` | `["d", "<attention_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<blocked_promotions_coordinate>"]`, `["a", "<blocked_promoters_coordinate>"]` |
+| 38888 | MATCH | Marketplace/BILLBOARD services | `bid`, `ask`, `duration` | `["d", "<match_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<billboard_coordinate>"]` |
+| 38588 | BILLBOARD_CONFIRMATION | Billboard operators | `block`, `price` | `["a", "<all_coordinates>"]`, `["e", "<all_event_ids>"]` |
+| 38688 | VIEWER_CONFIRMATION | Attention owners | `block`, `price`, `sats_delivered` | `["a", "<all_coordinates>"]`, `["e", "<all_event_ids>"]` |
+| 38788 | MARKETPLACE_CONFIRMATION | Marketplace operators | `block`, `sats_settled`, `payout_breakdown` | `["a", "<all_coordinates>"]`, `["e", "<all_event_ids>"]` |
+
 ### BLOCK Event (kind 38088)
 
 **Purpose:** Published by Bitcoin node services when a new Bitcoin block is confirmed. Used by marketplaces to synchronize auction rounds and finalize matches. This is the foundational event that establishes the timing primitive for the entire protocol.
 
-**Content Fields:**
-- `height` (number, required): Block height
-- `hash` (string, required): Block hash
-- `time` (number, required): Block timestamp (Unix time)
-- `difficulty` (string, optional): Block difficulty
-- `tx_count` (number, optional): Number of transactions
-- `size` (number, optional): Block size in bytes
-- `weight` (number, optional): Block weight
-- `version` (number, optional): Block version
-- `merkle_root` (string, optional): Merkle root hash
-- `nonce` (number, optional): Block nonce
-- `node_pubkey` (string, required): Bitcoin node service pubkey (from event pubkey)
+**Published By:** Bitcoin node services (services running Bitcoin nodes)
 
-**Tags:**
-- `["t", "<block_height>"]` (required): Block height as topic tag for filtering
+**When:** Immediately after a new Bitcoin block is confirmed on the Bitcoin network
+
+**Content Schema:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `height` | number | Yes | Block height |
+| `hash` | string | Yes | Block hash |
+| `time` | number | Yes | Block timestamp (Unix time) |
+| `difficulty` | string | No | Block difficulty |
+| `tx_count` | number | No | Number of transactions |
+| `size` | number | No | Block size in bytes |
+| `weight` | number | No | Block weight |
+| `version` | number | No | Block version |
+| `merkle_root` | string | No | Merkle root hash |
+| `nonce` | number | No | Block nonce |
+| `node_pubkey` | string | Yes | Bitcoin node service pubkey (from event pubkey) |
+
+**Tag Schema:**
+
+| Tag | Required | Format | Description |
+|-----|----------|--------|-------------|
+| `["t", ...]` | Yes | `["t", "<block_height>"]` | Block height as topic tag for filtering |
+
+**Relationships:**
+- **Referenced by:** All ATTN Protocol events include `["t", "<block_height>"]` tag referencing this block
+- **References:** None (this is the timing primitive)
 
 **Example:**
 ```json
@@ -71,248 +99,497 @@ The ATTN Protocol uses only official Nostr tags. All custom data is stored in th
 **Notes:**
 - One event per block height per Bitcoin node service
 - Multiple Bitcoin node services can publish for the same block (clients verify consensus)
-- Published by services running Bitcoin nodes (like block timestamp services)
 - Block height in `t` tag enables efficient filtering: `{ kinds: [38088], "#t": ["862626"] }`
 - All ATTN Protocol events reference block height via `["t", "<block_height>"]` tag
 - Block events are the timing primitive for the entire protocol
 
 ### MARKETPLACE Event (kind 38188)
 
-**Content Fields:**
-- `name` (string, required): Marketplace name
-- `description` (string, required): Marketplace description
-- `image` (string, optional): Marketplace image URL
-- `kind_list` (array, required): Array of event kind numbers that can be promoted (e.g., [34236] for addressable short video events)
-- `relay_list` (array, required): Array of relay URLs for this marketplace
-- `url` (string, optional): Marketplace website URL
-- `admin_pubkey` (string, required): Admin pubkey
-- `admin_email` (string, optional): Admin email
-- `min_duration` (number, optional, default: 15000): Minimum duration in milliseconds (default: 15 seconds)
-- `max_duration` (number, optional, default: 60000): Maximum duration in milliseconds (default: 60 seconds)
-- `marketplace_pubkey` (string, required): Marketplace pubkey (from `p` tag)
-- `marketplace_id` (string, required): Marketplace identifier (from `d` tag)
+**Purpose:** Defines a marketplace with parameters for promotions, including supported event kinds, duration limits, and relay lists.
 
-**Tags:**
-- `["d", "<marketplace_identifier>"]` (required): Marketplace identifier (e.g., "example.marketplace:identifier")
-- `["t", "<block_height>"]` (required): Block height as topic tag for filtering
-- `["k", "<kind>"]` (required, multiple allowed): Event kinds that can be promoted in this marketplace (e.g., "34236" for addressable short video events per NIP-71)
-- `["p", "<marketplace_pubkey>"]` (required): Marketplace pubkey for indexing/filtering
-- `["r", "<relay_url>"]` (required, multiple allowed): Relays for this marketplace (for indexing/filtering)
-- `["u", "<website_url>"]` (optional): Website URL (for indexing/filtering)
+**Published By:** Marketplace operators
+
+**When:** Marketplace creation or when marketplace parameters are updated
+
+**Content Schema:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Marketplace name |
+| `description` | string | Yes | Marketplace description |
+| `image` | string | No | Marketplace image URL |
+| `kind_list` | array | Yes | Array of event kind numbers that can be promoted (e.g., [34236] for addressable short video events) |
+| `relay_list` | array | Yes | Array of relay URLs for this marketplace |
+| `url` | string | No | Marketplace website URL |
+| `admin_pubkey` | string | Yes | Admin pubkey |
+| `admin_email` | string | No | Admin email |
+| `min_duration` | number | No (default: 15000) | Minimum duration in milliseconds (default: 15 seconds) |
+| `max_duration` | number | No (default: 60000) | Maximum duration in milliseconds (default: 60 seconds) |
+| `marketplace_pubkey` | string | Yes | Marketplace pubkey (from `p` tag) |
+| `marketplace_id` | string | Yes | Marketplace identifier (from `d` tag) |
+
+**Tag Schema:**
+
+| Tag | Required | Format | Description |
+|-----|----------|--------|-------------|
+| `["d", ...]` | Yes | `["d", "<marketplace_identifier>"]` | Marketplace identifier (e.g., "example.marketplace:identifier") |
+| `["t", ...]` | Yes | `["t", "<block_height>"]` | Block height as topic tag for filtering |
+| `["k", ...]` | Yes (multiple) | `["k", "<kind>"]` | Event kinds that can be promoted in this marketplace (e.g., "34236" for addressable short video events per NIP-71) |
+| `["p", ...]` | Yes | `["p", "<marketplace_pubkey>"]` | Marketplace pubkey for indexing/filtering |
+| `["r", ...]` | Yes (multiple) | `["r", "<relay_url>"]` | Relays for this marketplace (for indexing/filtering) |
+| `["u", ...]` | No | `["u", "<website_url>"]` | Website URL (for indexing/filtering) |
+
+**Relationships:**
+- **Referenced by:** BILLBOARD events (via `["a", "<marketplace_coordinate>"]` tag), PROMOTION events, ATTENTION events, MATCH events
+- **References:** None (this is a root entity)
+
+**Example:**
+```json
+{
+  "kind": 38188,
+  "pubkey": "<marketplace_pubkey>",
+  "created_at": 1234567890,
+  "tags": [
+    ["d", "example.marketplace:identifier"],
+    ["t", "862626"],
+    ["k", "34236"],
+    ["p", "<marketplace_pubkey>"],
+    ["r", "wss://relay.example.com"],
+    ["u", "https://marketplace.example.com"]
+  ],
+  "content": "{
+    \"name\": \"Example Marketplace\",
+    \"description\": \"A decentralized attention marketplace\",
+    \"kind_list\": [34236],
+    \"relay_list\": [\"wss://relay.example.com\"],
+    \"admin_pubkey\": \"<admin_pubkey>\",
+    \"marketplace_pubkey\": \"<marketplace_pubkey>\",
+    \"marketplace_id\": \"example.marketplace:identifier\",
+    \"min_duration\": 15000,
+    \"max_duration\": 60000
+  }"
+}
+```
 
 ### BILLBOARD Event (kind 38288)
 
-**Content Fields:**
-- `name` (string, required): Billboard name
-- `description` (string, optional): Billboard description
-- `billboard_pubkey` (string, required): Billboard pubkey (from `p` tag)
-- `marketplace_pubkey` (string, required): Marketplace pubkey (from `p` tag)
-- `billboard_id` (string, required): Billboard identifier (from `d` tag)
-- `marketplace_id` (string, required): Marketplace identifier (from marketplace coordinate `a` tag)
+**Purpose:** Announces a billboard service within a marketplace. Billboards match promotions with attention owners and verify views.
 
-**Tags:**
-- `["d", "<billboard_identifier>"]` (required): Billboard identifier
-- `["t", "<block_height>"]` (required): Block height as topic tag for filtering
-- `["a", "<marketplace_coordinate>"]` (required): Marketplace reference in coordinate format: `38188:<marketplace_pubkey>:<marketplace_id>`
-- `["p", "<billboard_pubkey>"]` (required): Billboard pubkey
-- `["p", "<marketplace_pubkey>"]` (required): Marketplace pubkey
-- `["r", "<relay_url>"]` (required, multiple allowed): Relay URLs (for indexing)
-- `["k", "<kind>"]` (required): Event kinds this billboard can display (for indexing)
-- `["u", "<url>"]` (required): Billboard website URL (for indexing)
+**Published By:** Billboard operators
+
+**When:** Billboard creation or when billboard information is updated
+
+**Content Schema:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Billboard name |
+| `description` | string | No | Billboard description |
+| `billboard_pubkey` | string | Yes | Billboard pubkey (from `p` tag) |
+| `marketplace_pubkey` | string | Yes | Marketplace pubkey (from `p` tag) |
+| `billboard_id` | string | Yes | Billboard identifier (from `d` tag) |
+| `marketplace_id` | string | Yes | Marketplace identifier (from marketplace coordinate `a` tag) |
+
+**Tag Schema:**
+
+| Tag | Required | Format | Description |
+|-----|----------|--------|-------------|
+| `["d", ...]` | Yes | `["d", "<billboard_identifier>"]` | Billboard identifier |
+| `["t", ...]` | Yes | `["t", "<block_height>"]` | Block height as topic tag for filtering |
+| `["a", ...]` | Yes | `["a", "38188:<marketplace_pubkey>:<marketplace_id>"]` | Marketplace reference in coordinate format |
+| `["p", ...]` | Yes (multiple) | `["p", "<billboard_pubkey>"]`, `["p", "<marketplace_pubkey>"]` | Billboard and marketplace pubkeys |
+| `["r", ...]` | Yes (multiple) | `["r", "<relay_url>"]` | Relay URLs (for indexing) |
+| `["k", ...]` | Yes | `["k", "<kind>"]` | Event kinds this billboard can display (for indexing) |
+| `["u", ...]` | Yes | `["u", "<url>"]` | Billboard website URL (for indexing) |
+
+**Relationships:**
+- **Referenced by:** PROMOTION events (via `["a", "<billboard_coordinate>"]` tag), MATCH events, BILLBOARD_CONFIRMATION events
+- **References:** MARKETPLACE event (via `["a", "<marketplace_coordinate>"]` tag)
+
+**Example:**
+```json
+{
+  "kind": 38288,
+  "pubkey": "<billboard_pubkey>",
+  "created_at": 1234567890,
+  "tags": [
+    ["d", "billboard-001"],
+    ["t", "862626"],
+    ["a", "38188:<marketplace_pubkey>:marketplace_001"],
+    ["p", "<billboard_pubkey>"],
+    ["p", "<marketplace_pubkey>"],
+    ["r", "wss://relay.example.com"],
+    ["k", "34236"],
+    ["u", "https://billboard.example.com"]
+  ],
+  "content": "{
+    \"name\": \"My Billboard\",
+    \"description\": \"A great billboard for promotions\",
+    \"billboard_pubkey\": \"<billboard_pubkey>\",
+    \"marketplace_pubkey\": \"<marketplace_pubkey>\",
+    \"billboard_id\": \"billboard-001\",
+    \"marketplace_id\": \"marketplace_001\"
+  }"
+}
+```
 
 ### PROMOTION Event (kind 38388)
 
-**Content Fields:**
-- `duration` (number, required): Duration in milliseconds
-- `bid` (number, required): Total bid in satoshis for the duration
-- `event_id` (string, required): Event ID of the content being promoted (the video)
-- `description` (string, optional): Text description
-- `call_to_action` (string, required): CTA button text
-- `call_to_action_url` (string, required): CTA button URL
-- `marketplace_pubkey` (string, required): Marketplace pubkey (from `p` tag)
-- `promotion_pubkey` (string, required): Promotion pubkey (from `p` tag)
-- `marketplace_id` (string, required): Marketplace identifier (from marketplace coordinate `a` tag)
-- `promotion_id` (string, required): Promotion identifier (from `d` tag)
+**Purpose:** Promotion request from a promotion creator. Contains bid amount, duration, and content reference for matching with attention owners.
 
-- **Tags:**
-- `["d", "<promotion_identifier>"]` (required): Promotion identifier
-- `["t", "<block_height>"]` (required): Block height as topic tag for filtering
-- `["a", "<marketplace_coordinate>"]` (required): Marketplace reference in coordinate format: `38188:<marketplace_pubkey>:<marketplace_id>`
-- `["a", "<video_coordinate>"]` (required): Video reference in coordinate format: `34236:<video_author_pubkey>:<video_d_tag>`
-- `["a", "<billboard_coordinate>"]` (required): Billboard reference in coordinate format: `38288:<billboard_pubkey>:<billboard_id>`
-- `["p", "<marketplace_pubkey>"]` (required): Marketplace pubkey
-- `["p", "<promotion_pubkey>"]` (required): Promotion pubkey
-- `["r", "<relay_url>"]` (required, multiple allowed): Relay URLs
-- `["k", "<kind>"]` (required, default: 34236): Kind of event being promoted
-- `["u", "<url>"]` (required): Promotion URL
+**Published By:** Promotion creators
+
+**When:** When a promotion creator wants to promote content
+
+**Content Schema:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `duration` | number | Yes | Duration in milliseconds |
+| `bid` | number | Yes | Total bid in satoshis for the duration |
+| `event_id` | string | Yes | Event ID of the content being promoted (the video) |
+| `description` | string | No | Text description |
+| `call_to_action` | string | Yes | CTA button text |
+| `call_to_action_url` | string | Yes | CTA button URL |
+| `marketplace_pubkey` | string | Yes | Marketplace pubkey (from `p` tag) |
+| `promotion_pubkey` | string | Yes | Promotion pubkey (from `p` tag) |
+| `marketplace_id` | string | Yes | Marketplace identifier (from marketplace coordinate `a` tag) |
+| `promotion_id` | string | Yes | Promotion identifier (from `d` tag) |
+
+**Tag Schema:**
+
+| Tag | Required | Format | Description |
+|-----|----------|--------|-------------|
+| `["d", ...]` | Yes | `["d", "<promotion_identifier>"]` | Promotion identifier |
+| `["t", ...]` | Yes | `["t", "<block_height>"]` | Block height as topic tag for filtering |
+| `["a", ...]` | Yes (multiple) | `["a", "38188:<marketplace_pubkey>:<marketplace_id>"]`, `["a", "34236:<video_author_pubkey>:<video_d_tag>"]`, `["a", "38288:<billboard_pubkey>:<billboard_id>"]` | Marketplace, video, and billboard coordinates |
+| `["p", ...]` | Yes (multiple) | `["p", "<marketplace_pubkey>"]`, `["p", "<promotion_pubkey>"]` | Marketplace and promotion pubkeys |
+| `["r", ...]` | Yes (multiple) | `["r", "<relay_url>"]` | Relay URLs |
+| `["k", ...]` | Yes | `["k", "<kind>"]` (default: 34236) | Kind of event being promoted |
+| `["u", ...]` | Yes | `["u", "<url>"]` | Promotion URL |
+
+**Relationships:**
+- **Referenced by:** MATCH events (via `["a", "<promotion_coordinate>"]` tag), confirmation events (via `e` tags)
+- **References:** MARKETPLACE event (via `["a", "<marketplace_coordinate>"]`), BILLBOARD event (via `["a", "<billboard_coordinate>"]`), video content (via `["a", "<video_coordinate>"]`)
+
+**Example:**
+```json
+{
+  "kind": 38388,
+  "pubkey": "<promotion_pubkey>",
+  "created_at": 1234567890,
+  "tags": [
+    ["d", "promotion-001"],
+    ["t", "862626"],
+    ["a", "38188:<marketplace_pubkey>:marketplace_001"],
+    ["a", "34236:<video_author_pubkey>:video_d_tag"],
+    ["a", "38288:<billboard_pubkey>:billboard_001"],
+    ["p", "<marketplace_pubkey>"],
+    ["p", "<promotion_pubkey>"],
+    ["r", "wss://relay.example.com"],
+    ["k", "34236"],
+    ["u", "https://example.com/promotion"]
+  ],
+  "content": "{
+    \"duration\": 30000,
+    \"bid\": 5000,
+    \"event_id\": \"video_event_id_here\",
+    \"description\": \"Watch my amazing content\",
+    \"call_to_action\": \"Watch Now\",
+    \"call_to_action_url\": \"https://example.com/watch\",
+    \"marketplace_pubkey\": \"<marketplace_pubkey>\",
+    \"promotion_pubkey\": \"<promotion_pubkey>\",
+    \"marketplace_id\": \"marketplace_001\",
+    \"promotion_id\": \"promotion-001\"
+  }"
+}
+```
 
 ### ATTENTION Event (kind 38488)
 
-**Content Fields:**
-- `ask` (number, required): Total ask in satoshis for the duration (same as `bid` in PROMOTION)
-- `min_duration` (number, required): Minimum duration in milliseconds
-- `max_duration` (number, required): Maximum duration in milliseconds
-- `kind_list` (array, required): Array of event kind numbers the attention owner is willing to see
-- `relay_list` (array, required): Array of relay URLs
-- `attention_pubkey` (string, required): Attention pubkey (from `p` tag)
-- `marketplace_pubkey` (string, required): Marketplace pubkey (from `p` tag)
-- `attention_id` (string, required): Attention identifier (from `d` tag)
-- `marketplace_id` (string, required): Marketplace identifier (from marketplace coordinate `a` tag)
-- `blocked_promotions_id` (string, required): D tag value of the blocked promotions list (default: `org.attnprotocol:promotion:blocked`)
-- `blocked_promoters_id` (string, required): D tag value of the blocked promoters list (default: `org.attnprotocol:promoter:blocked`)
+**Purpose:** Viewer availability signal from attention owners. Contains ask price, duration preferences, and content filters for matching with promotions.
 
-**Tags:**
-- `["d", "<attention_identifier>"]` (required): Attention identifier
-- `["t", "<block_height>"]` (required): Block height as topic tag for filtering
-- `["a", "<marketplace_coordinate>"]` (required): Marketplace reference in coordinate format: `38188:<marketplace_pubkey>:<marketplace_id>`
-- `["a", "<blocked_promotions_coordinate>"]` (required): Blocked promotions list reference: `30000:<attention_pubkey>:org.attnprotocol:promotion:blocked`
-- `["a", "<blocked_promoters_coordinate>"]` (required): Blocked promoters list reference: `30000:<attention_pubkey>:org.attnprotocol:promoter:blocked`
-- `["p", "<attention_pubkey>"]` (required): Attention pubkey (attention owner)
-- `["p", "<marketplace_pubkey>"]` (required): Marketplace pubkey
-- `["r", "<relay_url>"]` (required, multiple allowed): Relay URLs (for indexing)
-- `["k", "<kind>"]` (required, multiple allowed): Event kinds the attention owner is willing to see (for indexing)
+**Published By:** Attention owners (viewers who want to earn satoshis for viewing promotions)
+
+**When:** When an attention owner wants to make their attention available for viewing promotions
+
+**Content Schema:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `ask` | number | Yes | Total ask in satoshis for the duration (same as `bid` in PROMOTION) |
+| `min_duration` | number | Yes | Minimum duration in milliseconds |
+| `max_duration` | number | Yes | Maximum duration in milliseconds |
+| `kind_list` | array | Yes | Array of event kind numbers the attention owner is willing to see |
+| `relay_list` | array | Yes | Array of relay URLs |
+| `attention_pubkey` | string | Yes | Attention pubkey (from `p` tag) |
+| `marketplace_pubkey` | string | Yes | Marketplace pubkey (from `p` tag) |
+| `attention_id` | string | Yes | Attention identifier (from `d` tag) |
+| `marketplace_id` | string | Yes | Marketplace identifier (from marketplace coordinate `a` tag) |
+| `blocked_promotions_id` | string | Yes (default: `org.attnprotocol:promotion:blocked`) | D tag value of the blocked promotions list |
+| `blocked_promoters_id` | string | Yes (default: `org.attnprotocol:promoter:blocked`) | D tag value of the blocked promoters list |
+
+**Tag Schema:**
+
+| Tag | Required | Format | Description |
+|-----|----------|--------|-------------|
+| `["d", ...]` | Yes | `["d", "<attention_identifier>"]` | Attention identifier |
+| `["t", ...]` | Yes | `["t", "<block_height>"]` | Block height as topic tag for filtering |
+| `["a", ...]` | Yes (multiple) | `["a", "38188:<marketplace_pubkey>:<marketplace_id>"]`, `["a", "30000:<attention_pubkey>:org.attnprotocol:promotion:blocked"]`, `["a", "30000:<attention_pubkey>:org.attnprotocol:promoter:blocked"]` | Marketplace coordinate and blocked lists coordinates |
+| `["p", ...]` | Yes (multiple) | `["p", "<attention_pubkey>"]`, `["p", "<marketplace_pubkey>"]` | Attention and marketplace pubkeys |
+| `["r", ...]` | Yes (multiple) | `["r", "<relay_url>"]` | Relay URLs (for indexing) |
+| `["k", ...]` | Yes (multiple) | `["k", "<kind>"]` | Event kinds the attention owner is willing to see (for indexing) |
+
+**Relationships:**
+- **Referenced by:** MATCH events (via `["a", "<attention_coordinate>"]` tag), confirmation events (via `e` tags)
+- **References:** MARKETPLACE event (via `["a", "<marketplace_coordinate>"]`), NIP-51 lists (via `["a", "<blocked_promotions_coordinate>"]` and `["a", "<blocked_promoters_coordinate>"]`)
+
+**Example:**
+```json
+{
+  "kind": 38488,
+  "pubkey": "<attention_pubkey>",
+  "created_at": 1234567890,
+  "tags": [
+    ["d", "attention-001"],
+    ["t", "862626"],
+    ["a", "38188:<marketplace_pubkey>:marketplace_001"],
+    ["a", "30000:<attention_pubkey>:org.attnprotocol:promotion:blocked"],
+    ["a", "30000:<attention_pubkey>:org.attnprotocol:promoter:blocked"],
+    ["p", "<attention_pubkey>"],
+    ["p", "<marketplace_pubkey>"],
+    ["r", "wss://relay.example.com"],
+    ["k", "34236"],
+    ["k", "1"]
+  ],
+  "content": "{
+    \"ask\": 3000,
+    \"min_duration\": 15000,
+    \"max_duration\": 60000,
+    \"kind_list\": [34236, 1],
+    \"relay_list\": [\"wss://relay.example.com\"],
+    \"attention_pubkey\": \"<attention_pubkey>\",
+    \"marketplace_pubkey\": \"<marketplace_pubkey>\",
+    \"attention_id\": \"attention-001\",
+    \"marketplace_id\": \"marketplace_001\",
+    \"blocked_promotions_id\": \"org.attnprotocol:promotion:blocked\",
+    \"blocked_promoters_id\": \"org.attnprotocol:promoter:blocked\"
+  }"
+}
+```
 
 ### MATCH Event (kind 38888)
 
-**Content Fields:**
-- `ask` (number, required): Ask amount in satoshis
-- `bid` (number, required): Bid amount in satoshis
-- `duration` (number, required): Duration in milliseconds
-- `kind_list` (array, required): Array of event kind numbers
-- `relay_list` (array, required): Array of relay URLs
-- `marketplace_pubkey` (string, required): Marketplace pubkey (from `p` tag)
-- `promotion_pubkey` (string, required): Promotion pubkey (from `p` tag)
-- `attention_pubkey` (string, required): Attention pubkey (from `p` tag)
-- `billboard_pubkey` (string, required): Billboard pubkey (from billboard coordinate `a` tag)
-- `marketplace_id` (string, required): Marketplace identifier (from marketplace coordinate `a` tag)
-- `billboard_id` (string, required): Billboard identifier (from billboard coordinate `a` tag)
-- `promotion_id` (string, required): Promotion identifier (from promotion coordinate `a` tag)
-- `attention_id` (string, required): Attention identifier (from attention coordinate `a` tag)
+**Purpose:** Match between a promotion and attention. Created when bid ≥ ask and duration is compatible. Links all parties (marketplace, billboard, promotion, attention) for the confirmation chain.
 
-- **Tags:**
-- `["d", "<match_identifier>"]` (required): Match identifier
-- `["t", "<block_height>"]` (required): Block height as topic tag for filtering
-- `["a", "<marketplace_coordinate>"]` (required): Marketplace reference in coordinate format: `38188:<marketplace_pubkey>:<marketplace_id>`
-- `["a", "<billboard_coordinate>"]` (required): Billboard reference in coordinate format: `38288:<billboard_pubkey>:<billboard_id>`
-- `["a", "<promotion_coordinate>"]` (required): Promotion reference in coordinate format: `38388:<promotion_pubkey>:<promotion_id>`
-- `["a", "<attention_coordinate>"]` (required): Attention reference in coordinate format: `38488:<attention_pubkey>:<attention_id>`
-- `["p", "<marketplace_pubkey>"]` (required): Marketplace pubkey
-- `["p", "<promotion_pubkey>"]` (required): Promotion pubkey
-- `["p", "<attention_pubkey>"]` (required): Attention pubkey
-- `["r", "<relay_url>"]` (required, multiple allowed): Relay URLs
-- `["k", "<kind>"]` (required, multiple allowed): Event kinds (for indexing)
+**Published By:** Marketplace/BILLBOARD services (matching engines)
+
+**When:** When a promotion's bid meets or exceeds an attention's ask, and the promotion duration falls within the attention's min/max range
+
+**Content Schema:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `ask` | number | Yes | Ask amount in satoshis |
+| `bid` | number | Yes | Bid amount in satoshis |
+| `duration` | number | Yes | Duration in milliseconds |
+| `kind_list` | array | Yes | Array of event kind numbers |
+| `relay_list` | array | Yes | Array of relay URLs |
+| `marketplace_pubkey` | string | Yes | Marketplace pubkey (from `p` tag) |
+| `promotion_pubkey` | string | Yes | Promotion pubkey (from `p` tag) |
+| `attention_pubkey` | string | Yes | Attention pubkey (from `p` tag) |
+| `billboard_pubkey` | string | Yes | Billboard pubkey (from billboard coordinate `a` tag) |
+| `marketplace_id` | string | Yes | Marketplace identifier (from marketplace coordinate `a` tag) |
+| `billboard_id` | string | Yes | Billboard identifier (from billboard coordinate `a` tag) |
+| `promotion_id` | string | Yes | Promotion identifier (from promotion coordinate `a` tag) |
+| `attention_id` | string | Yes | Attention identifier (from attention coordinate `a` tag) |
+
+**Tag Schema:**
+
+| Tag | Required | Format | Description |
+|-----|----------|--------|-------------|
+| `["d", ...]` | Yes | `["d", "<match_identifier>"]` | Match identifier |
+| `["t", ...]` | Yes | `["t", "<block_height>"]` | Block height as topic tag for filtering |
+| `["a", ...]` | Yes (multiple) | `["a", "38188:<marketplace_pubkey>:<marketplace_id>"]`, `["a", "38288:<billboard_pubkey>:<billboard_id>"]`, `["a", "38388:<promotion_pubkey>:<promotion_id>"]`, `["a", "38488:<attention_pubkey>:<attention_id>"]` | All party coordinates |
+| `["p", ...]` | Yes (multiple) | `["p", "<marketplace_pubkey>"]`, `["p", "<promotion_pubkey>"]`, `["p", "<attention_pubkey>"]`, `["p", "<billboard_pubkey>"]` | All party pubkeys |
+| `["r", ...]` | Yes (multiple) | `["r", "<relay_url>"]` | Relay URLs |
+| `["k", ...]` | Yes (multiple) | `["k", "<kind>"]` | Event kinds (for indexing) |
+
+**Relationships:**
+- **Referenced by:** BILLBOARD_CONFIRMATION, VIEWER_CONFIRMATION, MARKETPLACE_CONFIRMATION events (via `e` tags)
+- **References:** MARKETPLACE event (via `["a", "<marketplace_coordinate>"]`), BILLBOARD event (via `["a", "<billboard_coordinate>"]`), PROMOTION event (via `["a", "<promotion_coordinate>"]`), ATTENTION event (via `["a", "<attention_coordinate>"]`)
+
+**Example:**
+```json
+{
+  "kind": 38888,
+  "pubkey": "<marketplace_pubkey>",
+  "created_at": 1234567890,
+  "tags": [
+    ["d", "match-001"],
+    ["t", "862626"],
+    ["a", "38188:<marketplace_pubkey>:marketplace_001"],
+    ["a", "38288:<billboard_pubkey>:billboard_001"],
+    ["a", "38388:<promotion_pubkey>:promotion_001"],
+    ["a", "38488:<attention_pubkey>:attention_001"],
+    ["p", "<marketplace_pubkey>"],
+    ["p", "<promotion_pubkey>"],
+    ["p", "<attention_pubkey>"],
+    ["p", "<billboard_pubkey>"],
+    ["r", "wss://relay.example.com"],
+    ["k", "34236"]
+  ],
+  "content": "{
+    \"ask\": 3000,
+    \"bid\": 5000,
+    \"duration\": 30000,
+    \"kind_list\": [34236],
+    \"relay_list\": [\"wss://relay.example.com\"],
+    \"marketplace_pubkey\": \"<marketplace_pubkey>\",
+    \"promotion_pubkey\": \"<promotion_pubkey>\",
+    \"attention_pubkey\": \"<attention_pubkey>\",
+    \"billboard_pubkey\": \"<billboard_pubkey>\",
+    \"marketplace_id\": \"marketplace_001\",
+    \"billboard_id\": \"billboard_001\",
+    \"promotion_id\": \"promotion_001\",
+    \"attention_id\": \"attention_001\"
+  }"
+}
+```
 
 ### BILLBOARD_CONFIRMATION Event (kind 38588)
 
-**Content Fields:**
-- `block` (number, required): Block height as integer
-- `price` (number, required): Total satoshis settled
-- `marketplace_event_id` (string, required): Marketplace event ID
-- `promotion_event_id` (string, required): Promotion event ID
-- `attention_event_id` (string, required): Attention event ID
-- `match_event_id` (string, required): Match event ID
-- `marketplace_pubkey` (string, required): Marketplace pubkey
-- `promotion_pubkey` (string, required): Promotion creator pubkey
-- `attention_pubkey` (string, required): Attention owner pubkey
-- `billboard_pubkey` (string, required): Billboard operator pubkey
-- `marketplace_id` (string, required): Marketplace identifier
-- `promotion_id` (string, required): Promotion identifier
-- `attention_id` (string, required): Attention identifier
-- `match_id` (string, required): Match identifier
+**Purpose:** Billboard attestation that a promotion was successfully viewed for the required duration. Published after billboard verifies the view.
 
-- **Tags:**
-- `["a", "<marketplace_coordinate>"]` (required): Marketplace coordinate in format: `38188:<marketplace_pubkey>:<marketplace_id>`
-- `["a", "<promotion_coordinate>"]` (required): Promotion coordinate in format: `38388:<promotion_pubkey>:<promotion_id>`
-- `["a", "<attention_coordinate>"]` (required): Attention coordinate in format: `38488:<attention_pubkey>:<attention_id>`
-- `["a", "<match_coordinate>"]` (required): Match coordinate in format: `38888:<match_pubkey>:<match_id>`
-- `["e", "<marketplace_event_id>"]` (required): Reference to marketplace event
-- `["e", "<promotion_event_id>"]` (required): Reference to promotion event
-- `["e", "<attention_event_id>"]` (required): Reference to attention event
-- `["e", "<match_event_id>"]` (required): Reference to match event
-- `["p", "<marketplace_pubkey>"]` (required): Marketplace pubkey
-- `["p", "<promotion_pubkey>"]` (required): Promotion creator pubkey
-- `["p", "<attention_pubkey>"]` (required): Attention owner pubkey
-- `["p", "<billboard_pubkey>"]` (required): Billboard operator pubkey
-- `["r", "<relay_url>"]` (required, multiple allowed): Relay URLs
-- `["t", "<block_height>"]` (required): Block height as string for filtering
-- `["u", "<url>"]` (required): URL (billboard website or confirmation page)
+**Published By:** Billboard operators
+
+**When:** After billboard verifies that the attention owner viewed the promotion for the required duration
+
+**Content Schema:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `block` | number | Yes | Block height as integer |
+| `price` | number | Yes | Total satoshis settled |
+| `marketplace_event_id` | string | Yes | Marketplace event ID |
+| `promotion_event_id` | string | Yes | Promotion event ID |
+| `attention_event_id` | string | Yes | Attention event ID |
+| `match_event_id` | string | Yes | Match event ID |
+| `marketplace_pubkey` | string | Yes | Marketplace pubkey |
+| `promotion_pubkey` | string | Yes | Promotion creator pubkey |
+| `attention_pubkey` | string | Yes | Attention owner pubkey |
+| `billboard_pubkey` | string | Yes | Billboard operator pubkey |
+| `marketplace_id` | string | Yes | Marketplace identifier |
+| `promotion_id` | string | Yes | Promotion identifier |
+| `attention_id` | string | Yes | Attention identifier |
+| `match_id` | string | Yes | Match identifier |
+
+**Tag Schema:**
+
+| Tag | Required | Format | Description |
+|-----|----------|--------|-------------|
+| `["a", ...]` | Yes (multiple) | `["a", "38188:<marketplace_pubkey>:<marketplace_id>"]`, `["a", "38388:<promotion_pubkey>:<promotion_id>"]`, `["a", "38488:<attention_pubkey>:<attention_id>"]`, `["a", "38888:<match_pubkey>:<match_id>"]` | All party coordinates |
+| `["e", ...]` | Yes (multiple) | `["e", "<marketplace_event_id>"]`, `["e", "<promotion_event_id>"]`, `["e", "<attention_event_id>"]`, `["e", "<match_event_id>"]` | References to all previous events |
+| `["p", ...]` | Yes (multiple) | `["p", "<marketplace_pubkey>"]`, `["p", "<promotion_pubkey>"]`, `["p", "<attention_pubkey>"]`, `["p", "<billboard_pubkey>"]` | All party pubkeys |
+| `["r", ...]` | Yes (multiple) | `["r", "<relay_url>"]` | Relay URLs |
+| `["t", ...]` | Yes | `["t", "<block_height>"]` | Block height as string for filtering |
+| `["u", ...]` | Yes | `["u", "<url>"]` | URL (billboard website or confirmation page) |
+
+**Relationships:**
+- **Referenced by:** MARKETPLACE_CONFIRMATION event (via `e` tag)
+- **References:** MARKETPLACE event (via `e` tag and coordinate), PROMOTION event (via `e` tag and coordinate), ATTENTION event (via `e` tag and coordinate), MATCH event (via `e` tag and coordinate)
 
 ### VIEWER_CONFIRMATION Event (kind 38688)
 
-**Content Fields:**
-- `block` (number, required): Block height as integer
-- `price` (number, required): Total satoshis settled
-- `marketplace_event_id` (string, required): Marketplace event ID
-- `promotion_event_id` (string, required): Promotion event ID
-- `attention_event_id` (string, required): Attention event ID
-- `match_event_id` (string, required): Match event ID
-- `marketplace_pubkey` (string, required): Marketplace pubkey
-- `promotion_pubkey` (string, required): Promotion creator pubkey
-- `attention_pubkey` (string, required): Attention owner pubkey
-- `billboard_pubkey` (string, required): Billboard operator pubkey
-- `marketplace_id` (string, required): Marketplace identifier
-- `promotion_id` (string, required): Promotion identifier
-- `attention_id` (string, required): Attention identifier
-- `match_id` (string, required): Match identifier
+**Purpose:** Viewer attestation that they received and viewed the promotion. Published by attention owners after viewing.
 
-- **Tags:**
-- `["a", "<marketplace_coordinate>"]` (required): Marketplace coordinate in format: `38188:<marketplace_pubkey>:<marketplace_id>`
-- `["a", "<promotion_coordinate>"]` (required): Promotion coordinate in format: `38388:<promotion_pubkey>:<promotion_id>`
-- `["a", "<attention_coordinate>"]` (required): Attention coordinate in format: `38488:<attention_pubkey>:<attention_id>`
-- `["a", "<match_coordinate>"]` (required): Match coordinate in format: `38888:<match_pubkey>:<match_id>`
-- `["e", "<marketplace_event_id>"]` (required): Reference to marketplace event
-- `["e", "<promotion_event_id>"]` (required): Reference to promotion event
-- `["e", "<attention_event_id>"]` (required): Reference to attention event
-- `["e", "<match_event_id>"]` (required): Reference to match event
-- `["p", "<marketplace_pubkey>"]` (required): Marketplace pubkey
-- `["p", "<promotion_pubkey>"]` (required): Promotion creator pubkey
-- `["p", "<attention_pubkey>"]` (required): Attention owner pubkey
-- `["p", "<billboard_pubkey>"]` (required): Billboard operator pubkey
-- `["r", "<relay_url>"]` (required, multiple allowed): Relay URLs
-- `["t", "<block_height>"]` (required): Block height as string for filtering
-- `["u", "<url>"]` (required): URL (attention owner website or confirmation page)
+**Published By:** Attention owners (viewers)
+
+**When:** After the attention owner views the promotion and receives payment
+
+**Content Schema:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `block` | number | Yes | Block height as integer |
+| `price` | number | Yes | Total satoshis settled |
+| `sats_delivered` | number | No | Satoshis delivered to viewer (optional proof payload) |
+| `marketplace_event_id` | string | Yes | Marketplace event ID |
+| `promotion_event_id` | string | Yes | Promotion event ID |
+| `attention_event_id` | string | Yes | Attention event ID |
+| `match_event_id` | string | Yes | Match event ID |
+| `marketplace_pubkey` | string | Yes | Marketplace pubkey |
+| `promotion_pubkey` | string | Yes | Promotion creator pubkey |
+| `attention_pubkey` | string | Yes | Attention owner pubkey |
+| `billboard_pubkey` | string | Yes | Billboard operator pubkey |
+| `marketplace_id` | string | Yes | Marketplace identifier |
+| `promotion_id` | string | Yes | Promotion identifier |
+| `attention_id` | string | Yes | Attention identifier |
+| `match_id` | string | Yes | Match identifier |
+
+**Tag Schema:**
+
+| Tag | Required | Format | Description |
+|-----|----------|--------|-------------|
+| `["a", ...]` | Yes (multiple) | `["a", "38188:<marketplace_pubkey>:<marketplace_id>"]`, `["a", "38388:<promotion_pubkey>:<promotion_id>"]`, `["a", "38488:<attention_pubkey>:<attention_id>"]`, `["a", "38888:<match_pubkey>:<match_id>"]` | All party coordinates |
+| `["e", ...]` | Yes (multiple) | `["e", "<marketplace_event_id>"]`, `["e", "<promotion_event_id>"]`, `["e", "<attention_event_id>"]`, `["e", "<match_event_id>"]` | References to all previous events |
+| `["p", ...]` | Yes (multiple) | `["p", "<marketplace_pubkey>"]`, `["p", "<promotion_pubkey>"]`, `["p", "<attention_pubkey>"]`, `["p", "<billboard_pubkey>"]` | All party pubkeys |
+| `["r", ...]` | Yes (multiple) | `["r", "<relay_url>"]` | Relay URLs |
+| `["t", ...]` | Yes | `["t", "<block_height>"]` | Block height as string for filtering |
+| `["u", ...]` | Yes | `["u", "<url>"]` | URL (attention owner website or confirmation page) |
+
+**Relationships:**
+- **Referenced by:** MARKETPLACE_CONFIRMATION event (via `e` tag)
+- **References:** MARKETPLACE event (via `e` tag and coordinate), PROMOTION event (via `e` tag and coordinate), ATTENTION event (via `e` tag and coordinate), MATCH event (via `e` tag and coordinate)
 
 ### MARKETPLACE_CONFIRMATION Event (kind 38788)
 
-**Content Fields:**
-- `block` (number, required): Block height as integer
-- `duration` (number, required): Duration in milliseconds
-- `ask` (number, required): Ask amount in satoshis
-- `bid` (number, required): Bid amount in satoshis
-- `price` (number, required): Total satoshis settled
-- `marketplace_event_id` (string, required): Marketplace event ID
-- `promotion_event_id` (string, required): Promotion event ID
-- `attention_event_id` (string, required): Attention event ID
-- `match_event_id` (string, required): Match event ID
-- `billboard_confirmation_event_id` (string, required): Billboard confirmation event ID
-- `viewer_confirmation_event_id` (string, required): Viewer confirmation event ID
-- `marketplace_pubkey` (string, required): Marketplace pubkey
-- `promotion_pubkey` (string, required): Promotion creator pubkey
-- `attention_pubkey` (string, required): Attention owner pubkey
-- `billboard_pubkey` (string, required): Billboard operator pubkey
-- `marketplace_id` (string, required): Marketplace identifier
-- `promotion_id` (string, required): Promotion identifier
-- `attention_id` (string, required): Attention identifier
-- `match_id` (string, required): Match identifier
+**Purpose:** Final settlement event published after both BILLBOARD_CONFIRMATION and VIEWER_CONFIRMATION are received. Contains final settlement details and payout breakdown.
 
-- **Tags:**
-- `["a", "<marketplace_coordinate>"]` (required): Marketplace coordinate in format: `38188:<marketplace_pubkey>:<marketplace_id>`
-- `["a", "<promotion_coordinate>"]` (required): Promotion coordinate in format: `38388:<promotion_pubkey>:<promotion_id>`
-- `["a", "<attention_coordinate>"]` (required): Attention coordinate in format: `38488:<attention_pubkey>:<attention_id>`
-- `["a", "<match_coordinate>"]` (required): Match coordinate in format: `38888:<match_pubkey>:<match_id>`
-- `["e", "<marketplace_event_id>"]` (required): Reference to marketplace event
-- `["e", "<promotion_event_id>"]` (required): Reference to promotion event
-- `["e", "<attention_event_id>"]` (required): Reference to attention event
-- `["e", "<match_event_id>"]` (required): Reference to match event
-- `["e", "<billboard_confirmation_event_id>"]` (required): Reference to billboard confirmation
-- `["e", "<viewer_confirmation_event_id>"]` (required): Reference to viewer confirmation
-- `["p", "<marketplace_pubkey>"]` (required): Marketplace pubkey
-- `["p", "<promotion_pubkey>"]` (required): Promotion creator pubkey
-- `["p", "<attention_pubkey>"]` (required): Attention owner pubkey
-- `["p", "<billboard_pubkey>"]` (required): Billboard operator pubkey
-- `["r", "<relay_url>"]` (required, multiple allowed): Relay URLs
-- `["t", "<block_height>"]` (required): Block height as string for filtering
-- `["u", "<url>"]` (required): URL (marketplace website or confirmation page)
+**Published By:** Marketplace operators
+
+**When:** After both BILLBOARD_CONFIRMATION and VIEWER_CONFIRMATION events are received
+
+**Content Schema:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `block` | number | Yes | Block height as integer |
+| `duration` | number | Yes | Duration in milliseconds |
+| `ask` | number | Yes | Ask amount in satoshis |
+| `bid` | number | Yes | Bid amount in satoshis |
+| `price` | number | Yes | Total satoshis settled |
+| `sats_settled` | number | Yes | Total satoshis settled |
+| `payout_breakdown` | object | No | Payout breakdown with `viewer?` and `billboard?` fields |
+| `marketplace_event_id` | string | Yes | Marketplace event ID |
+| `promotion_event_id` | string | Yes | Promotion event ID |
+| `attention_event_id` | string | Yes | Attention event ID |
+| `match_event_id` | string | Yes | Match event ID |
+| `billboard_confirmation_event_id` | string | Yes | Billboard confirmation event ID |
+| `viewer_confirmation_event_id` | string | Yes | Viewer confirmation event ID |
+| `marketplace_pubkey` | string | Yes | Marketplace pubkey |
+| `promotion_pubkey` | string | Yes | Promotion creator pubkey |
+| `attention_pubkey` | string | Yes | Attention owner pubkey |
+| `billboard_pubkey` | string | Yes | Billboard operator pubkey |
+| `marketplace_id` | string | Yes | Marketplace identifier |
+| `promotion_id` | string | Yes | Promotion identifier |
+| `attention_id` | string | Yes | Attention identifier |
+| `match_id` | string | Yes | Match identifier |
+
+**Tag Schema:**
+
+| Tag | Required | Format | Description |
+|-----|----------|--------|-------------|
+| `["a", ...]` | Yes (multiple) | `["a", "38188:<marketplace_pubkey>:<marketplace_id>"]`, `["a", "38388:<promotion_pubkey>:<promotion_id>"]`, `["a", "38488:<attention_pubkey>:<attention_id>"]`, `["a", "38888:<match_pubkey>:<match_id>"]` | All party coordinates |
+| `["e", ...]` | Yes (multiple) | `["e", "<marketplace_event_id>"]`, `["e", "<promotion_event_id>"]`, `["e", "<attention_event_id>"]`, `["e", "<match_event_id>"]`, `["e", "<billboard_confirmation_event_id>"]`, `["e", "<viewer_confirmation_event_id>"]` | References to all previous events including confirmations |
+| `["p", ...]` | Yes (multiple) | `["p", "<marketplace_pubkey>"]`, `["p", "<promotion_pubkey>"]`, `["p", "<attention_pubkey>"]`, `["p", "<billboard_pubkey>"]` | All party pubkeys |
+| `["r", ...]` | Yes (multiple) | `["r", "<relay_url>"]` | Relay URLs |
+| `["t", ...]` | Yes | `["t", "<block_height>"]` | Block height as string for filtering |
+| `["u", ...]` | Yes | `["u", "<url>"]` | URL (marketplace website or confirmation page) |
+
+**Relationships:**
+- **Referenced by:** None (this is the final event in the confirmation chain)
+- **References:** MARKETPLACE event (via `e` tag and coordinate), PROMOTION event (via `e` tag and coordinate), ATTENTION event (via `e` tag and coordinate), MATCH event (via `e` tag and coordinate), BILLBOARD_CONFIRMATION event (via `e` tag), VIEWER_CONFIRMATION event (via `e` tag)
 
 ### NIP-51 Lists (kind 30000)
 

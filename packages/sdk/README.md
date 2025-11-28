@@ -71,6 +71,38 @@ await sdk.publish_to_multiple(promotion_event, [
 
 Every builder implements the schemas and tag layout defined in `@attn-protocol/packages/protocol/docs/ATTN-01.md`. Content fields live in the JSON payload, while routing/indexing values (identifiers, block height, coordinates) ride inside Nostr tags. Always pass the current Bitcoin `block_height` so the SDK can emit the `t` tag that powers block-synchronized filtering.
 
+## Type Reference
+
+### Event Parameter Types
+
+| Builder Method | Parameter Type | Return Type |
+|----------------|----------------|-------------|
+| `create_block()` | `BlockEventParams` | `Event` |
+| `create_marketplace()` | `MarketplaceEventParams` | `Event` |
+| `create_billboard()` | `BillboardEventParams` | `Event` |
+| `create_promotion()` | `PromotionEventParams` | `Event` |
+| `create_attention()` | `AttentionEventParams` | `Event` |
+| `create_match()` | `MatchEventParams` | `Event` |
+| `create_billboard_confirmation_event()` | `BillboardConfirmationEventParams` | `Event` |
+| `create_viewer_confirmation_event()` | `ViewerConfirmationEventParams` | `Event` |
+| `create_marketplace_confirmation_event()` | `MarketplaceConfirmationEventParams` | `Event` |
+
+### Common Field Types
+
+| Field | Type | Example | Notes |
+|-------|------|---------|-------|
+| `block_height` | `number` | `862626` | Bitcoin block height |
+| `duration` | `number` | `30000` | Milliseconds |
+| `bid` / `ask` | `number` | `5000` | Total satoshis for duration |
+| `coordinate` | `string` | `"38188:pubkey:id"` | Format: `<kind>:<pubkey>:<identifier>` |
+| `promotion_id` | `string` | `"promotion-001"` | Unique identifier |
+| `marketplace_id` | `string` | `"marketplace_001"` | Unique identifier |
+| `billboard_id` | `string` | `"billboard_001"` | Unique identifier |
+| `attention_id` | `string` | `"attention_001"` | Unique identifier |
+| `match_id` | `string` | `"match_001"` | Unique identifier |
+| `kind_list` | `number[]` | `[34236, 1, 30023]` | Array of event kind numbers |
+| `relay_list` | `string[]` | `["wss://relay.example.com"]` | Array of relay URLs |
+
 ## Event Types
 
 Each subsection restates the ATTN-01 content + tag requirements so builders stay in lockstep with the block-synchronized snapshot model. When the SDK does not yet expose a specific field/tag (for example, `relay_list` inside the PROMOTION content), treat that as a TODO before publishing—extend the helper or compose the JSON manually so every required field lands on-chain of record.

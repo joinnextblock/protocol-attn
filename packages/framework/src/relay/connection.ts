@@ -65,7 +65,8 @@ export class RelayConnection {
   private attn_subscription_id: string; // Base ID for ATTN Protocol events
   private attn_subscription_ids: string[] = [];
   private attn_filter_map: Map<string, { kinds: number[]; [key: string]: unknown }> = new Map();
-  private standard_subscription_id: string; // For standard Nostr events (kind 0, 10002, 30000)
+  private standard_subscription_id: string; // For standard Nostr events (kind 0, 10002)
+  private nip51_lists_subscription_id: string; // For NIP-51 lists (kind 30000)
   private message_handler: ((data: WebSocket.Data) => void) | null = null;
   private auth_timeout: NodeJS.Timeout | null = null;
   private auth_challenge_received: boolean = false;
@@ -82,6 +83,7 @@ export class RelayConnection {
     this.subscription_id = `attn-blocks-${Date.now()}`;
     this.attn_subscription_id = `attn-events-${Date.now()}`;
     this.standard_subscription_id = `attn-standard-${Date.now()}`;
+    this.nip51_lists_subscription_id = `${this.standard_subscription_id}-nip51`;
   }
 
   /**
@@ -191,8 +193,8 @@ export class RelayConnection {
                   } else if (this.attn_subscription_ids.includes(subscription_id)) {
                     // ATTN Protocol events subscription - route by kind
                     this.handle_attn_event(event);
-                  } else if (subscription_id === this.standard_subscription_id) {
-                    // Standard Nostr events subscription - route by kind
+                  } else if (subscription_id === this.standard_subscription_id || subscription_id === this.nip51_lists_subscription_id) {
+                    // Standard Nostr events subscription (profiles, relay lists, or NIP-51 lists) - route by kind
                     this.handle_standard_event(event);
                   }
                 } else if (type === 'EOSE') {
@@ -226,20 +228,34 @@ export class RelayConnection {
                       // Ignore errors in hook handlers
                     });
                   } else if (subscription_id === this.standard_subscription_id) {
-                    // End of stored events - standard Nostr events subscription confirmed
-                  const filter: { kinds: number[]; [key: string]: unknown } = {
-                    kinds: [0, 10002, 30000],
-                    '#d': [
-                      NIP51_LIST_TYPES.BLOCKED_PROMOTIONS,
-                      NIP51_LIST_TYPES.BLOCKED_PROMOTERS,
-                      NIP51_LIST_TYPES.TRUSTED_BILLBOARDS,
-                      NIP51_LIST_TYPES.TRUSTED_MARKETPLACES,
-                    ],
+                    // End of stored events - standard Nostr events subscription confirmed (profiles, relay lists)
+                    const filter: { kinds: number[] } = {
+                      kinds: [0, 10002],
                     };
                     const confirmed_context: SubscriptionContext = {
                       relay_url: this.config.relay_url,
                       subscription_id: this.standard_subscription_id,
-                    filter: { ...filter },
+                      filter: { ...filter },
+                      status: 'confirmed',
+                    };
+                    this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, confirmed_context).catch(() => {
+                      // Ignore errors in hook handlers
+                    });
+                  } else if (subscription_id === this.nip51_lists_subscription_id) {
+                    // End of stored events - NIP-51 lists subscription confirmed
+                    const filter: { kinds: number[]; [key: string]: unknown } = {
+                      kinds: [30000],
+                      '#d': [
+                        NIP51_LIST_TYPES.BLOCKED_PROMOTIONS,
+                        NIP51_LIST_TYPES.BLOCKED_PROMOTERS,
+                        NIP51_LIST_TYPES.TRUSTED_BILLBOARDS,
+                        NIP51_LIST_TYPES.TRUSTED_MARKETPLACES,
+                      ],
+                    };
+                    const confirmed_context: SubscriptionContext = {
+                      relay_url: this.config.relay_url,
+                      subscription_id: this.nip51_lists_subscription_id,
+                      filter: { ...filter },
                       status: 'confirmed',
                     };
                     this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, confirmed_context).catch(() => {
@@ -387,7 +403,7 @@ export class RelayConnection {
   }
 
   /**
-   * Subscribe to block events (kind 30078) and ATTN Protocol events
+   * Subscribe to block events (kind 38088) and ATTN Protocol events
    */
   private subscribe_to_events(): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
@@ -413,56 +429,73 @@ export class RelayConnection {
     };
     this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, block_subscription_context).catch(() => {});
 
-    // Subscribe to ATTN Protocol events
-    const attn_filters: { kinds: number[]; [key: string]: unknown }[] = [];
-    this.attn_subscription_ids = [];
-    this.attn_filter_map.clear();
-
-    const market_filter: { kinds: number[]; [key: string]: unknown } = {
-      kinds: [ATTN_EVENT_KINDS.MARKETPLACE, ATTN_EVENT_KINDS.MARKETPLACE_CONFIRMATION],
+    // Subscribe to ATTN Protocol events (all kinds in a single subscription)
+    const attn_filter: { kinds: number[]; [key: string]: unknown } = {
+      kinds: [
+        ATTN_EVENT_KINDS.MARKETPLACE,
+        ATTN_EVENT_KINDS.BILLBOARD,
+        ATTN_EVENT_KINDS.PROMOTION,
+        ATTN_EVENT_KINDS.ATTENTION,
+        ATTN_EVENT_KINDS.BILLBOARD_CONFIRMATION,
+        ATTN_EVENT_KINDS.VIEWER_CONFIRMATION,
+        ATTN_EVENT_KINDS.MARKETPLACE_CONFIRMATION,
+        ATTN_EVENT_KINDS.MATCH,
+      ],
     };
+
+    // Combine all pubkey filters if any are specified
+    const all_pubkeys: string[] = [];
     if (this.config.marketplace_pubkeys?.length) {
-      market_filter['#p'] = this.config.marketplace_pubkeys;
+      all_pubkeys.push(...this.config.marketplace_pubkeys);
     }
-    attn_filters.push(market_filter);
-
-    const billboard_filter: { kinds: number[]; [key: string]: unknown } = {
-      kinds: [ATTN_EVENT_KINDS.BILLBOARD, ATTN_EVENT_KINDS.BILLBOARD_CONFIRMATION],
-    };
     if (this.config.billboard_pubkeys?.length) {
-      billboard_filter['#p'] = this.config.billboard_pubkeys;
+      all_pubkeys.push(...this.config.billboard_pubkeys);
     }
-    attn_filters.push(billboard_filter);
-
-    const promotion_filter: { kinds: number[]; [key: string]: unknown } = {
-      kinds: [ATTN_EVENT_KINDS.PROMOTION, ATTN_EVENT_KINDS.ATTENTION, ATTN_EVENT_KINDS.VIEWER_CONFIRMATION, ATTN_EVENT_KINDS.MATCH],
-    };
     if (this.config.advertiser_pubkeys?.length) {
-      promotion_filter['#p'] = this.config.advertiser_pubkeys;
-    }
-    attn_filters.push(promotion_filter);
-
-    let filter_index = 0;
-    for (const filter of attn_filters) {
-      const subscription_id = `${this.attn_subscription_id}-${filter_index++}`;
-      this.attn_subscription_ids.push(subscription_id);
-      this.attn_filter_map.set(subscription_id, filter);
-      const req_message = JSON.stringify(['REQ', subscription_id, filter]);
-      console.log('[attn] Sending REQ subscription for ATTN Protocol events:', JSON.stringify(filter));
-      this.ws.send(req_message);
-
-      const attn_subscription_context: SubscriptionContext = {
-        relay_url: this.config.relay_url,
-        subscription_id,
-        filter: { ...filter },
-        status: 'subscribed',
-      };
-      this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, attn_subscription_context).catch(() => {});
+      all_pubkeys.push(...this.config.advertiser_pubkeys);
     }
 
-    // Subscribe to standard Nostr events (profiles, relay lists, NIP-51 lists)
-    const standard_filter: { kinds: number[]; [key: string]: unknown } = {
-      kinds: [0, 10002, 30000],
+    // Remove duplicates and add to filter if any pubkeys specified
+    if (all_pubkeys.length > 0) {
+      const unique_pubkeys = Array.from(new Set(all_pubkeys));
+      attn_filter['#p'] = unique_pubkeys;
+    }
+
+    this.attn_subscription_ids = [this.attn_subscription_id];
+    this.attn_filter_map.set(this.attn_subscription_id, attn_filter);
+
+    const attn_req_message = JSON.stringify(['REQ', this.attn_subscription_id, attn_filter]);
+    console.log('[attn] Sending REQ subscription for ATTN Protocol events:', JSON.stringify(attn_filter));
+    this.ws.send(attn_req_message);
+
+    const attn_subscription_context: SubscriptionContext = {
+      relay_url: this.config.relay_url,
+      subscription_id: this.attn_subscription_id,
+      filter: { ...attn_filter },
+      status: 'subscribed',
+    };
+    this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, attn_subscription_context).catch(() => {});
+
+    // Subscribe to standard Nostr events (profiles, relay lists)
+    const profiles_relay_lists_filter: { kinds: number[] } = {
+      kinds: [0, 10002],
+    };
+
+    const profiles_relay_lists_req_message = JSON.stringify(['REQ', this.standard_subscription_id, profiles_relay_lists_filter]);
+    console.log('[attn] Sending REQ subscription for standard Nostr events:', JSON.stringify(profiles_relay_lists_filter));
+    this.ws.send(profiles_relay_lists_req_message);
+
+    const profiles_relay_lists_subscription_context: SubscriptionContext = {
+      relay_url: this.config.relay_url,
+      subscription_id: this.standard_subscription_id,
+      filter: { ...profiles_relay_lists_filter },
+      status: 'subscribed',
+    };
+    this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, profiles_relay_lists_subscription_context).catch(() => {});
+
+    // Subscribe to NIP-51 lists (kind 30000 with d tag filter)
+    const nip51_lists_filter: { kinds: number[]; [key: string]: unknown } = {
+      kinds: [30000],
       '#d': [
         NIP51_LIST_TYPES.BLOCKED_PROMOTIONS,
         NIP51_LIST_TYPES.BLOCKED_PROMOTERS,
@@ -471,17 +504,17 @@ export class RelayConnection {
       ],
     };
 
-    const standard_req_message = JSON.stringify(['REQ', this.standard_subscription_id, standard_filter]);
-    console.log('[attn] Sending REQ subscription for standard Nostr events:', JSON.stringify(standard_filter));
-    this.ws.send(standard_req_message);
+    const nip51_lists_req_message = JSON.stringify(['REQ', this.nip51_lists_subscription_id, nip51_lists_filter]);
+    console.log('[attn] Sending REQ subscription for NIP-51 lists:', JSON.stringify(nip51_lists_filter));
+    this.ws.send(nip51_lists_req_message);
 
-    const standard_subscription_context: SubscriptionContext = {
+    const nip51_lists_subscription_context: SubscriptionContext = {
       relay_url: this.config.relay_url,
-      subscription_id: this.standard_subscription_id,
-      filter: { ...standard_filter },
+      subscription_id: this.nip51_lists_subscription_id,
+      filter: { ...nip51_lists_filter },
       status: 'subscribed',
     };
-    this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, standard_subscription_context).catch(() => {});
+    this.hooks.emit(HOOK_NAMES.SUBSCRIPTION, nip51_lists_subscription_context).catch(() => {});
   }
 
   /**
@@ -1024,6 +1057,8 @@ export class RelayConnection {
           this.attn_filter_map.clear();
           const close_standard_message = JSON.stringify(['CLOSE', this.standard_subscription_id]);
           this.ws.send(close_standard_message);
+          const close_nip51_message = JSON.stringify(['CLOSE', this.nip51_lists_subscription_id]);
+          this.ws.send(close_nip51_message);
         }
         this.ws.removeAllListeners();
         this.ws.close();
