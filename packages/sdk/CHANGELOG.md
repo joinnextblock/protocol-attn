@@ -1,5 +1,11 @@
 # @attn-protocol/sdk
 
+## 0.2.2
+
+### Patch Changes
+
+- 368290b: Documentation reorganization: simplify root README and move detailed content to package-specific docs
+
 ## 0.2.1
 
 ### Patch Changes

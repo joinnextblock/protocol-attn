@@ -1,6 +1,6 @@
 {
   "name": "@attn-protocol/protocol",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "ATTN Protocol specification and documentation",
   "private": true,
   "type": "module",
