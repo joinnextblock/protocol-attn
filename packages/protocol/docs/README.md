@@ -790,6 +790,128 @@ PROMOTION Creators gain access to comprehensive analytics to measure and optimiz
 
 This comprehensive analytics ecosystem enables PROMOTION Creators to continuously improve their promotion strategy while maximizing the value received for their satoshis.
 
+## Glossary
+
+### Core Concepts
+
+- **Block Height (`t` tag)**: Bitcoin block number used as the universal clock for all ATTN Protocol events. Every event MUST include `["t", "<block_height>"]` tag. This enables block-synchronized operations where all services react to the same Bitcoin block events.
+
+- **Coordinate (`a` tag)**: Format `<kind>:<pubkey>:<identifier>` that uniquely identifies protocol entities (marketplaces, billboards, promotions, attention). For example: `38188:marketplace_pubkey:marketplace_001` identifies a specific marketplace instance.
+
+- **Event Kind**: Numeric identifier for Nostr event types. ATTN Protocol uses kinds 38088-38888 for protocol events, plus kind 30000 for NIP-51 lists.
+
+- **Content Field**: JSON payload in event `content` field. All custom data (sats, durations, descriptions, etc.) lives here, NOT in tags. Tags are used only for indexing and filtering.
+
+- **Tags**: Official Nostr tags (`d`, `t`, `a`, `e`, `p`, `r`, `k`, `u`) used ONLY for indexing/filtering, not for data storage. All custom data must be in the JSON content field.
+
+- **Snapshot Architecture**: Each Bitcoin block captures one frozen moment of marketplace state. Nothing accumulates across blocks. All metrics reset or recalculate each block.
+
+### Event Types
+
+- **BLOCK (38088)**: Bitcoin block arrival event. Published by Bitcoin node services when a new block is confirmed. This is the timing primitive for the entire protocol.
+
+- **MARKETPLACE (38188)**: Marketplace definition with parameters (min/max duration, supported event kinds, relay lists). Published by marketplace operators.
+
+- **BILLBOARD (38288)**: Billboard announcement within a marketplace. Published by billboard operators to announce their billboard service.
+
+- **PROMOTION (38388)**: Promotion request with bid (total satoshis for duration), duration (milliseconds), and content reference. Published by promotion creators.
+
+- **ATTENTION (38488)**: Viewer availability signal with ask (total satoshis for duration), duration range (min/max milliseconds), and content preferences. Published by attention owners.
+
+- **MATCH (38888)**: Match between promotion and attention. Created when bid ≥ ask and duration is compatible. Published by marketplace/BILLBOARD services.
+
+- **BILLBOARD_CONFIRMATION (38588)**: Billboard attestation of successful view. Published by billboard operators after verifying a promotion was viewed.
+
+- **VIEWER_CONFIRMATION (38688)**: Viewer attestation of receipt and payment. Published by attention owners after viewing a promotion.
+
+- **MARKETPLACE_CONFIRMATION (38788)**: Final settlement event published after both BILLBOARD_CONFIRMATION and VIEWER_CONFIRMATION are received. Published by marketplace operators.
+
+### Relationships
+
+- **Marketplace → Billboard**: One marketplace can have multiple billboards (one-to-many relationship). Billboards reference their marketplace via coordinate `a` tag.
+
+- **Promotion → Attention → Match**: Matching process creates explicit MATCH event linking all parties (marketplace, billboard, promotion, attention) via coordinate `a` tags.
+
+- **Match → Confirmations**: Three confirmation events (BILLBOARD_CONFIRMATION, VIEWER_CONFIRMATION, MARKETPLACE_CONFIRMATION) reference the MATCH event via `e` tags, creating an auditable chain.
+
+- **Block Synchronization**: All events include block height in `t` tag. Services subscribe to BLOCK events (kind 38088) and process events grouped by block height, ensuring deterministic state snapshots.
+
+## Quick Reference
+
+### Event Kind → Purpose Mapping
+
+| Kind | Name | Who Publishes | When | Key Fields |
+|------|------|---------------|------|------------|
+| 38088 | BLOCK | Bitcoin node services | Every new block | `height`, `hash`, `time` |
+| 38188 | MARKETPLACE | Marketplace operators | Marketplace creation/update | `name`, `kind_list`, `min_duration`, `max_duration` |
+| 38288 | BILLBOARD | Billboard operators | Billboard announcement | `name`, `marketplace_coordinate` |
+| 38388 | PROMOTION | Promotion creators | Promotion request | `bid`, `duration`, `event_id` |
+| 38488 | ATTENTION | Attention owners | Viewing availability | `ask`, `min_duration`, `max_duration`, `kind_list` |
+| 38888 | MATCH | Marketplace/BILLBOARD services | When bid ≥ ask and duration matches | `bid`, `ask`, `duration` |
+| 38588 | BILLBOARD_CONFIRMATION | Billboard operators | After verified view | `block`, `price` |
+| 38688 | VIEWER_CONFIRMATION | Attention owners | After viewing | `block`, `price`, `sats_delivered` |
+| 38788 | MARKETPLACE_CONFIRMATION | Marketplace operators | After both confirmations | `block`, `sats_settled`, `payout_breakdown` |
+
+### Required Tags Per Event Type
+
+| Event Type | Required Tags | Purpose |
+|------------|---------------|---------|
+| All events | `["t", "<block_height>"]` | Block synchronization |
+| MARKETPLACE | `["d", "<marketplace_id>"]`, `["p", "<marketplace_pubkey>"]`, `["k", "<kind>"]`, `["r", "<relay_url>"]` | Identification, filtering |
+| BILLBOARD | `["d", "<billboard_id>"]`, `["a", "<marketplace_coordinate>"]`, `["p", "<billboard_pubkey>"]`, `["p", "<marketplace_pubkey>"]`, `["r", "<relay_url>"]`, `["k", "<kind>"]`, `["u", "<url>"]` | Linking to marketplace, filtering |
+| PROMOTION | `["d", "<promotion_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<video_coordinate>"]`, `["a", "<billboard_coordinate>"]`, `["p", "<promotion_pubkey>"]`, `["p", "<marketplace_pubkey>"]`, `["r", "<relay_url>"]`, `["k", "<kind>"]`, `["u", "<url>"]` | Linking, filtering |
+| ATTENTION | `["d", "<attention_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<blocked_promotions_coordinate>"]`, `["a", "<blocked_promoters_coordinate>"]`, `["p", "<attention_pubkey>"]`, `["p", "<marketplace_pubkey>"]`, `["r", "<relay_url>"]`, `["k", "<kind>"]` | Preferences, filtering |
+| MATCH | `["d", "<match_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<billboard_coordinate>"]`, `["p", "<all_pubkeys>"]`, `["r", "<relay_url>"]`, `["k", "<kind>"]` | Linking all parties |
+| BILLBOARD_CONFIRMATION | `["a", "<all_coordinates>"]`, `["e", "<all_event_ids>"]`, `["p", "<all_pubkeys>"]`, `["r", "<relay_url>"]`, `["t", "<block_height>"]`, `["u", "<url>"]` | Referencing match chain |
+| VIEWER_CONFIRMATION | `["a", "<all_coordinates>"]`, `["e", "<all_event_ids>"]`, `["p", "<all_pubkeys>"]`, `["r", "<relay_url>"]`, `["t", "<block_height>"]`, `["u", "<url>"]` | Referencing match chain |
+| MARKETPLACE_CONFIRMATION | `["a", "<all_coordinates>"]`, `["e", "<all_event_ids>"]`, `["p", "<all_pubkeys>"]`, `["r", "<relay_url>"]`, `["t", "<block_height>"]`, `["u", "<url>"]` | Final settlement record |
+
+## For AI Assistants
+
+This documentation is structured to help AI assistants understand and explain the ATTN Protocol:
+
+### Documentation Structure
+
+1. **Start Here**: This README provides overview, glossary, quick reference, and links to detailed docs
+2. **Protocol Spec**: `packages/protocol/docs/ATTN-01.md` contains complete event schemas with standardized format (Purpose, Published By, When, Content Schema table, Tag Schema table, Relationships, Example)
+3. **Implementation**:
+   - `packages/sdk/README.md` shows how to create events with type reference tables
+   - `packages/framework/README.md` shows how to receive/process events with hook system
+4. **User Guide**: `packages/protocol/docs/README.md` provides user-facing documentation
+
+### Key Concepts
+
+- **All events include `["t", "<block_height>"]` tag** for Bitcoin synchronization - this is the universal clock
+- **Custom data lives in JSON `content` field, NOT in tags** - tags are for indexing/filtering only
+- **Tags (`d`, `t`, `a`, `e`, `p`, `r`, `k`, `u`)** are official Nostr tags used only for indexing/filtering
+- **Coordinates use format `<kind>:<pubkey>:<identifier>`** - uniquely identify protocol entities
+- **Matching requires**: bid ≥ ask, duration within range (min_duration ≤ promotion.duration ≤ max_duration), kind in kind_list, not blocked
+
+### Common Questions
+
+- **"How do I create a promotion?"** → See [SDK README - PROMOTION Event](../sdk/README.md#promotion-event-kind-38388) or [SDK Examples - Creating a Complete Promotion Flow](../sdk/README.md#pattern-1-creating-a-complete-promotion-flow)
+- **"How do I match promotions?"** → See [SDK Examples - Matching Logic](../sdk/README.md#pattern-2-matching-logic) or [How are PROMOTION Creators and Attention Owners matched?](#how-are-promotion-creators-and-attention-owners-matched)
+- **"What tags are required?"** → See [Quick Reference - Required Tags](#required-tags-per-event-type) or [ATTN-01.md](./ATTN-01.md) for each event type
+- **"How does block synchronization work?"** → See [Framework README - Bitcoin Block Synchronization](../framework/README.md#bitcoin-block-synchronization) or [Framework Examples - Block-Synchronized Processing](../framework/README.md#pattern-3-block-synchronized-processing)
+- **"What's the event lifecycle?"** → See [Framework HOOKS.md](../framework/HOOKS.md) for hook execution order
+- **"What are the event kinds?"** → See [Quick Reference - Event Kind Mapping](#event-kind--purpose-mapping)
+
+### Schema Lookup
+
+When explaining event schemas to developers:
+1. Check [ATTN-01.md](./ATTN-01.md) for the canonical specification
+2. Each event has standardized sections: Purpose, Published By, When, Content Schema (table), Tag Schema (table), Relationships, Example
+3. Use [Quick Reference](#quick-reference) tables for quick lookups
+4. Reference [Type Reference](../sdk/README.md#type-reference) in SDK README for TypeScript types
+
+### Implementation Guidance
+
+When helping developers implement:
+1. **Creating events**: Use [SDK README](../sdk/README.md) - all builders are documented with examples
+2. **Receiving events**: Use [Framework README](../framework/README.md) - hook system handles relay connections and event processing
+3. **Common patterns**: See [SDK Examples](../sdk/README.md#examples) and [Framework Implementation Patterns](../framework/README.md#implementation-patterns) for complete workflows
+4. **Block synchronization**: Always use block heights, never timestamps - see [Framework Examples - Block-Synchronized Processing](../framework/README.md#pattern-3-block-synchronized-processing)
+
 ## Technical Specifications & Documentation
 
 ### Protocol Specification

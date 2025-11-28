@@ -252,6 +252,58 @@ const handler: HookHandler<NewPromotionContext> = async (context) => {
 };
 ```
 
+## Implementation Patterns
+
+### Pattern 3: Block-Synchronized Processing
+
+The framework provides hooks for block-synchronized processing, ensuring all operations align with Bitcoin block boundaries:
+
+```typescript
+import { Attn } from "@attn-protocol/framework";
+
+const attn = new Attn({
+  relays: ["wss://relay.attnprotocol.org"],
+  private_key,
+  node_pubkeys: [node_pubkey_hex],
+});
+
+// Framework hook pattern for block-synchronized processing
+attn.before_new_block(async (context) => {
+  // Prepare state for new block
+  console.log(`Preparing for block ${context.block_height}`);
+  await finalize_current_block_transactions();
+  await prepare_state_for_new_block();
+});
+
+attn.on_new_block(async (context) => {
+  // Process new block
+  const block_height = context.block_height;
+  const block_hash = context.block_hash;
+  console.log(`Processing block ${block_height} (hash: ${block_hash})`);
+
+  // Process all events for this block
+  await process_block_snapshot(block_height);
+
+  // Run matching engine for this block
+  await run_matching_engine(block_height);
+});
+
+attn.after_new_block(async (context) => {
+  // Cleanup after block processing
+  console.log(`Finished processing block ${context.block_height}`);
+  await reset_state_for_next_block();
+  await archive_block_data(context.block_height);
+});
+
+await attn.connect();
+```
+
+This pattern ensures that:
+- All state transitions happen at block boundaries
+- No accumulation across blocks (snapshot architecture)
+- Deterministic processing based on block height
+- Clean separation between block preparation, processing, and cleanup
+
 ## Related Projects
 
 - **@attn-protocol/sdk**: TypeScript SDK for creating and publishing ATTN Protocol events

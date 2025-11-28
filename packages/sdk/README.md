@@ -540,6 +540,201 @@ The SDK validates configuration in the constructor:
 
 All validation happens at construction time, ensuring the SDK instance is always in a valid state.
 
+## Examples
+
+### Basic Usage
+
+```typescript
+// Import SDK for creating events
+import { AttnSdk } from "@attn-protocol/sdk";
+// Import framework for receiving/processing events
+import { Attn } from "@attn-protocol/framework";
+
+// Initialize SDK with private key (hex or nsec format)
+const sdk = new AttnSdk({
+  private_key: "your_private_key_here", // hex or nsec
+});
+
+// Create a BLOCK event (typically done by Bitcoin node services)
+const block_event = sdk.create_block({
+  height: 880000,
+  hash: "00000000000000000001a7c...",
+  time: 1730000000,
+  tx_count: 2345,
+  difficulty: "97345261772782.69",
+  block_identifier: "node-service-alpha:block#880000",
+});
+
+// Publish block event to relay
+try {
+  const result = await sdk.publish(block_event, "wss://relay.attnprotocol.org");
+  if (result.success) {
+    console.log(`Block event published: ${result.event_id}`);
+  } else {
+    console.error(`Failed to publish: ${result.error}`);
+  }
+} catch (error) {
+  console.error("Error publishing block event:", error);
+}
+
+// Initialize framework for receiving events
+const attn = new Attn({
+  relays: ["wss://relay.attnprotocol.org"],
+  private_key: private_key_uint8array, // Uint8Array for NIP-42 auth
+  node_pubkeys: [node_pubkey_hex], // Trusted Bitcoin node services
+});
+
+// Register hook handlers
+attn.on_new_block(async (context) => {
+  console.log(`New block: ${context.block_height} (hash: ${context.block_hash})`);
+  // Process block-synchronized tasks here
+});
+
+attn.on_new_promotion(async (context) => {
+  console.log("New promotion received:", context.event);
+  // Handle promotion event
+});
+
+// Connect to relays
+try {
+  await attn.connect();
+  console.log("Connected to relays");
+} catch (error) {
+  console.error("Failed to connect:", error);
+}
+```
+
+### Pattern 1: Creating a Complete Promotion Flow
+
+```typescript
+import { AttnSdk } from "@attn-protocol/sdk";
+
+const sdk = new AttnSdk({ private_key: "your_private_key" });
+
+// 1. Create marketplace
+const marketplace = sdk.create_marketplace({
+  marketplace_id: "marketplace-001",
+  name: "Example Marketplace",
+  description: "Decentralized attention marketplace",
+  kind_list: [34236],
+  relay_list: ["wss://relay.attnprotocol.org"],
+  admin_pubkey: sdk.get_public_key(),
+  marketplace_pubkey: sdk.get_public_key(),
+  block_height: 862626,
+});
+
+// 2. Create billboard
+const billboard = sdk.create_billboard({
+  billboard_id: "billboard-001",
+  name: "My Billboard",
+  marketplace_coordinate: `38188:${sdk.get_public_key()}:marketplace-001`,
+  billboard_pubkey: sdk.get_public_key(),
+  marketplace_pubkey: sdk.get_public_key(),
+  relays: ["wss://relay.attnprotocol.org"],
+  kind: 34236,
+  url: "https://billboard.example.com",
+  marketplace_id: "marketplace-001",
+  block_height: 862626,
+});
+
+// 3. Create promotion
+const promotion = sdk.create_promotion({
+  promotion_id: "promotion-001",
+  duration: 30_000,
+  bid: 5_000,
+  event_id: "video_event_id_here",
+  description: "Watch my amazing content",
+  call_to_action: "Watch Now",
+  call_to_action_url: "https://example.com/watch",
+  marketplace_coordinate: `38188:${sdk.get_public_key()}:marketplace-001`,
+  billboard_coordinate: `38288:${sdk.get_public_key()}:billboard-001`,
+  video_coordinate: "34236:video_author_pubkey:video_d_tag",
+  marketplace_pubkey: sdk.get_public_key(),
+  promotion_pubkey: sdk.get_public_key(),
+  relays: ["wss://relay.attnprotocol.org"],
+  kind: 34236,
+  url: "https://example.com/promotion",
+  marketplace_id: "marketplace-001",
+  block_height: 862626,
+});
+
+// 4. Publish to relays
+await sdk.publish_to_multiple(promotion, ["wss://relay.attnprotocol.org"]);
+```
+
+### Pattern 2: Matching Logic
+
+```typescript
+// Matching criteria (all must be true):
+// 1. Economic: promotion.bid >= attention.ask
+// 2. Duration: attention.min_duration <= promotion.duration <= attention.max_duration
+// 3. Kind: promotion.kind in attention.kind_list
+// 4. Block list: promotion not in attention.blocked_promotions AND promoter not in attention.blocked_promoters
+
+function is_match_valid(
+  promotion: PromotionEvent,
+  attention: AttentionEvent,
+  blocked_promotions: string[],
+  blocked_promoters: string[]
+): boolean {
+  // Economic compatibility
+  if (promotion.bid < attention.ask) {
+    return false;
+  }
+
+  // Duration compatibility
+  if (
+    promotion.duration < attention.min_duration ||
+    promotion.duration > attention.max_duration
+  ) {
+    return false;
+  }
+
+  // Kind compatibility
+  if (!attention.kind_list.includes(promotion.kind)) {
+    return false;
+  }
+
+  // Block list checks
+  const promotion_coordinate = `38388:${promotion.promotion_pubkey}:${promotion.promotion_id}`;
+  if (blocked_promotions.includes(promotion_coordinate)) {
+    return false;
+  }
+
+  if (blocked_promoters.includes(promotion.promotion_pubkey)) {
+    return false;
+  }
+
+  return true;
+}
+
+// Create MATCH event when valid
+if (is_match_valid(promotion, attention, blocked_promotions, blocked_promoters)) {
+  const match = sdk.create_match({
+    match_id: "match-001",
+    marketplace_coordinate: `38188:${marketplace_pubkey}:${marketplace_id}`,
+    billboard_coordinate: `38288:${billboard_pubkey}:${billboard_id}`,
+    promotion_coordinate: `38388:${promotion_pubkey}:${promotion_id}`,
+    attention_coordinate: `38488:${attention_pubkey}:${attention_id}`,
+    marketplace_pubkey,
+    promotion_pubkey,
+    attention_pubkey,
+    billboard_pubkey,
+    marketplace_id,
+    billboard_id,
+    promotion_id,
+    attention_id,
+    ask: attention.ask,
+    bid: promotion.bid,
+    duration: promotion.duration,
+    kind_list: attention.kind_list,
+    relay_list: attention.relay_list,
+    relays: attention.relay_list,
+    block_height: current_block_height,
+  });
+}
+```
+
 ## Validation Utilities
 
 The SDK includes validation utilities for event validation:
