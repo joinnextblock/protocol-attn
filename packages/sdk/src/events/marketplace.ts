@@ -4,6 +4,7 @@
 
 import { finalizeEvent } from "nostr-tools";
 import type { Event } from "nostr-tools";
+import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
 import type { MarketplaceEventParams } from "../types/index.js";
 
 /**
@@ -73,7 +74,7 @@ export function create_marketplace_event(
   }
 
   const event_template = {
-    kind: 38188,
+    kind: ATTN_EVENT_KINDS.MARKETPLACE,
     created_at: params.created_at ?? Math.floor(Date.now() / 1000),
     content: JSON.stringify(content_object),
     tags,

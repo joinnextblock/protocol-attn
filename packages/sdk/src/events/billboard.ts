@@ -4,6 +4,7 @@
 
 import { finalizeEvent } from "nostr-tools";
 import type { Event } from "nostr-tools";
+import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
 import type { BillboardEventParams } from "../types/index.js";
 
 /**
@@ -56,7 +57,7 @@ export function create_billboard_event(
   tags.push(["u", params.url]);
 
   const event_template = {
-    kind: 38288,
+    kind: ATTN_EVENT_KINDS.BILLBOARD,
     created_at: params.created_at ?? Math.floor(Date.now() / 1000),
     content: JSON.stringify(content_object),
     tags,

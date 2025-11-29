@@ -1,5 +1,5 @@
 /**
- * Core type definitions for attn framework
+ * Core type definitions for ATTN Protocol
  */
 
 export type BlockHeight = number;

@@ -4,12 +4,9 @@
  */
 
 import type { Event } from 'nostr-tools';
+import type { BlockHeight, Pubkey, EventId } from '@attn-protocol/core';
 
-export type BlockHeight = number;
-
-export type Pubkey = string;
-
-export type EventId = string;
+export type { BlockHeight, Pubkey, EventId };
 
 /**
  * Hook context passed to all hook handlers

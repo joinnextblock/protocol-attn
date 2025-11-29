@@ -8,7 +8,7 @@ import type { Event } from 'nostr-tools';
 import { finalizeEvent, getPublicKey, utils } from 'nostr-tools';
 import { HookEmitter } from '../hooks/emitter.js';
 import { HOOK_NAMES } from '../hooks/index.js';
-import { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from '../constants.js';
+import { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from '@attn-protocol/core';
 import type {
   RelayConnectContext,
   RelayDisconnectContext,

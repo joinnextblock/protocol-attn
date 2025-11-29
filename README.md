@@ -22,6 +22,7 @@ It also functions as the Bitcoin-native attention interchange for block-synced m
 | Package | Purpose |
 | --- | --- |
 | [`packages/protocol`](./packages/protocol/) | ATTN-01 spec, diagrams, assets, and changelog. |
+| [`packages/core`](./packages/core/) | Core constants (`ATTN_EVENT_KINDS`, `NIP51_LIST_TYPES`) and type definitions shared across all packages. |
 | [`packages/framework`](./packages/framework/) | `Attn` hook runtime + relay adapters used by marketplace/billboard services. |
 | [`packages/sdk`](./packages/sdk/) | Event builders, validators, relay publishers, and shared type definitions. |
 

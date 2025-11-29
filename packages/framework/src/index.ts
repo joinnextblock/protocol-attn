@@ -45,9 +45,7 @@ export type {
 // Relay connection (internal, used by Attn)
 export type { RelayConnectionConfig } from './relay/index.js';
 
-// Core types (only export unique types from types/index, BlockHeight/Pubkey/EventId come from hooks/types)
-export type { RelayUrl } from './types/index.js';
-
-// Shared constants
-export { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from './constants.js';
+// Re-export core constants and types for backward compatibility
+export { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from '@attn-protocol/core';
+export type { RelayUrl } from '@attn-protocol/core';
 

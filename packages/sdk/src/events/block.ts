@@ -4,6 +4,7 @@
 
 import { finalizeEvent, getPublicKey } from "nostr-tools";
 import type { Event } from "nostr-tools";
+import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
 import type { BlockEventParams } from "../types/index.js";
 
 /**
@@ -69,7 +70,7 @@ export function create_block_event(
   ];
 
   const event_template = {
-    kind: 38088,
+    kind: ATTN_EVENT_KINDS.BLOCK,
     created_at: params.created_at ?? Math.floor(Date.now() / 1000),
     content: JSON.stringify(content_object),
     tags,

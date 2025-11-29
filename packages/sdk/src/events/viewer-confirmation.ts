@@ -4,6 +4,7 @@
 
 import { finalizeEvent } from "nostr-tools";
 import type { Event } from "nostr-tools";
+import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
 import type { ViewerConfirmationEventParams } from "../types/index.js";
 
 /**
@@ -67,7 +68,7 @@ export function create_viewer_confirmation_event(
   tags.push(["u", params.url]);
 
   const event_template = {
-    kind: 38688,
+    kind: ATTN_EVENT_KINDS.VIEWER_CONFIRMATION,
     created_at: params.created_at ?? Math.floor(Date.now() / 1000),
     content: JSON.stringify(content_object),
     tags,
