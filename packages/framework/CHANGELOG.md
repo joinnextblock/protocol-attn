@@ -1,5 +1,12 @@
 # @attn-protocol/framework
 
+## 0.2.5
+
+### Patch Changes
+
+- Update HOOKS.md documentation to accurately reflect current framework implementation. Added missing hooks (on_subscription, on_new_profile, on_new_relay_list, on_new_nip51_list), documented unimplemented hooks with status notes, updated lifecycle diagram, and reorganized sections for clarity.
+- Update README documentation to reference @attn-protocol/core constants instead of hardcoded event kind numbers. Added examples showing how to import and use ATTN_EVENT_KINDS from core package. Updated Related Projects sections to include core package.
+
 ## 0.2.4
 
 ### Patch Changes
