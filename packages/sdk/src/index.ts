@@ -17,7 +17,7 @@ export {
   create_attention_event,
   create_match_event,
   create_billboard_confirmation_event,
-  create_viewer_confirmation_event,
+  create_attention_confirmation_event,
   create_marketplace_confirmation_event,
 } from "./events/index.js";
 
@@ -31,7 +31,7 @@ export type {
   AttentionEventParams,
   MatchEventParams,
   BillboardConfirmationEventParams,
-  ViewerConfirmationEventParams,
+  AttentionConfirmationEventParams,
   MarketplaceConfirmationEventParams,
   PublishResult,
   PublishResults,

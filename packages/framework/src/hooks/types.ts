@@ -110,10 +110,10 @@ export interface BillboardConfirmContext extends HookContext {
   event: Event;
 }
 
-export interface ViewerConfirmContext extends HookContext {
+export interface AttentionConfirmContext extends HookContext {
   confirmation_event_id: EventId;
   match_event_id: EventId;
-  viewer_pubkey: Pubkey;
+  attention_pubkey: Pubkey;
   confirmation_data: unknown;
   event: Event;
 }

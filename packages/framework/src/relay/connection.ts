@@ -22,7 +22,7 @@ import type {
   NewMatchContext,
   MatchPublishedContext,
   BillboardConfirmContext,
-  ViewerConfirmContext,
+  AttentionConfirmContext,
   MarketplaceConfirmedContext,
   NewProfileContext,
   NewRelayListContext,
@@ -437,7 +437,7 @@ export class RelayConnection {
         ATTN_EVENT_KINDS.PROMOTION,
         ATTN_EVENT_KINDS.ATTENTION,
         ATTN_EVENT_KINDS.BILLBOARD_CONFIRMATION,
-        ATTN_EVENT_KINDS.VIEWER_CONFIRMATION,
+        ATTN_EVENT_KINDS.ATTENTION_CONFIRMATION,
         ATTN_EVENT_KINDS.MARKETPLACE_CONFIRMATION,
         ATTN_EVENT_KINDS.MATCH,
       ],
@@ -587,8 +587,8 @@ export class RelayConnection {
         case ATTN_EVENT_KINDS.BILLBOARD_CONFIRMATION:
           await this.handle_billboard_confirmation_event(event);
           break;
-        case ATTN_EVENT_KINDS.VIEWER_CONFIRMATION:
-          await this.handle_viewer_confirmation_event(event);
+        case ATTN_EVENT_KINDS.ATTENTION_CONFIRMATION:
+          await this.handle_attention_confirmation_event(event);
           break;
         case ATTN_EVENT_KINDS.MARKETPLACE_CONFIRMATION:
           await this.handle_marketplace_confirmation_event(event);
@@ -767,9 +767,9 @@ export class RelayConnection {
   }
 
   /**
-   * Handle VIEWER_CONFIRMATION event (kind 38688)
+   * Handle ATTENTION_CONFIRMATION event (kind 38688)
    */
-  private async handle_viewer_confirmation_event(event: Event): Promise<void> {
+  private async handle_attention_confirmation_event(event: Event): Promise<void> {
     try {
       // Parse content
       let confirmation_data: unknown;
@@ -783,25 +783,25 @@ export class RelayConnection {
       const e_tags = event.tags.filter((tag) => tag[0] === 'e');
       const match_event_id = e_tags.length > 0 ? e_tags[e_tags.length - 1]?.[1] : undefined;
 
-      // Extract viewer pubkey (attention owner) from event pubkey
-      const viewer_pubkey = event.pubkey;
+      // Extract attention owner pubkey from event pubkey
+      const attention_pubkey = event.pubkey;
 
       // Extract block height from t tag
       const block_height_tag = event.tags.find((tag) => tag[0] === 't' && tag[1]);
       const block_height = block_height_tag ? parseInt(block_height_tag[1]!, 10) : undefined;
 
-      const context: ViewerConfirmContext = {
+      const context: AttentionConfirmContext = {
         confirmation_event_id: event.id,
         match_event_id: match_event_id || '',
-        viewer_pubkey,
+        attention_pubkey,
         confirmation_data,
         block_height,
         event,
       };
 
-      await this.hooks.emit(HOOK_NAMES.VIEWER_CONFIRM, context);
+      await this.hooks.emit(HOOK_NAMES.ATTENTION_CONFIRM, context);
     } catch (error) {
-      console.error(`[attn] Error handling viewer confirmation event:`, error);
+      console.error(`[attn] Error handling attention confirmation event:`, error);
     }
   }
 

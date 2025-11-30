@@ -30,7 +30,7 @@ export type {
   NewMatchContext,
   MatchPublishedContext,
   BillboardConfirmContext,
-  ViewerConfirmContext,
+  AttentionConfirmContext,
   MarketplaceConfirmedContext,
   NewBlockContext,
   BlockData,

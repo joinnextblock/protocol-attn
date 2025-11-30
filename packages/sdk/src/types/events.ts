@@ -167,9 +167,9 @@ export interface BillboardConfirmationEventParams extends BaseEventParams {
 }
 
 /**
- * VIEWER_CONFIRMATION Event (kind 38688) parameters
+ * ATTENTION_CONFIRMATION Event (kind 38688) parameters
  */
-export interface ViewerConfirmationEventParams extends BaseEventParams {
+export interface AttentionConfirmationEventParams extends BaseEventParams {
   block: number;
   price: number;
   sats_delivered: number;
@@ -213,7 +213,7 @@ export interface MarketplaceConfirmationEventParams extends BaseEventParams {
   attention_ref: string; // e tag reference to attention event
   match_ref: string; // e tag reference to match event
   billboard_confirmation_ref: string; // e tag reference to billboard confirmation event
-  viewer_confirmation_ref: string; // e tag reference to viewer confirmation event
+  attention_confirmation_ref: string; // e tag reference to attention confirmation event
   marketplace_coordinate: string;
   promotion_coordinate: string;
   attention_coordinate: string;

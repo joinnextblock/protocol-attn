@@ -1,18 +1,18 @@
 /**
- * VIEWER_CONFIRMATION Event builder (kind 38688)
+ * ATTENTION_CONFIRMATION Event builder (kind 38688)
  */
 
 import { finalizeEvent } from "nostr-tools";
 import type { Event } from "nostr-tools";
 import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
-import type { ViewerConfirmationEventParams } from "../types/index.js";
+import type { AttentionConfirmationEventParams } from "../types/index.js";
 
 /**
- * Create VIEWER_CONFIRMATION event
+ * Create ATTENTION_CONFIRMATION event
  */
-export function create_viewer_confirmation_event(
+export function create_attention_confirmation_event(
   private_key: Uint8Array,
-  params: ViewerConfirmationEventParams
+  params: AttentionConfirmationEventParams
 ): Event {
   const content_object: Record<string, unknown> = {
     block: params.block,
@@ -68,7 +68,7 @@ export function create_viewer_confirmation_event(
   tags.push(["u", params.url]);
 
   const event_template = {
-    kind: ATTN_EVENT_KINDS.VIEWER_CONFIRMATION,
+    kind: ATTN_EVENT_KINDS.ATTENTION_CONFIRMATION,
     created_at: params.created_at ?? Math.floor(Date.now() / 1000),
     content: JSON.stringify(content_object),
     tags,
@@ -76,4 +76,3 @@ export function create_viewer_confirmation_event(
 
   return finalizeEvent(event_template, private_key);
 }
-

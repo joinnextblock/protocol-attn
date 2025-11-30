@@ -1,5 +1,16 @@
 # @attn-protocol/protocol
 
+## 0.3.0
+
+### Minor Changes
+
+- Rename VIEWER_CONFIRMATION to ATTENTION_CONFIRMATION
+  - Renamed event kind constant from VIEWER_CONFIRMATION to ATTENTION_CONFIRMATION (kind 38688 remains unchanged)
+  - Updated SDK: removed `create_viewer_confirmation_event`, added `create_attention_confirmation_event`
+  - Updated framework: renamed `on_viewer_confirm` hook to `on_attention_confirm`, updated `ViewerConfirmContext` to `AttentionConfirmContext`
+  - Updated protocol documentation (ATTN-01.md) with schema design principles and clarifications
+  - Updated all type definitions and references across packages
+
 ## 0.2.3
 
 ### Patch Changes

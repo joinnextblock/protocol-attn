@@ -95,7 +95,7 @@ The framework handles Nostr relay connections, including:
   - `ATTN_EVENT_KINDS.PROMOTION` (38388)
   - `ATTN_EVENT_KINDS.ATTENTION` (38488)
   - `ATTN_EVENT_KINDS.BILLBOARD_CONFIRMATION` (38588)
-  - `ATTN_EVENT_KINDS.VIEWER_CONFIRMATION` (38688)
+  - `ATTN_EVENT_KINDS.ATTENTION_CONFIRMATION` (38688)
   - `ATTN_EVENT_KINDS.MARKETPLACE_CONFIRMATION` (38788)
   - `ATTN_EVENT_KINDS.MATCH` (38888)
 - Optional pubkey filtering via `marketplace_pubkeys`, `billboard_pubkeys`, or `advertiser_pubkeys`
@@ -204,7 +204,7 @@ import type {
   NewMatchContext,
   MatchPublishedContext,
   BillboardConfirmContext,
-  ViewerConfirmContext,
+  AttentionConfirmContext,
   MarketplaceConfirmedContext,
   NewBlockContext,
   BlockData,

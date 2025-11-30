@@ -129,8 +129,8 @@ sequenceDiagram
     Note over BILLBOARD: Verifies viewing duration
     BILLBOARD->>RELAY: Publishes BILLBOARD_CONFIRMATION (38588)
     RELAY->>MARKETPLACE Service: Forwards BILLBOARD_CONFIRMATION
-    Attention Owner->>RELAY: Publishes VIEWER_CONFIRMATION (38688)
-    RELAY->>MARKETPLACE Service: Forwards VIEWER_CONFIRMATION
+    Attention Owner->>RELAY: Publishes ATTENTION_CONFIRMATION (38688)
+    RELAY->>MARKETPLACE Service: Forwards ATTENTION_CONFIRMATION
     Note over MARKETPLACE Service: Both confirmations received
     MARKETPLACE Service->>RELAY: Publishes MARKETPLACE_CONFIRMATION (38788)
     Note over RELAY,Attention Owner: Payment flows defined in future NIP
@@ -174,7 +174,7 @@ The ATTN Protocol operates through standardized Nostr event kinds that enable co
 
 8. **Confirmations**: Three confirmation events are published:
    - BILLBOARD publishes kind:38588 BILLBOARD_CONFIRMATION event
-   - Attention Owner publishes kind:38688 VIEWER_CONFIRMATION event
+   - Attention Owner publishes kind:38688 ATTENTION_CONFIRMATION event
    - MARKETPLACE publishes kind:38788 MARKETPLACE_CONFIRMATION event after both confirmations received
 
 9. **Payment**: Satoshis flow from the PROMOTION CREATOR to the Attention Owner (and potentially the BILLBOARD as a service fee).
@@ -351,7 +351,7 @@ Running a BILLBOARD is a technical undertaking that enables you to facilitate th
    - Begin identifying and matching compatible promotions and attention owners
    - Publish kind:38888 MATCH events when matches are found
    - Verify views and publish kind:38588 BILLBOARD_CONFIRMATION events
-   - Wait for kind:38688 VIEWER_CONFIRMATION events
+   - Wait for kind:38688 ATTENTION_CONFIRMATION events
    - Process payments between parties
 
 ### Monetization Options
@@ -421,7 +421,7 @@ After a match is created (kind:38888), the confirmation flow proceeds:
    - Block height as integer
    - References to match, promotion, attention, and marketplace events via `e` tags
 
-3. **Attention Owner Confirmation**: The Attention Owner publishes a kind:38688 VIEWER_CONFIRMATION event confirming receipt, including:
+3. **Attention Owner Confirmation**: The Attention Owner publishes a kind:38688 ATTENTION_CONFIRMATION event confirming receipt, including:
    - Block height at confirmation
    - Satoshis received
    - References to match, promotion, attention, and marketplace events via `e` tags
@@ -713,7 +713,7 @@ The ATTN Protocol implements several mechanisms to verify genuine promotion view
 4. **Threshold Confirmation**: Verification when required duration is reached
 5. **Confirmation Publication**: Three confirmation events published:
    - BILLBOARD publishes kind:38588 BILLBOARD_CONFIRMATION
-   - Attention Owner publishes kind:38688 VIEWER_CONFIRMATION
+   - Attention Owner publishes kind:38688 ATTENTION_CONFIRMATION
    - MARKETPLACE publishes kind:38788 MARKETPLACE_CONFIRMATION after both received
 
 ### Fraud Prevention
@@ -822,9 +822,9 @@ This comprehensive analytics ecosystem enables PROMOTION Creators to continuousl
 
 - **BILLBOARD_CONFIRMATION (38588)**: Billboard attestation of successful view. Published by billboard operators after verifying a promotion was viewed.
 
-- **VIEWER_CONFIRMATION (38688)**: Viewer attestation of receipt and payment. Published by attention owners after viewing a promotion.
+- **ATTENTION_CONFIRMATION (38688)**: Attention owner attestation of receipt and payment. Published by attention owners after viewing a promotion.
 
-- **MARKETPLACE_CONFIRMATION (38788)**: Final settlement event published after both BILLBOARD_CONFIRMATION and VIEWER_CONFIRMATION are received. Published by marketplace operators.
+- **MARKETPLACE_CONFIRMATION (38788)**: Final settlement event published after both BILLBOARD_CONFIRMATION and ATTENTION_CONFIRMATION are received. Published by marketplace operators.
 
 ### Relationships
 
@@ -832,7 +832,7 @@ This comprehensive analytics ecosystem enables PROMOTION Creators to continuousl
 
 - **Promotion → Attention → Match**: Matching process creates explicit MATCH event linking all parties (marketplace, billboard, promotion, attention) via coordinate `a` tags.
 
-- **Match → Confirmations**: Three confirmation events (BILLBOARD_CONFIRMATION, VIEWER_CONFIRMATION, MARKETPLACE_CONFIRMATION) reference the MATCH event via `e` tags, creating an auditable chain.
+- **Match → Confirmations**: Three confirmation events (BILLBOARD_CONFIRMATION, ATTENTION_CONFIRMATION, MARKETPLACE_CONFIRMATION) reference the MATCH event via `e` tags, creating an auditable chain.
 
 - **Block Synchronization**: All events include block height in `t` tag. Services subscribe to BLOCK events (kind 38088) and process events grouped by block height, ensuring deterministic state snapshots.
 
@@ -849,7 +849,7 @@ This comprehensive analytics ecosystem enables PROMOTION Creators to continuousl
 | 38488 | ATTENTION | Attention owners | Viewing availability | `ask`, `min_duration`, `max_duration`, `kind_list` |
 | 38888 | MATCH | Marketplace/BILLBOARD services | When bid ≥ ask and duration matches | `bid`, `ask`, `duration` |
 | 38588 | BILLBOARD_CONFIRMATION | Billboard operators | After verified view | `block`, `price` |
-| 38688 | VIEWER_CONFIRMATION | Attention owners | After viewing | `block`, `price`, `sats_delivered` |
+| 38688 | ATTENTION_CONFIRMATION | Attention owners | After viewing | `block`, `price`, `sats_delivered` |
 | 38788 | MARKETPLACE_CONFIRMATION | Marketplace operators | After both confirmations | `block`, `sats_settled`, `payout_breakdown` |
 
 ### Required Tags Per Event Type
@@ -863,7 +863,7 @@ This comprehensive analytics ecosystem enables PROMOTION Creators to continuousl
 | ATTENTION | `["d", "<attention_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<blocked_promotions_coordinate>"]`, `["a", "<blocked_promoters_coordinate>"]`, `["p", "<attention_pubkey>"]`, `["p", "<marketplace_pubkey>"]`, `["r", "<relay_url>"]`, `["k", "<kind>"]` | Preferences, filtering |
 | MATCH | `["d", "<match_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<billboard_coordinate>"]`, `["p", "<all_pubkeys>"]`, `["r", "<relay_url>"]`, `["k", "<kind>"]` | Linking all parties |
 | BILLBOARD_CONFIRMATION | `["a", "<all_coordinates>"]`, `["e", "<all_event_ids>"]`, `["p", "<all_pubkeys>"]`, `["r", "<relay_url>"]`, `["t", "<block_height>"]`, `["u", "<url>"]` | Referencing match chain |
-| VIEWER_CONFIRMATION | `["a", "<all_coordinates>"]`, `["e", "<all_event_ids>"]`, `["p", "<all_pubkeys>"]`, `["r", "<relay_url>"]`, `["t", "<block_height>"]`, `["u", "<url>"]` | Referencing match chain |
+| ATTENTION_CONFIRMATION | `["a", "<all_coordinates>"]`, `["e", "<all_event_ids>"]`, `["p", "<all_pubkeys>"]`, `["r", "<relay_url>"]`, `["t", "<block_height>"]`, `["u", "<url>"]` | Referencing match chain |
 | MARKETPLACE_CONFIRMATION | `["a", "<all_coordinates>"]`, `["e", "<all_event_ids>"]`, `["p", "<all_pubkeys>"]`, `["r", "<relay_url>"]`, `["t", "<block_height>"]`, `["u", "<url>"]` | Final settlement record |
 
 ## For AI Assistants
@@ -931,7 +931,7 @@ When selecting relays for ATTN Protocol participation, consider:
    - Prioritize relays with consistent uptime and performance
 
 2. **Protocol Compatibility**:
-   - Ensure relays support all required event kinds: 38088 (BLOCK), 38188 (MARKETPLACE), 38288 (BILLBOARD), 38388 (PROMOTION), 38488 (ATTENTION), 38588 (BILLBOARD_CONFIRMATION), 38688 (VIEWER_CONFIRMATION), 38788 (MARKETPLACE_CONFIRMATION), 38888 (MATCH)
+   - Ensure relays support all required event kinds: 38088 (BLOCK), 38188 (MARKETPLACE), 38288 (BILLBOARD), 38388 (PROMOTION), 38488 (ATTENTION), 38588 (BILLBOARD_CONFIRMATION), 38688 (ATTENTION_CONFIRMATION), 38788 (MARKETPLACE_CONFIRMATION), 38888 (MATCH)
    - Check for any relay-specific event or content restrictions
    - Verify support for required NIP implementations (NIP-51 for block lists)
 

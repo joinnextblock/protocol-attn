@@ -23,7 +23,7 @@ export type {
   NewMatchContext,
   MatchPublishedContext,
   BillboardConfirmContext,
-  ViewerConfirmContext,
+  AttentionConfirmContext,
   MarketplaceConfirmedContext,
   NewBlockContext,
   BlockGapDetectedContext,
@@ -52,7 +52,7 @@ export const HOOK_NAMES = {
   NEW_MATCH: 'on_new_match',
   MATCH_PUBLISHED: 'on_match_published',
   BILLBOARD_CONFIRM: 'on_billboard_confirm',
-  VIEWER_CONFIRM: 'on_viewer_confirm',
+  ATTENTION_CONFIRM: 'on_attention_confirm',
   MARKETPLACE_CONFIRMED: 'on_marketplace_confirmed',
 
   // Block synchronization hooks

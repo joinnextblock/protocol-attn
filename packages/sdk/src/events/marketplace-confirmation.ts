@@ -26,7 +26,7 @@ export function create_marketplace_confirmation_event(
     attention_event_id: params.attention_ref,
     match_event_id: params.match_ref,
     billboard_confirmation_event_id: params.billboard_confirmation_ref,
-    viewer_confirmation_event_id: params.viewer_confirmation_ref,
+    attention_confirmation_event_id: params.attention_confirmation_ref,
     marketplace_pubkey: params.marketplace_pubkey,
     promotion_pubkey: params.promotion_pubkey,
     attention_pubkey: params.attention_pubkey,
@@ -58,7 +58,7 @@ export function create_marketplace_confirmation_event(
   tags.push(["e", params.attention_ref]);
   tags.push(["e", params.match_ref]);
   tags.push(["e", params.billboard_confirmation_ref]);
-  tags.push(["e", params.viewer_confirmation_ref]);
+  tags.push(["e", params.attention_confirmation_ref]);
 
   // Required p tags
   tags.push(["p", params.marketplace_pubkey]);

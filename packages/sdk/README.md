@@ -98,7 +98,7 @@ if (event.kind === ATTN_EVENT_KINDS.PROMOTION) {
 | `create_attention()` | `AttentionEventParams` | `Event` |
 | `create_match()` | `MatchEventParams` | `Event` |
 | `create_billboard_confirmation_event()` | `BillboardConfirmationEventParams` | `Event` |
-| `create_viewer_confirmation_event()` | `ViewerConfirmationEventParams` | `Event` |
+| `create_attention_confirmation_event()` | `AttentionConfirmationEventParams` | `Event` |
 | `create_marketplace_confirmation_event()` | `MarketplaceConfirmationEventParams` | `Event` |
 
 ### Common Field Types
@@ -382,7 +382,7 @@ const billboard_confirmation = create_billboard_confirmation_event(
 );
 ```
 
-### VIEWER_CONFIRMATION Event (kind `ATTN_EVENT_KINDS.VIEWER_CONFIRMATION` / 38688)
+### ATTENTION_CONFIRMATION Event (kind `ATTN_EVENT_KINDS.ATTENTION_CONFIRMATION` / 38688)
 
 ATTN-01 content requirements:
 - `block`, `price`, `sats_delivered`, optional `proof_payload`
@@ -399,13 +399,13 @@ ATTN-01 tag requirements:
 - `["u", url]`
 
 ```typescript
-import { create_viewer_confirmation_event } from "@attn-protocol/sdk";
+import { create_attention_confirmation_event } from "@attn-protocol/sdk";
 import { nip19 } from "nostr-tools";
 
 const decoded = nip19.decode("nsec1...");
 const private_key = decoded.data as Uint8Array;
 
-const viewer_confirmation = create_viewer_confirmation_event(
+const attention_confirmation = create_attention_confirmation_event(
   private_key,
   {
     block: 862626,
@@ -440,14 +440,14 @@ ATTN-01 content requirements:
 - `block`, `duration`, `ask`, `bid`, `price`, `sats_settled`
 - `payout_breakdown.viewer?`, `payout_breakdown.billboard?`
 - `marketplace_event_id`, `promotion_event_id`, `attention_event_id`, `match_event_id`
-- `billboard_confirmation_event_id`, `viewer_confirmation_event_id`
+- `billboard_confirmation_event_id`, `attention_confirmation_event_id`
 - `marketplace_pubkey`, `promotion_pubkey`, `attention_pubkey`, `billboard_pubkey`
 - `marketplace_id`, `promotion_id`, `attention_id`, `match_id`
 
 ATTN-01 tag requirements:
 - `["a", marketplace_coordinate]`, `["a", promotion_coordinate]`, `["a", attention_coordinate]`, `["a", match_coordinate]`
 - `["e", marketplace_event_id]`, `["e", promotion_event_id]`, `["e", attention_event_id]`, `["e", match_event_id]`
-- `["e", billboard_confirmation_event_id]`, `["e", viewer_confirmation_event_id]`
+- `["e", billboard_confirmation_event_id]`, `["e", attention_confirmation_event_id]`
 - `["p", marketplace_pubkey]`, `["p", promotion_pubkey]`, `["p", attention_pubkey]`, `["p", billboard_pubkey]`
 - Multiple `["r", relay_url]`
 - `["t", block_height]`
@@ -478,7 +478,7 @@ const marketplace_confirmation = create_marketplace_confirmation_event(
     attention_ref: "attention_event_id",
     match_ref: "match_event_id",
     billboard_confirmation_ref: "billboard_confirmation_event_id",
-    viewer_confirmation_ref: "viewer_confirmation_event_id",
+    attention_confirmation_ref: "attention_confirmation_event_id",
     marketplace_coordinate: "38188:marketplace_pubkey:marketplace_001",
     promotion_coordinate: "38388:promotion_pubkey:promotion_001",
     attention_coordinate: "38488:attention_pubkey:attention_001",

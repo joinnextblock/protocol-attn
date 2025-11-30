@@ -24,7 +24,7 @@ import type {
   NewMatchContext,
   MatchPublishedContext,
   BillboardConfirmContext,
-  ViewerConfirmContext,
+  AttentionConfirmContext,
   MarketplaceConfirmedContext,
   NewBlockContext,
   BlockGapDetectedContext,
@@ -190,10 +190,10 @@ export class Attn {
   }
 
   /**
-   * Register handler for viewer confirmation events
+   * Register handler for attention confirmation events
    */
-  on_viewer_confirm(handler: HookHandler<ViewerConfirmContext>): HookHandle {
-    return this.emitter.register(HOOK_NAMES.VIEWER_CONFIRM, handler);
+  on_attention_confirm(handler: HookHandler<AttentionConfirmContext>): HookHandle {
+    return this.emitter.register(HOOK_NAMES.ATTENTION_CONFIRM, handler);
   }
 
   /**
