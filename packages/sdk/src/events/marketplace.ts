@@ -6,6 +6,7 @@ import { finalizeEvent } from "nostr-tools";
 import type { Event } from "nostr-tools";
 import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
 import type { MarketplaceEventParams } from "../types/index.js";
+import { format_d_tag, format_coordinate } from "../utils/formatting.js";
 
 /**
  * Create MARKETPLACE event (kind 38188)
@@ -14,48 +15,37 @@ export function create_marketplace_event(
   private_key: Uint8Array,
   params: MarketplaceEventParams
 ): Event {
-  // marketplace_id used for both d tag and content per ATTN-01.md
+  // Format d-tag with org.attnprotocol: prefix
+  const marketplace_d_tag = format_d_tag("marketplace", params.marketplace_id);
+
+  // Build content object - kind_list and relay_list are NOT in content per ATTN-01
   const content_object: Record<string, unknown> = {
     name: params.name,
     description: params.description,
-    kind_list: params.kind_list,
-    relay_list: params.relay_list,
     admin_pubkey: params.admin_pubkey,
-    marketplace_pubkey: params.marketplace_pubkey,
-    marketplace_id: params.marketplace_id,
+    min_duration: params.min_duration ?? 15000,
+    max_duration: params.max_duration ?? 60000,
+    match_fee_sats: params.match_fee_sats ?? 0,
+    confirmation_fee_sats: params.confirmation_fee_sats ?? 0,
+    ref_marketplace_pubkey: params.marketplace_pubkey,
+    ref_marketplace_id: params.marketplace_id,
+    ref_node_pubkey: params.ref_node_pubkey, // Required per ATTN-01
+    ref_block_id: params.ref_block_id, // Required per ATTN-01
   };
-
-  if (params.image) {
-    content_object.image = params.image;
-  }
-
-  if (params.url) {
-    content_object.url = params.url;
-  }
-
-  if (params.admin_email) {
-    content_object.admin_email = params.admin_email;
-  }
-
-  if (params.min_duration !== undefined) {
-    content_object.min_duration = params.min_duration;
-  }
-
-  if (params.max_duration !== undefined) {
-    content_object.max_duration = params.max_duration;
-  }
 
   const tags: string[][] = [];
 
-  // Required d tag (derived from marketplace_id per ATTN-01.md)
-  tags.push(["d", params.marketplace_id]);
+  // Required d tag
+  tags.push(["d", marketplace_d_tag]);
 
-  // Required t tag (block height)
-  if (params.block_height !== undefined) {
-    tags.push(["t", params.block_height.toString()]);
-  }
+  // Required t tag (block height) - per ATTN-01, every event must include this
+  tags.push(["t", params.block_height.toString()]);
+
+  // Required a tag for block coordinate - per ATTN-01
+  tags.push(["a", params.block_coordinate]);
 
   // Required k tags (multiple allowed, one per supported kind)
+  // kind_list is in tags only, NOT in content per ATTN-01
   for (const kind of params.kind_list) {
     tags.push(["k", kind.toString()]);
   }
@@ -63,7 +53,11 @@ export function create_marketplace_event(
   // Required p tag (marketplace pubkey)
   tags.push(["p", params.marketplace_pubkey]);
 
+  // Required p tag for node pubkey - per ATTN-01
+  tags.push(["p", params.ref_node_pubkey]);
+
   // Required r tags (multiple allowed, one per relay)
+  // relay_list is in tags only, NOT in content per ATTN-01
   for (const relay of params.relay_list) {
     tags.push(["r", relay]);
   }

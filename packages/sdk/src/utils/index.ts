@@ -16,3 +16,5 @@ export {
 
 export type { ValidationResult } from "./validation.js";
 
+export { format_d_tag, format_coordinate } from "./formatting.js";
+

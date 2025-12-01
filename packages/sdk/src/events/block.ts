@@ -6,6 +6,7 @@ import { finalizeEvent, getPublicKey } from "nostr-tools";
 import type { Event } from "nostr-tools";
 import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
 import type { BlockEventParams } from "../types/index.js";
+import { format_d_tag } from "../utils/formatting.js";
 
 /**
  * Create BLOCK event
@@ -20,22 +21,25 @@ export function create_block_event(
   if (typeof params.hash !== "string" || params.hash.length === 0) {
     throw new Error("Block hash is required");
   }
-  if (typeof params.time !== "number") {
-    throw new Error("Block time is required");
-  }
 
+  // Use block_height from params (required per BaseEventParams) or fallback to height
+  // This allows flexibility: if block_height matches height, use it; otherwise use height
   const block_height = params.block_height ?? params.height;
-  if (typeof block_height !== "number") {
-    throw new Error("block_height tag value is required");
-  }
+
+  const node_pubkey = params.node_pubkey ?? getPublicKey(private_key);
+  const block_id = format_d_tag("block", `${params.height}:${params.hash}`);
+  const ref_block_id = params.block_identifier ?? block_id;
 
   const content_object: Record<string, unknown> = {
     height: params.height,
     hash: params.hash,
-    time: params.time,
-    node_pubkey: params.node_pubkey ?? getPublicKey(private_key),
+    ref_node_pubkey: node_pubkey,
+    ref_block_id: ref_block_id,
   };
 
+  if (params.time !== undefined) {
+    content_object.time = params.time;
+  }
   if (params.difficulty !== undefined) {
     content_object.difficulty =
       typeof params.difficulty === "number"
@@ -61,13 +65,18 @@ export function create_block_event(
     content_object.nonce = params.nonce;
   }
 
-  const block_identifier =
-    params.block_identifier ?? `block#${params.height.toString()}`;
-
   const tags: string[][] = [
-    ["d", block_identifier],
+    ["d", block_id],
     ["t", block_height.toString()],
+    ["p", node_pubkey],
   ];
+
+  // Add relay URLs if provided
+  if (params.relay_list && params.relay_list.length > 0) {
+    for (const relay of params.relay_list) {
+      tags.push(["r", relay]);
+    }
+  }
 
   const event_template = {
     kind: ATTN_EVENT_KINDS.BLOCK,

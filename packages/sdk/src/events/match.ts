@@ -6,41 +6,40 @@ import { finalizeEvent } from "nostr-tools";
 import type { Event } from "nostr-tools";
 import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
 import type { MatchEventParams } from "../types/index.js";
+import { format_d_tag } from "../utils/formatting.js";
 
 /**
  * Create MATCH event
+ * Note: ask, bid, duration, kind_list, relay_list are NOT in content per ATTN-01
+ * These values are calculated at ingestion by fetching referenced events
  */
 export function create_match_event(
   private_key: Uint8Array,
   params: MatchEventParams
 ): Event {
-  // Build content object with required fields
+  // Format d-tag with org.attnprotocol: prefix
+  const match_d_tag = format_d_tag("match", params.match_id);
+
+  // Build content object - ONLY ref_* fields per ATTN-01
+  // Values like ask, bid, duration are calculated at ingestion, not stored
   const content_object: Record<string, unknown> = {
-    ask: params.ask,
-    bid: params.bid,
-    duration: params.duration,
-    kind_list: params.kind_list,
-    relay_list: params.relay_list,
-    marketplace_pubkey: params.marketplace_pubkey,
-    promotion_pubkey: params.promotion_pubkey,
-    attention_pubkey: params.attention_pubkey,
-    billboard_pubkey: params.billboard_pubkey,
-    marketplace_id: params.marketplace_id,
-    billboard_id: params.billboard_id,
-    promotion_id: params.promotion_id,
-    attention_id: params.attention_id,
-    match_id: params.match_id,
+    ref_match_id: params.match_id,
+    ref_promotion_id: params.promotion_id,
+    ref_attention_id: params.attention_id,
+    ref_billboard_id: params.billboard_id,
+    ref_marketplace_id: params.marketplace_id,
+    ref_marketplace_pubkey: params.marketplace_pubkey,
+    ref_promotion_pubkey: params.promotion_pubkey,
+    ref_attention_pubkey: params.attention_pubkey,
+    ref_billboard_pubkey: params.billboard_pubkey,
   };
 
   const tags: string[][] = [];
 
-  // Required d tag (derived from match_id per ATTN-01.md)
-  tags.push(["d", params.match_id]);
+  // Required d tag
+  tags.push(["d", match_d_tag]);
 
-  // Required t tag (block height)
-  if (params.block_height === undefined) {
-    throw new Error("block_height is required for MATCH events");
-  }
+  // Required t tag (block height) - per ATTN-01, every event must include this
   tags.push(["t", params.block_height.toString()]);
 
   // Required a tags (marketplace, billboard, promotion, attention coordinates)
@@ -56,25 +55,17 @@ export function create_match_event(
   tags.push(["p", params.billboard_pubkey]);
 
   // Required r tags (multiple allowed, one per relay)
-  const relay_targets =
-    params.relays && params.relays.length > 0
-      ? params.relays
-      : params.relay_list || [];
-  for (const relay of relay_targets) {
-    tags.push(["r", relay]);
+  if (params.relays && params.relays.length > 0) {
+    for (const relay of params.relays) {
+      tags.push(["r", relay]);
+    }
   }
 
   // Required k tags (multiple allowed)
-  const tag_kinds =
-    params.kind_list && params.kind_list.length > 0
-      ? params.kind_list
-      : params.kind !== undefined
-        ? Array.isArray(params.kind)
-          ? params.kind
-          : [params.kind]
-        : [];
-  for (const k of tag_kinds) {
-    tags.push(["k", k.toString()]);
+  if (params.kinds && params.kinds.length > 0) {
+    for (const k of params.kinds) {
+      tags.push(["k", k.toString()]);
+    }
   }
 
   const event_template = {

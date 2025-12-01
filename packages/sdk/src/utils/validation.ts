@@ -57,32 +57,26 @@ function get_content_field(event: Event, field_name: string): unknown {
 }
 
 /**
- * Validate block height (from content and t tag)
+ * Validate block height (from t tag)
+ * Per ATTN-01, block height is stored in the ["t", "<block_height>"] tag, not in content.
+ * BLOCK events have "height" in content, but the t tag is still the authoritative source.
  */
 export function validate_block_height(
   event: Event
 ): ValidationResult {
-  // Check content first
-  const block_height_content = get_content_field(event, "block_height");
-  if (block_height_content === undefined) {
-    return { valid: false, message: "Missing block_height in content" };
+  // Check t tag (block_height as topic) - per ATTN-01, this is required on every event
+  const block_height_tag = get_tag_value(event, "t");
+  if (!block_height_tag) {
+    return { valid: false, message: "Missing block_height in t tag (required per ATTN-01)" };
   }
-  const height = typeof block_height_content === "number"
-    ? block_height_content
-    : parseInt(String(block_height_content), 10);
+  const height = parseInt(block_height_tag, 10);
   if (isNaN(height) || height <= 0) {
     return {
       valid: false,
       message: "Invalid block_height: must be positive integer",
     };
   }
-  // Also check t tag (block_height as topic)
-  const block_height_tag = get_tag_value(event, "t");
-  const tag_height = parseInt(block_height_tag, 10);
-  if (block_height_tag && (!isNaN(tag_height) && tag_height === height)) {
-    return { valid: true };
-  }
-  return { valid: true }; // Content is valid, t tag is optional but recommended
+  return { valid: true };
 }
 
 /**

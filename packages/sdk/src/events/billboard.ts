@@ -6,6 +6,7 @@ import { finalizeEvent } from "nostr-tools";
 import type { Event } from "nostr-tools";
 import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
 import type { BillboardEventParams } from "../types/index.js";
+import { format_d_tag, format_coordinate } from "../utils/formatting.js";
 
 /**
  * Create BILLBOARD event
@@ -14,14 +15,17 @@ export function create_billboard_event(
   private_key: Uint8Array,
   params: BillboardEventParams
 ): Event {
+  // Format d-tag with org.attnprotocol: prefix
+  const billboard_d_tag = format_d_tag("billboard", params.billboard_id);
+
   // Build content object with required fields
-  // billboard_id used for both d tag and content per ATTN-01.md
   const content_object: Record<string, unknown> = {
     name: params.name,
-    billboard_pubkey: params.billboard_pubkey,
-    marketplace_pubkey: params.marketplace_pubkey,
-    billboard_id: params.billboard_id,
-    marketplace_id: params.marketplace_id,
+    confirmation_fee_sats: params.confirmation_fee_sats ?? 0,
+    ref_billboard_pubkey: params.billboard_pubkey,
+    ref_billboard_id: params.billboard_id,
+    ref_marketplace_pubkey: params.marketplace_pubkey,
+    ref_marketplace_id: params.marketplace_id,
   };
 
   if (params.description) {
@@ -30,13 +34,11 @@ export function create_billboard_event(
 
   const tags: string[][] = [];
 
-  // Required d tag (derived from billboard_id per ATTN-01.md)
-  tags.push(["d", params.billboard_id]);
+  // Required d tag
+  tags.push(["d", billboard_d_tag]);
 
-  // Required t tag (block height)
-  if (params.block_height !== undefined) {
-    tags.push(["t", params.block_height.toString()]);
-  }
+  // Required t tag (block height) - per ATTN-01, every event must include this
+  tags.push(["t", params.block_height.toString()]);
 
   // Required a tag (marketplace coordinate)
   tags.push(["a", params.marketplace_coordinate]);
