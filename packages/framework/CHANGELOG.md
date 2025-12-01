@@ -1,5 +1,11 @@
 # @attn-protocol/framework
 
+## 0.5.2
+
+### Patch Changes
+
+- 0e5427f: Improved WebSocket error handling and logging in relay connection. Enhanced error messages with relay URL context and better handling of ErrorEvent objects and other error types.
+
 ## 0.5.1
 
 ### Patch Changes
@@ -13,6 +19,7 @@
 - ebd67d2: Add ATTENTION_PAYMENT_CONFIRMATION event (kind 38988)
 
   Adds a new event that allows attention owners to independently attest they received payment after the marketplace publishes MARKETPLACE_CONFIRMATION. This completes the payment audit trail by providing cryptographic proof that payment was actually delivered.
+
   - Added event kind 38988 constant to core
   - Added ATTENTION_PAYMENT_CONFIRMATION event specification to ATTN-01
   - Added event builder and types to SDK
