@@ -1,5 +1,11 @@
 # @attn-protocol/sdk
 
+## 0.5.1
+
+### Patch Changes
+
+- 57b9424: Refactor: Consistency improvements, documentation updates, and asset reorganization
+
 ## 0.5.0
 
 ### Minor Changes

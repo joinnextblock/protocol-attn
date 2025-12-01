@@ -1,5 +1,11 @@
 # @attn-protocol/protocol
 
+## 0.4.1
+
+### Patch Changes
+
+- 57b9424: Refactor: Consistency improvements, documentation updates, and asset reorganization
+
 ## 0.4.0
 
 ### Minor Changes
