@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2
+
+### Patch Changes
+
+- 8fa547c: Review and improve test quality: remove non-functional type tests, enhance SDK tests with actual behavior verification, and ensure all tests verify real functionality rather than shallow mock checks.
+
 ## 0.5.1
 
 ### Patch Changes

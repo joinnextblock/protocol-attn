@@ -1,5 +1,11 @@
 # @attn-protocol/sdk
 
+## 0.7.1
+
+### Patch Changes
+
+- 8fa547c: Review and improve test quality: remove non-functional type tests, enhance SDK tests with actual behavior verification, and ensure all tests verify real functionality rather than shallow mock checks.
+
 ## 0.7.0
 
 ### Minor Changes
