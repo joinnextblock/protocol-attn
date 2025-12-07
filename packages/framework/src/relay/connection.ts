@@ -120,9 +120,11 @@ import type {
 
 export interface RelayConnectionConfig {
   relay_url: string;
+  requires_auth?: boolean; // Whether relay requires NIP-42 authentication (default true)
   private_key: Uint8Array;
   node_pubkeys: string[];
   marketplace_pubkeys?: string[];
+  marketplace_d_tags?: string[]; // Filter marketplace events by d-tags (for subscribing to specific marketplaces)
   billboard_pubkeys?: string[];
   advertiser_pubkeys?: string[];
   connection_timeout_ms?: number;
@@ -146,6 +148,7 @@ export class RelayConnection {
   private logger: Logger;
   private is_connected: boolean = false;
   private is_authenticated: boolean = false;
+  private requires_auth: boolean;
   private connection_timeout_ms: number;
   private reconnect_delay_ms: number;
   private max_reconnect_attempts: number;
@@ -168,6 +171,7 @@ export class RelayConnection {
     this.config = config;
     this.hooks = hooks;
     this.logger = config.logger ?? create_default_logger();
+    this.requires_auth = config.requires_auth !== false; // Default true for backward compat
     this.connection_timeout_ms = config.connection_timeout_ms ?? 30000;
     this.reconnect_delay_ms = config.reconnect_delay_ms ?? 5000;
     this.max_reconnect_attempts = config.max_reconnect_attempts ?? 10;
@@ -214,7 +218,11 @@ export class RelayConnection {
           this.auth_challenge_received = false;
           this.reconnect_attempts = 0;
 
-          this.logger.info({ relay_url: this.config.relay_url }, 'WebSocket opened, waiting for AUTH challenge');
+          if (this.requires_auth) {
+            this.logger.info({ relay_url: this.config.relay_url }, 'WebSocket opened, waiting for AUTH challenge');
+          } else {
+            this.logger.info({ relay_url: this.config.relay_url }, 'WebSocket opened, no auth required');
+          }
 
           // Set up message handler first (before authentication)
           this.message_handler = (data: string | Buffer | ArrayBuffer | Buffer[]) => {
@@ -375,32 +383,45 @@ export class RelayConnection {
 
           this.ws!.on('message', this.message_handler);
 
-          // Wait for AUTH challenge - some relays don't require authentication
-          // If no AUTH challenge is received within a short timeout, proceed without authentication
-          this.logger.debug({ relay_url: this.config.relay_url, timeout_ms: this.auth_timeout_ms }, 'Private key provided, waiting for AUTH challenge');
-          // Set timeout: if no AUTH challenge received, proceed without authentication
-          this.auth_timeout = setTimeout(() => {
-            if (!this.auth_challenge_received) {
-              // Relay doesn't require authentication - proceed without auth
-              this.logger.info({
-                relay_url: this.config.relay_url,
-                timeout_ms: this.auth_timeout_ms,
-              }, 'No AUTH challenge received - relay does not require authentication, proceeding without auth');
-              this.is_authenticated = true; // Mark as authenticated to allow subscriptions
-              // Subscribe to events without authentication
-              this.subscribe_to_events();
-              // Emit connection hook
-              const context: RelayConnectContext = {
-                relay_url: this.config.relay_url,
-              };
-              this.hooks.emit(HOOK_NAMES.RELAY_CONNECT, context).then(() => {
-                resolve();
-              });
-            }
-          }, this.auth_timeout_ms);
-          // Do NOT subscribe here - wait for authentication to complete OR timeout
-          // Subscription will happen in the OK response handler after successful authentication
-          // OR in the timeout handler if no AUTH challenge is received
+          if (this.requires_auth) {
+            // Wait for AUTH challenge
+            this.logger.debug({ relay_url: this.config.relay_url, timeout_ms: this.auth_timeout_ms }, 'Private key provided, waiting for AUTH challenge');
+            // Set timeout: if no AUTH challenge received, proceed without authentication
+            this.auth_timeout = setTimeout(() => {
+              if (!this.auth_challenge_received) {
+                // Relay doesn't require authentication - proceed without auth
+                this.logger.info({
+                  relay_url: this.config.relay_url,
+                  timeout_ms: this.auth_timeout_ms,
+                }, 'No AUTH challenge received - relay does not require authentication, proceeding without auth');
+                this.is_authenticated = true; // Mark as authenticated to allow subscriptions
+                // Subscribe to events without authentication
+                this.subscribe_to_events();
+                // Emit connection hook
+                const context: RelayConnectContext = {
+                  relay_url: this.config.relay_url,
+                };
+                this.hooks.emit(HOOK_NAMES.RELAY_CONNECT, context).then(() => {
+                  resolve();
+                });
+              }
+            }, this.auth_timeout_ms);
+            // Do NOT subscribe here - wait for authentication to complete OR timeout
+            // Subscription will happen in the OK response handler after successful authentication
+            // OR in the timeout handler if no AUTH challenge is received
+          } else {
+            // No auth required - subscribe immediately
+            this.logger.debug({ relay_url: this.config.relay_url }, 'No auth required, subscribing immediately');
+            this.is_authenticated = true; // Mark as authenticated to allow subscriptions
+            this.subscribe_to_events();
+            // Emit connection hook
+            const context: RelayConnectContext = {
+              relay_url: this.config.relay_url,
+            };
+            this.hooks.emit(HOOK_NAMES.RELAY_CONNECT, context).then(() => {
+              resolve();
+            });
+          }
         });
 
         this.ws.on('error', (error) => {
@@ -625,6 +646,12 @@ export class RelayConnection {
     if (all_pubkeys.length > 0) {
       const unique_pubkeys = Array.from(new Set(all_pubkeys));
       attn_filter['#p'] = unique_pubkeys;
+    }
+
+    // Add d-tag filter for marketplace events if specified
+    // This allows subscribing to specific marketplaces instead of all marketplaces
+    if (this.config.marketplace_d_tags && this.config.marketplace_d_tags.length > 0) {
+      attn_filter['#d'] = this.config.marketplace_d_tags;
     }
 
     this.attn_subscription_ids = [this.attn_subscription_id];

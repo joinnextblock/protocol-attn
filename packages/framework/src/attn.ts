@@ -37,11 +37,22 @@ import type {
   NewNip51ListContext,
 } from './hooks/types.js';
 
+/**
+ * Relay configuration with auth requirement
+ */
+export interface RelayWithAuth {
+  url: string;
+  requires_auth: boolean;
+}
+
 export interface AttnConfig {
-  relays?: string[]; // Default: ['wss://relay.attnprotocol.org']
+  relays?: string[]; // Default: ['wss://relay.attnprotocol.org'] - deprecated, use relays_auth/relays_noauth
+  relays_auth?: string[]; // Relays requiring NIP-42 authentication
+  relays_noauth?: string[]; // Relays not requiring authentication
   private_key: Uint8Array;
   node_pubkeys: string[];
   marketplace_pubkeys?: string[];
+  marketplace_d_tags?: string[]; // Filter marketplace events by d-tags (for subscribing to specific marketplaces)
   billboard_pubkeys?: string[];
   advertiser_pubkeys?: string[];
   auto_reconnect?: boolean; // Default: true
@@ -60,16 +71,33 @@ export interface AttnConfig {
  */
 export class Attn {
   private emitter: HookEmitter;
-  private config: AttnConfig & { relays: string[] };
+  private config: AttnConfig;
+  private relay_list: RelayWithAuth[] = [];
   private relay_connections: Map<string, RelayConnection> = new Map();
 
   constructor(config: AttnConfig) {
     this.emitter = new HookEmitter(config.logger);
-    // Set default relay if not provided
-    this.config = {
-      ...config,
-      relays: config.relays ?? ['wss://relay.attnprotocol.org'],
-    };
+    this.config = config;
+
+    // Build relay list with auth requirements
+    // Priority: relays_auth/relays_noauth > relays (deprecated)
+    if (config.relays_auth || config.relays_noauth) {
+      // New explicit auth configuration
+      for (const url of config.relays_auth ?? []) {
+        this.relay_list.push({ url, requires_auth: true });
+      }
+      for (const url of config.relays_noauth ?? []) {
+        this.relay_list.push({ url, requires_auth: false });
+      }
+    } else if (config.relays) {
+      // Legacy config - assume all relays require auth (backward compat)
+      for (const url of config.relays) {
+        this.relay_list.push({ url, requires_auth: true });
+      }
+    } else {
+      // Default relay
+      this.relay_list.push({ url: 'wss://relay.attnprotocol.org', requires_auth: false });
+    }
   }
 
   /**
@@ -90,7 +118,7 @@ export class Attn {
    */
   async connect(): Promise<void> {
     this.validate_config();
-    const connect_promises = this.config.relays.map((relay_url) => this.connect_relay(relay_url));
+    const connect_promises = this.relay_list.map((relay) => this.connect_relay(relay.url, relay.requires_auth));
     await Promise.all(connect_promises);
   }
 
@@ -284,8 +312,8 @@ export class Attn {
    * Validate base configuration
    */
   private validate_config(): void {
-    // relays is now guaranteed to have a default value from constructor
-    if (!this.config.relays || this.config.relays.length === 0) {
+    // relay_list is now guaranteed to have a default value from constructor
+    if (this.relay_list.length === 0) {
       throw new Error('At least one relay URL is required');
     }
     if (!this.config.private_key || !(this.config.private_key instanceof Uint8Array)) {
@@ -298,15 +326,19 @@ export class Attn {
 
   /**
    * Connect (or reuse connection) for a specific relay URL
+   * @param relay_url - WebSocket URL of the relay
+   * @param requires_auth - Whether relay requires NIP-42 authentication
    */
-  private async connect_relay(relay_url: string): Promise<void> {
+  private async connect_relay(relay_url: string, requires_auth: boolean = true): Promise<void> {
     let connection = this.relay_connections.get(relay_url);
     if (!connection) {
       const relay_config: RelayConnectionConfig = {
         relay_url,
+        requires_auth,
         private_key: this.config.private_key,
         node_pubkeys: this.config.node_pubkeys,
         marketplace_pubkeys: this.config.marketplace_pubkeys,
+        marketplace_d_tags: this.config.marketplace_d_tags,
         billboard_pubkeys: this.config.billboard_pubkeys,
         advertiser_pubkeys: this.config.advertiser_pubkeys,
         connection_timeout_ms: this.config.connection_timeout_ms,

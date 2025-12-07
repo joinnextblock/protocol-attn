@@ -17,12 +17,20 @@ _No critical issues remaining._
 ## ⚠️ High Priority (Address Soon)
 
 - [ ] [M4] Replace `any` types with proper type definitions
-  - File: `packages/framework/src/relay/connection.ts:20,22`
-  - Issue: Uses `(globalThis as any).window?.WebSocket` for browser compatibility
-  - Impact: Type safety compromised, potential runtime errors
+  - File: `packages/framework/src/relay/connection.ts:20,22,67,87`
+  - Issue: Uses `(globalThis as any).window?.WebSocket` for browser compatibility and `...args: any[]` in event emitter
+  - Impact: Type safety compromised in browser compatibility layer
   - Recommendation: Create proper type definitions for browser WebSocket compatibility
 
 ## 📝 Medium Priority (Address When Possible)
+
+- [ ] [M4] Refactor: Extract generic event handler for ATTN Protocol events
+  - File: `packages/framework/src/relay/connection.ts` (lines 808-1274)
+  - Issue: 9 event handlers (`handle_marketplace_event`, `handle_billboard_event`, etc.) follow identical pattern: parse content, extract block height, create context, emit hook
+  - Impact: ~400 lines of duplicated code, harder to maintain, multiple places to update for pattern changes
+  - Recommendation: Extract `handle_attn_event_generic<T>()` function accepting event kind, hook name, and context builder
+  - Effort: Medium (2-3 hours)
+  - Risk: Low (isolated to connection.ts, well-tested)
 
 - [ ] [M4] Add comprehensive JSDoc comments to all public methods
   - File: `packages/framework/src/hooks/emitter.ts`, `packages/sdk/src/utils/`
@@ -43,6 +51,12 @@ _No critical issues remaining._
   - Recommendation: Add examples directory with sample marketplace implementations using framework + SDK
 
 ## 💡 Low Priority (Nice to Have)
+
+- [ ] [M4] Refactor: Create shared test utilities package
+  - File: Create shared test utilities
+  - Issue: Each package manages its own test fixtures and mocks (WebSocket mocks duplicated across packages)
+  - Impact: Code duplication in tests, harder to maintain consistent test patterns
+  - Recommendation: Create shared test utilities for protocol validation and WebSocket mocking
 
 - [ ] [M4] Add performance benchmarks for hook system and event builders
   - File: Create `benchmarks/` directory
@@ -66,7 +80,7 @@ _No critical issues remaining._
 
 - ✅ [M4] Replace console logging with structured logging
   - File: `packages/framework/src/relay/connection.ts`, `packages/framework/src/hooks/emitter.ts`
-  - Completion Note: All console.* calls replaced with structured logging using Pino. Added Logger interface and default logger implementation. Logger can be provided via AttnConfig or RelayConnectionConfig. All 41 console calls in connection.ts and 1 in emitter.ts replaced with structured logging. Tests updated and passing.
+  - Completion Note: All console.* calls replaced with structured logging using Pino. Added Logger interface and default logger implementation. Logger can be provided via AttnConfig or RelayConnectionConfig. All 41 console calls in connection.ts and 1 in emitter.ts replaced with structured logging. Tests updated and passing. Only 1 acceptable console.error remains in browser WebSocket compatibility wrapper.
 
 - ✅ [M4] Add structured logging infrastructure
   - File: `packages/framework/src/logger.ts`, `packages/framework/src/attn.ts`, `packages/framework/src/relay/connection.ts`, `packages/framework/src/hooks/emitter.ts`
@@ -82,9 +96,10 @@ _No critical issues remaining._
 
 ---
 
-**Last Updated:** 2025-01-28
+**Last Updated:** 2025-01-29
 
 **Project Description:** ATTN Protocol monorepo - Protocol specification, framework, SDK, and relay for Bitcoin-native attention marketplace
 
 **Key Features:** Protocol specification (ATTN-01), hook-based framework, event builders, validation utilities, Go-based relay
 
+**Production Status:** Ready - All critical issues resolved, structured logging complete, test coverage exists

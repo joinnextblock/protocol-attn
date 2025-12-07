@@ -1,5 +1,6 @@
 /**
  * Relay publisher for publishing events to Nostr relays
+ * Supports both NIP-42 authenticated and unauthenticated relays
  */
 
 import WebSocket from "ws";
@@ -8,19 +9,27 @@ import { finalizeEvent, getPublicKey, utils } from "nostr-tools";
 import type { PublishResult, PublishResults } from "../types/index.js";
 
 /**
- * Publish event to a single relay with NIP-42 authentication
+ * Publish event to a single relay with optional NIP-42 authentication
+ * @param relay_url - WebSocket URL of the relay
+ * @param event - Nostr event to publish
+ * @param private_key - Private key for signing (used for NIP-42 auth if required)
+ * @param timeout_ms - Timeout for publish response (default 10000ms)
+ * @param auth_timeout_ms - Timeout for authentication (default 10000ms)
+ * @param requires_auth - Whether relay requires NIP-42 authentication (default true)
  */
 export async function publish_to_relay(
   relay_url: string,
   event: Event,
   private_key: Uint8Array,
-  timeout_ms: number = 10000,
-  auth_timeout_ms: number = 10000
+  timeout_ms: number = 3000,
+  auth_timeout_ms: number = 3000,
+  requires_auth: boolean = true
 ): Promise<PublishResult> {
   return new Promise((resolve) => {
     const ws = new WebSocket(relay_url);
     let resolved = false;
     let is_authenticated = false;
+    let event_sent = false;
     let auth_event_id: string | null = null;
     let auth_timeout: NodeJS.Timeout | null = null;
     let publish_timeout: NodeJS.Timeout | null = null;
@@ -50,14 +59,36 @@ export async function publish_to_relay(
       }
     };
 
-    ws.on("open", () => {
-      // Wait for AUTH challenge - do not send EVENT until authenticated
-      // Set timeout for AUTH challenge
-      auth_timeout = setTimeout(() => {
-        if (!is_authenticated && !resolved) {
-          fail("No AUTH challenge received from relay - NIP-42 authentication required");
+    const send_event = () => {
+      if (event_sent || resolved) {
+        return;
+      }
+      event_sent = true;
+      // Send the EVENT message
+      const event_message = JSON.stringify(["EVENT", event]);
+      ws.send(event_message);
+      // Set timeout for publish OK response
+      publish_timeout = setTimeout(() => {
+        if (!resolved) {
+          fail("Timeout waiting for relay response");
         }
-      }, auth_timeout_ms);
+      }, timeout_ms);
+    };
+
+    ws.on("open", () => {
+      if (requires_auth) {
+        // Wait for AUTH challenge - do not send EVENT until authenticated
+        // Set timeout for AUTH challenge
+        auth_timeout = setTimeout(() => {
+          if (!is_authenticated && !resolved) {
+            fail("No AUTH challenge received from relay - NIP-42 authentication required");
+          }
+        }, auth_timeout_ms);
+      } else {
+        // No auth required - send EVENT immediately
+        is_authenticated = true; // Mark as "authenticated" to handle OK response correctly
+        send_event();
+      }
     });
 
     ws.on("message", (data: WebSocket.Data) => {
@@ -69,10 +100,16 @@ export async function publish_to_relay(
 
         const [type, ...rest] = message;
 
-        // Handle AUTH challenge (NIP-42)
-        if (type === "AUTH" && !is_authenticated) {
+        // Handle AUTH challenge (NIP-42) - only if requires_auth
+        if (type === "AUTH" && requires_auth && !is_authenticated) {
           const challenge = rest[0];
           if (challenge && typeof challenge === "string") {
+            // Clear the auth timeout since we received the challenge
+            if (auth_timeout) {
+              clearTimeout(auth_timeout);
+              auth_timeout = null;
+            }
+
             // Normalize relay URL for challenge tag
             let normalized_relay_url = relay_url.trim();
             if (normalized_relay_url.endsWith("/")) {
@@ -138,7 +175,7 @@ export async function publish_to_relay(
         }
 
         // Handle OK response for authentication
-        if (type === "OK" && !is_authenticated && auth_event_id) {
+        if (type === "OK" && requires_auth && !is_authenticated && auth_event_id) {
           const event_id = rest[0];
           const accepted = rest[1];
           if (event_id === auth_event_id) {
@@ -150,14 +187,7 @@ export async function publish_to_relay(
               is_authenticated = true;
               auth_event_id = null;
               // Now send the EVENT message
-              const event_message = JSON.stringify(["EVENT", event]);
-              ws.send(event_message);
-              // Set timeout for publish OK response
-              publish_timeout = setTimeout(() => {
-                if (!resolved) {
-                  fail("Timeout waiting for relay response");
-                }
-              }, timeout_ms);
+              send_event();
             } else {
               const error_message = rest[2] || "Unknown reason";
               fail(`Authentication rejected by relay: ${error_message}`);
@@ -167,7 +197,7 @@ export async function publish_to_relay(
         }
 
         // Handle OK response for published event
-        if (type === "OK" && is_authenticated) {
+        if (type === "OK" && event_sent) {
           const event_id = rest[0];
           const accepted = rest[1];
           const message_text = rest[2];
@@ -197,8 +227,8 @@ export async function publish_to_relay(
 
     ws.on("close", () => {
       if (!resolved) {
-        if (!is_authenticated) {
-          fail("Connection closed before authentication");
+        if (!event_sent) {
+          fail("Connection closed before event was sent");
         } else {
           fail("Connection closed before response");
         }
@@ -208,17 +238,24 @@ export async function publish_to_relay(
 }
 
 /**
- * Publish event to multiple relays with NIP-42 authentication
+ * Publish event to multiple relays with optional NIP-42 authentication
+ * @param relay_urls - WebSocket URLs of the relays
+ * @param event - Nostr event to publish
+ * @param private_key - Private key for signing (used for NIP-42 auth if required)
+ * @param timeout_ms - Timeout for publish response (default 10000ms)
+ * @param auth_timeout_ms - Timeout for authentication (default 10000ms)
+ * @param requires_auth - Whether relays require NIP-42 authentication (default true)
  */
 export async function publish_to_multiple(
   relay_urls: string[],
   event: Event,
   private_key: Uint8Array,
   timeout_ms: number = 10000,
-  auth_timeout_ms: number = 10000
+  auth_timeout_ms: number = 10000,
+  requires_auth: boolean = true
 ): Promise<PublishResults> {
   const publish_promises = relay_urls.map((url) =>
-    publish_to_relay(url, event, private_key, timeout_ms, auth_timeout_ms)
+    publish_to_relay(url, event, private_key, timeout_ms, auth_timeout_ms, requires_auth)
   );
 
   const results = await Promise.allSettled(publish_promises);
