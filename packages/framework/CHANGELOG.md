@@ -1,5 +1,11 @@
 # @attn-protocol/framework
 
+## 0.6.0
+
+### Minor Changes
+
+- 33bf538: add optional subscription_since filter to limit relay event backfill
+
 ## 0.5.6
 
 ### Patch Changes
