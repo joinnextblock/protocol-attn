@@ -11,6 +11,7 @@ It also functions as the Bitcoin-native attention interchange for block-synced m
 - **[User Guide](./packages/protocol/docs/README.md)**: User-facing documentation, glossary, and quick reference
 - **[Framework Documentation](./packages/framework/README.md)**: Hook system and event processing
 - **[SDK Documentation](./packages/sdk/README.md)**: Event builders, type reference, and examples
+- **[Node Documentation](./packages/node/README.md)**: Bitcoin ZMQ to Nostr bridge service
 
 ## Packages
 
@@ -20,6 +21,7 @@ It also functions as the Bitcoin-native attention interchange for block-synced m
 | [`packages/core`](./packages/core/) | Core constants and type definitions |
 | [`packages/framework`](./packages/framework/) | Hook runtime and relay adapters |
 | [`packages/sdk`](./packages/sdk/) | Event builders and validators |
+| [`packages/node`](./packages/node/) | Bitcoin ZMQ to Nostr bridge for block events |
 | [`packages/relay`](./packages/relay/) | Open-source Nostr relay with plugin system |
 
 ## License
