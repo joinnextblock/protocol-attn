@@ -6,6 +6,16 @@
   "imports": {
     "@attn-protocol/core": "jsr:@attn/core@^0.6.0",
     "nostr-tools": "npm:nostr-tools@^2.4.0",
-    "ws": "npm:ws@^8.18.0"
+    "isomorphic-ws": "npm:isomorphic-ws@^5.0.0"
+  },
+  "publish": {
+    "exclude": [
+      "**/*.test.ts",
+      "**/test/**",
+      "TODO.md",
+      "eslint.config.js",
+      "vitest.config.ts",
+      "tsconfig.json"
+    ]
   }
 }

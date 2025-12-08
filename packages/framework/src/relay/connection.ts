@@ -11,11 +11,11 @@ import { create_default_logger } from '../logger.js';
 import type { RelayConnectContext, RelayDisconnectContext } from '../hooks/types.js';
 
 // Import sub-modules
-import { get_websocket_impl, WS_READY_STATE } from './websocket.js';
-import type { WebSocketWithOn } from './websocket.js';
-import { AuthHandler } from './auth.js';
-import { SubscriptionManager } from './subscriptions.js';
-import { EventHandlers } from './handlers.js';
+import { get_websocket_impl, WS_READY_STATE } from './websocket.ts';
+import type { WebSocketWithOn } from './websocket.ts';
+import { AuthHandler } from './auth.ts';
+import { SubscriptionManager } from './subscriptions.ts';
+import { EventHandlers } from './handlers.ts';
 
 const WebSocket = get_websocket_impl();
 

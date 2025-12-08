@@ -3,9 +3,9 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { HookEmitter } from './emitter.js';
-import { validate_required_hooks, get_missing_required_hooks, MissingHooksError } from './validation.js';
-import { REQUIRED_HOOKS } from './types.js';
+import { HookEmitter } from './emitter.ts';
+import { validate_required_hooks, get_missing_required_hooks, MissingHooksError } from './validation.ts';
+import { REQUIRED_HOOKS } from './types.ts';
 
 describe('validate_required_hooks', () => {
   let emitter: HookEmitter;

@@ -7,7 +7,7 @@ import type {
   HookHandler,
   HookHandle,
   HookContext,
-} from './types.js';
+} from './types.ts';
 import type { Logger } from '../logger.js';
 import { create_default_logger } from '../logger.js';
 

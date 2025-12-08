@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { format_d_tag, format_coordinate } from './formatting.js';
+import { format_d_tag, format_coordinate } from './formatting.ts';
 
 describe('format_d_tag', () => {
   it('should format d-tag with org.attnprotocol prefix', () => {

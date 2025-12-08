@@ -8,5 +8,18 @@
     "nostr-tools": "npm:nostr-tools@^2.4.0",
     "isomorphic-ws": "npm:isomorphic-ws@^5.0.0",
     "pino": "npm:pino@^10.1.0"
+  },
+  "publish": {
+    "exclude": [
+      "**/*.test.ts",
+      "**/test/**",
+      "TODO.md",
+      "CODE_REVIEW_REPORT.md",
+      "eslint.config.js",
+      "vitest.config.ts",
+      "tsconfig.json",
+      "bun.lock",
+      "docs/**"
+    ]
   }
 }

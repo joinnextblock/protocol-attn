@@ -1,17 +1,44 @@
 /**
- * Attn - Main class for attn-framework
- * Provides Rely-style on_* methods for hook registration
- * Manages Nostr relay connection internally
+ * Attn - Main class for building ATTN Protocol applications.
+ *
+ * Provides a hook-based API (inspired by Rely) for building Bitcoin-native
+ * attention marketplace implementations. Manages Nostr relay connections,
+ * subscriptions, and event handling internally.
+ *
+ * @example
+ * ```ts
+ * import { Attn } from '@attn/framework';
+ *
+ * const attn = new Attn({
+ *   private_key: privateKeyBytes,
+ *   relays_noauth: ['wss://relay.example.com'],
+ *   marketplace_pubkeys: ['abc...'],
+ * });
+ *
+ * // Register event handlers
+ * attn.on_promotion((ctx) => {
+ *   console.log('New promotion:', ctx.event.id);
+ * });
+ *
+ * attn.on_attention((ctx) => {
+ *   console.log('New attention offer:', ctx.event.id);
+ * });
+ *
+ * // Start listening
+ * await attn.start();
+ * ```
+ *
+ * @module
  */
 
-import { HookEmitter } from './hooks/emitter.js';
-import { HOOK_NAMES } from './hooks/index.js';
-import { RelayConnection } from './relay/connection.js';
-import { Publisher } from './relay/publisher.js';
-import type { RelayConnectionConfig } from './relay/connection.js';
-import type { WriteRelay } from './relay/publisher.js';
-import type { Logger } from './logger.js';
-import { create_default_logger } from './logger.js';
+import { HookEmitter } from './hooks/emitter.ts';
+import { HOOK_NAMES } from './hooks/index.ts';
+import { RelayConnection } from './relay/connection.ts';
+import { Publisher } from './relay/publisher.ts';
+import type { RelayConnectionConfig } from './relay/connection.ts';
+import type { WriteRelay } from './relay/publisher.ts';
+import type { Logger } from './logger.ts';
+import { create_default_logger } from './logger.ts';
 import type {
   HookHandler,
   BeforeHookHandler,
@@ -39,7 +66,7 @@ import type {
   ProfileEventContext,
   RelayListEventContext,
   Nip51ListEventContext,
-} from './hooks/types.js';
+} from './hooks/types.ts';
 
 /**
  * Relay configuration with auth requirement

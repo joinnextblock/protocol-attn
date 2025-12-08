@@ -3,7 +3,7 @@
  * Manages registration and emission of marketplace lifecycle hooks
  */
 
-import type { HookName, HookHandler, HookHandlers } from './types.js';
+import type { HookName, HookHandler, HookHandlers } from './types.ts';
 
 /**
  * Hook emitter class

@@ -12,9 +12,9 @@ export {
   validate_d_tag_prefix,
   validate_a_tag_reference,
   validate_pubkey,
-} from "./validation.js";
+} from "./validation.ts";
 
-export type { ValidationResult } from "./validation.js";
+export type { ValidationResult } from "./validation.ts";
 
-export { format_d_tag, format_coordinate } from "./formatting.js";
+export { format_d_tag, format_coordinate } from "./formatting.ts";
 

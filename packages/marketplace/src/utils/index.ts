@@ -15,4 +15,4 @@ export {
   extract_match_coordinate,
   parse_coordinate,
   parse_content,
-} from './extraction.js';
+} from './extraction.ts';

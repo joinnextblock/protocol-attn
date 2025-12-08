@@ -8,8 +8,8 @@ import { HookEmitter } from '../hooks/emitter.js';
 import { HOOK_NAMES } from '../hooks/index.js';
 import type { Logger } from '../logger.js';
 import type { SubscriptionContext } from '../hooks/types.js';
-import type { WebSocketWithOn } from './websocket.js';
-import { WS_READY_STATE } from './websocket.js';
+import type { WebSocketWithOn } from './websocket.ts';
+import { WS_READY_STATE } from './websocket.ts';
 
 /**
  * Subscription filter types

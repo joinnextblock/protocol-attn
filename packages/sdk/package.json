@@ -26,8 +26,16 @@
   "license": "MIT",
   "dependencies": {
     "@attn-protocol/core": "file:../core",
-    "nostr-tools": "^2.4.0",
+    "isomorphic-ws": "^5.0.0",
+    "nostr-tools": "^2.4.0"
+  },
+  "peerDependencies": {
     "ws": "^8.18.0"
+  },
+  "peerDependenciesMeta": {
+    "ws": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^22.7.5",

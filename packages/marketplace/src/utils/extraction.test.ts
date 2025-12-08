@@ -17,7 +17,7 @@ import {
   extract_match_coordinate,
   parse_coordinate,
   parse_content,
-} from './extraction.js';
+} from './extraction.ts';
 
 // Helper to create mock events
 function create_mock_event(overrides: Partial<Event> = {}): Event {

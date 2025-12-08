@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { publish_to_relay, publish_to_multiple } from './publisher.js';
+import { publish_to_relay, publish_to_multiple } from './publisher.ts';
 import type { Event } from 'nostr-tools';
 import { create_mock_auth_challenge, create_mock_auth_response, create_mock_event_response } from '../test/fixtures/events.js';
 
@@ -113,8 +113,8 @@ const { MockWebSocket } = vi.hoisted(() => {
   return { MockWebSocket };
 });
 
-// Mock ws module
-vi.mock('ws', () => {
+// Mock isomorphic-ws module (cross-platform WebSocket)
+vi.mock('isomorphic-ws', () => {
   return {
     default: MockWebSocket,
   };

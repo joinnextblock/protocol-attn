@@ -1,16 +1,66 @@
 /**
- * attn-framework - Hook-based ATTN Protocol framework
+ * # @attn/framework
  *
- * Framework for building Bitcoin-native attention marketplace implementations
- * using the ATTN Protocol on Nostr.
+ * Hook-based framework for building Bitcoin-native attention marketplace
+ * implementations using the ATTN Protocol on Nostr.
+ *
+ * ## Installation
+ *
+ * ```bash
+ * # JSR
+ * bunx jsr add @attn/framework
+ *
+ * # npm (via JSR)
+ * npx jsr add @attn/framework
+ * ```
+ *
+ * ## Quick Start
+ *
+ * ```ts
+ * import { Attn } from '@attn/framework';
+ *
+ * const attn = new Attn({
+ *   private_key: privateKeyBytes,
+ *   relays_noauth: ['wss://relay.example.com'],
+ *   marketplace_pubkeys: ['abc123...'],
+ * });
+ *
+ * // Handle incoming promotions
+ * attn.on_promotion((ctx) => {
+ *   console.log('Promotion received:', ctx.content);
+ * });
+ *
+ * // Handle attention offers
+ * attn.on_attention((ctx) => {
+ *   console.log('Attention offer:', ctx.content);
+ * });
+ *
+ * // Handle block events for Bitcoin-synchronized timing
+ * attn.on_block((ctx) => {
+ *   console.log('Block height:', ctx.content.height);
+ * });
+ *
+ * await attn.start();
+ * ```
+ *
+ * ## Features
+ *
+ * - **Hook-based API**: Register handlers for ATTN Protocol events
+ * - **Automatic reconnection**: Resilient relay connections
+ * - **NIP-42 authentication**: Support for authenticated relays
+ * - **Event deduplication**: Built-in duplicate event filtering
+ * - **Publisher**: Publish events to multiple relays
+ *
+ * @module
+ * @see https://github.com/joinnextblock/attn-protocol
  */
 
 // Main Attn class (Rely-style API)
-export { Attn } from './attn.js';
-export type { AttnConfig, ProfileConfig } from './attn.js';
+export { Attn } from './attn.ts';
+export type { AttnConfig, ProfileConfig } from './attn.ts';
 
 // Hook name constants (for internal use)
-export { HOOK_NAMES } from './hooks/index.js';
+export { HOOK_NAMES } from './hooks/index.ts';
 export type {
   HookHandler,
   BeforeHookHandler,
@@ -43,18 +93,18 @@ export type {
   ProfileEventContext,
   RelayListEventContext,
   Nip51ListEventContext,
-} from './hooks/types.js';
+} from './hooks/types.ts';
 
 // Relay connection (internal, used by Attn)
-export type { RelayConnectionConfig } from './relay/index.js';
+export type { RelayConnectionConfig } from './relay/index.ts';
 
 // Publisher for writing events to relays
-export { Publisher } from './relay/index.js';
-export type { PublisherConfig, WriteRelay, PublishResults } from './relay/index.js';
+export { Publisher } from './relay/index.ts';
+export type { PublisherConfig, WriteRelay, PublishResults } from './relay/index.ts';
 
 // Logger interface and utilities
-export type { Logger } from './logger.js';
-export { create_default_logger, create_noop_logger } from './logger.js';
+export type { Logger } from './logger.ts';
+export { create_default_logger, create_noop_logger } from './logger.ts';
 
 // Re-export core constants and types for backward compatibility
 export { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from '@attn-protocol/core';

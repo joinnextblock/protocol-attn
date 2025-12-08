@@ -1,13 +1,47 @@
 /**
  * Core type definitions for ATTN Protocol
+ * @module
  */
 
+/**
+ * Bitcoin block height as a positive integer.
+ * Used throughout ATTN Protocol for time-based coordination.
+ *
+ * @example
+ * ```ts
+ * const current_height: BlockHeight = 870000;
+ * ```
+ */
 export type BlockHeight = number;
 
+/**
+ * Nostr public key as a 64-character hex string.
+ *
+ * @example
+ * ```ts
+ * const pubkey: Pubkey = "abc123..."; // 64 hex chars
+ * ```
+ */
 export type Pubkey = string;
 
+/**
+ * Nostr event ID as a 64-character hex string (SHA-256 hash).
+ *
+ * @example
+ * ```ts
+ * const event_id: EventId = "def456..."; // 64 hex chars
+ * ```
+ */
 export type EventId = string;
 
+/**
+ * WebSocket URL for a Nostr relay.
+ *
+ * @example
+ * ```ts
+ * const relay: RelayUrl = "wss://relay.example.com";
+ * ```
+ */
 export type RelayUrl = string;
 
 /**

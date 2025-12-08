@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { HookEmitter } from './emitter.js';
-import type { HookContext } from './types.js';
+import { HookEmitter } from './emitter.ts';
+import type { HookContext } from './types.ts';
 
 describe('HookEmitter', () => {
   let emitter: HookEmitter;

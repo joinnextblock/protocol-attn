@@ -1,5 +1,6 @@
 /**
  * AttnSdk - Main SDK class for creating and publishing ATTN Protocol events
+ * @module
  */
 
 import { getPublicKey, nip19 } from "nostr-tools";
@@ -11,8 +12,8 @@ import {
   create_promotion_event,
   create_attention_event,
   create_match_event,
-} from "./events/index.js";
-import { publish_to_relay, publish_to_multiple } from "./relay/index.js";
+} from "./events/index.ts";
+import { publish_to_relay, publish_to_multiple } from "./relay/index.ts";
 import type {
   MarketplaceEventParams,
   BillboardEventParams,
@@ -22,17 +23,60 @@ import type {
   BlockEventParams,
   PublishResult,
   PublishResults,
-} from "./types/index.js";
+} from "./types/index.ts";
 
 /**
- * AttnSdk configuration
+ * Configuration options for the AttnSdk.
+ *
+ * @example
+ * ```ts
+ * // Using hex private key
+ * const config: AttnSdkConfig = {
+ *   private_key: "abc123..." // 64 hex characters
+ * };
+ *
+ * // Using nsec format
+ * const config: AttnSdkConfig = {
+ *   private_key: "nsec1..."
+ * };
+ * ```
  */
 export interface AttnSdkConfig {
+  /**
+   * Private key for signing events.
+   * Accepts hex string (64 chars), nsec (NIP-19), or Uint8Array.
+   */
   private_key: string | Uint8Array;
 }
 
 /**
- * Main SDK class for ATTN Protocol
+ * Main SDK class for creating and publishing ATTN Protocol events.
+ *
+ * Provides a high-level API for:
+ * - Creating signed Nostr events for all ATTN Protocol event types
+ * - Publishing events to Nostr relays with optional NIP-42 authentication
+ *
+ * @example
+ * ```ts
+ * import { AttnSdk } from '@attn/sdk';
+ *
+ * // Initialize with private key
+ * const sdk = new AttnSdk({ private_key: "nsec1..." });
+ *
+ * // Create a promotion event
+ * const event = sdk.create_promotion({
+ *   marketplace_pubkey: "abc...",
+ *   marketplace_d_tag: "my-marketplace",
+ *   billboard_pubkey: "def...",
+ *   billboard_d_tag: "main-slot",
+ *   d_tag: "my-promo-1",
+ *   duration: 100,
+ *   bid: 1000,
+ * });
+ *
+ * // Publish to relay
+ * const result = await sdk.publish(event, "wss://relay.example.com");
+ * ```
  */
 export class AttnSdk {
   private private_key: Uint8Array;

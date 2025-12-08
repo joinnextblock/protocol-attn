@@ -2,8 +2,8 @@
  * Hook validation for @attn-protocol/marketplace
  */
 
-import { REQUIRED_HOOKS } from './types.js';
-import type { HookEmitter } from './emitter.js';
+import { REQUIRED_HOOKS } from './types.ts';
+import type { HookEmitter } from './emitter.ts';
 
 /**
  * Error thrown when required hooks are missing

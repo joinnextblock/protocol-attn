@@ -3,7 +3,7 @@
  * Provides hook emitter and hook name constants
  */
 
-export { HookEmitter } from './emitter.js';
+export { HookEmitter } from './emitter.ts';
 export type {
   HookHandler,
   BeforeHookHandler,
@@ -35,7 +35,7 @@ export type {
   ProfileEventContext,
   RelayListEventContext,
   Nip51ListEventContext,
-} from './types.js';
+} from './types.ts';
 
 /**
  * Hook name constants

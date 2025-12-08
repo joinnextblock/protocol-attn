@@ -1,6 +1,34 @@
 /**
- * Marketplace - Main class for @attn-protocol/marketplace
- * Wraps @attn-protocol/framework and adds marketplace-specific lifecycle hooks
+ * Marketplace - Core class for building ATTN Protocol marketplaces.
+ *
+ * Extends the framework with marketplace-specific lifecycle hooks for:
+ * - Storing and querying events (bring your own storage)
+ * - Matching promotions with attention offers
+ * - Publishing matches and confirmations
+ * - Block-boundary processing
+ *
+ * @example
+ * ```ts
+ * import { Marketplace } from '@attn/marketplace';
+ *
+ * const marketplace = new Marketplace({
+ *   private_key: process.env.MARKETPLACE_KEY,
+ *   d_tag: 'my-marketplace',
+ *   name: 'My Marketplace',
+ *   relays: { read: ['wss://...'], write: ['wss://...'] },
+ * }, {
+ *   // Required: implement storage hooks
+ *   store_promotion: async (ctx) => { ... },
+ *   store_attention: async (ctx) => { ... },
+ *   query_promotions: async (ctx) => { ... },
+ *   find_matches: async (ctx) => { ... },
+ *   exists: async (ctx) => { ... },
+ * });
+ *
+ * await marketplace.start();
+ * ```
+ *
+ * @module
  */
 
 import { Attn } from '@attn-protocol/framework';
@@ -19,17 +47,17 @@ import type {
   MarketplaceConfirmationData,
   AttentionPaymentConfirmationData,
 } from '@attn-protocol/core';
-import type { MarketplaceConfig } from './types/config.js';
-import type { HookName, HookHandler } from './hooks/types.js';
-import type { MatchCandidate, ExistsResult, QueryPromotionsResult, FindMatchesResult, AggregatesResult } from './types/hooks.js';
-import { HookEmitter, validate_required_hooks } from './hooks/index.js';
+import type { MarketplaceConfig } from './types/config.ts';
+import type { HookName, HookHandler } from './hooks/types.ts';
+import type { MatchCandidate, ExistsResult, QueryPromotionsResult, FindMatchesResult, AggregatesResult } from './types/hooks.ts';
+import { HookEmitter, validate_required_hooks } from './hooks/index.ts';
 import {
   extract_block_height,
   extract_d_tag,
   extract_coordinate,
   extract_marketplace_coordinate,
   parse_content,
-} from './utils/extraction.js';
+} from './utils/extraction.ts';
 
 /**
  * Decode private key from hex or nsec format to Uint8Array

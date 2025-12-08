@@ -10,7 +10,7 @@ import {
   validate_d_tag_prefix,
   validate_a_tag_reference,
   validate_pubkey,
-} from './validation.js';
+} from './validation.ts';
 
 describe('get_tag_value', () => {
   it('should return tag value when tag exists', () => {

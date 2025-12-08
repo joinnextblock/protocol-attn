@@ -1,12 +1,13 @@
 /**
  * Relay publisher for publishing events to Nostr relays
  * Supports both NIP-42 authenticated and unauthenticated relays
+ * Uses isomorphic-ws for cross-platform compatibility (Node.js, Deno, browsers)
  */
 
-import WebSocket from "ws";
+import WebSocket from "isomorphic-ws";
 import type { Event } from "nostr-tools";
 import { finalizeEvent, getPublicKey, utils } from "nostr-tools";
-import type { PublishResult, PublishResults } from "../types/index.js";
+import type { PublishResult, PublishResults } from "../types/index.ts";
 
 /**
  * Publish event to a single relay with optional NIP-42 authentication
@@ -94,9 +95,11 @@ export async function publish_to_relay(
       }
     });
 
-    ws.on("message", (data: WebSocket.Data) => {
+    ws.on("message", (data: WebSocket.MessageEvent | string | Buffer) => {
       try {
-        const message = JSON.parse(data.toString());
+        // Handle different data formats from isomorphic-ws
+        const raw_data = typeof data === "object" && "data" in data ? data.data : data;
+        const message = JSON.parse(raw_data.toString());
         if (!Array.isArray(message) || message.length < 1) {
           return;
         }

@@ -21,7 +21,7 @@ export type {
   RelayConfig,
   MarketplaceParams,
   MarketplaceConfig,
-} from './config.js';
+} from './config.ts';
 
 // Hook context and result types
 export type {
@@ -66,4 +66,4 @@ export type {
   ValidatePromotionContext,
   ValidateAttentionContext,
   ValidationResult,
-} from './hooks.js';
+} from './hooks.ts';

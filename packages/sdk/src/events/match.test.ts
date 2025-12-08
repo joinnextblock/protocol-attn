@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { create_match_event } from './match.js';
+import { create_match_event } from './match.ts';
 import { ATTN_EVENT_KINDS } from '@attn-protocol/core';
 import { finalizeEvent } from 'nostr-tools';
 

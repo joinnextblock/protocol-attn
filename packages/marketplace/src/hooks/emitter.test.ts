@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { HookEmitter } from './emitter.js';
+import { HookEmitter } from './emitter.ts';
 
 describe('HookEmitter', () => {
   let emitter: HookEmitter;

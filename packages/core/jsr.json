@@ -2,5 +2,15 @@
   "name": "@attn/core",
   "version": "0.6.0",
   "license": "MIT",
-  "exports": "./src/index.ts"
+  "exports": "./src/index.ts",
+  "publish": {
+    "exclude": [
+      "**/*.test.ts",
+      "**/test/**",
+      "TODO.md",
+      "eslint.config.js",
+      "vitest.config.ts",
+      "tsconfig.json"
+    ]
+  }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { RelayConnection } from './connection.js';
+import { RelayConnection } from './connection.ts';
 import { HookEmitter } from '../hooks/emitter.js';
 import {
   create_mock_block_event,

@@ -2,20 +2,20 @@
  * Hooks exports for @attn-protocol/marketplace
  */
 
-export { HookEmitter } from './emitter.js';
+export { HookEmitter } from './emitter.ts';
 export {
   validate_required_hooks,
   get_missing_required_hooks,
   MissingHooksError,
-} from './validation.js';
+} from './validation.ts';
 export {
   REQUIRED_HOOKS,
   OPTIONAL_HOOKS,
-} from './types.js';
+} from './types.ts';
 export type {
   RequiredHook,
   OptionalHook,
   HookName,
   HookHandler,
   HookHandlers,
-} from './types.js';
+} from './types.ts';
