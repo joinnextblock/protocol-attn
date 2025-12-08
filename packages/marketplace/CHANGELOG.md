@@ -1,5 +1,11 @@
 # @attn-protocol/marketplace
 
+## 0.2.2
+
+### Patch Changes
+
+- Fix module documentation examples to match actual API using .on() method
+
 ## 0.2.1
 
 ### Patch Changes
