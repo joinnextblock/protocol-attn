@@ -6,44 +6,54 @@ Hook-based framework for building Bitcoin-native attention marketplace implement
 
 The ATTN Framework provides a Rely-style hook system for receiving and processing ATTN Protocol events. It handles Nostr relay connections, Bitcoin block synchronization, and event lifecycle management, allowing you to focus on implementing your marketplace logic.
 
-The framework depends on `@attn-protocol/core` for shared constants and type definitions. Event kind constants are available from the core package for consistency across the ATTN Protocol ecosystem.
+The framework depends on `@attn/core` for shared constants and type definitions. Event kind constants are available from the core package for consistency across the ATTN Protocol ecosystem.
 
 ## Installation
 
 ```bash
-npm install @attn-protocol/framework
+# JSR (recommended)
+bunx jsr add @attn/framework
+# or
+npx jsr add @attn/framework
+
+# npm
+npm install @attn/framework
 ```
 
 ## Quick Start
 
 ```typescript
-import { Attn } from "@attn-protocol/framework";
+import { Attn } from "@attn/framework";
 
 // Basic usage (uses default relay: wss://relay.attnprotocol.org)
 const attn = new Attn({
   private_key: myPrivateKey, // Uint8Array for NIP-42
-  node_pubkeys: [node_pubkey], // Trusted Bitcoin node services
 });
 
-// With explicit relay configuration
-const attnWithCustomRelay = new Attn({
-  relays: ["wss://custom-relay.example.com"],
+// With explicit relay configuration (recommended pattern)
+const attnWithRelays = new Attn({
+  relays_noauth: ["wss://public-relay.example.com"],
+  relays_auth: ["wss://authenticated-relay.example.com"],
   private_key: myPrivateKey,
-  node_pubkeys: [node_pubkey],
+  node_pubkeys: [node_pubkey], // Optional: filter block events by trusted nodes
 });
 
 // With marketplace filtering
 const filteredAttn = new Attn({
+  relays_noauth: ["wss://relay.example.com"],
   private_key: myPrivateKey,
-  node_pubkeys: [node_pubkey],
   marketplace_pubkeys: [example_marketplace_pubkey],
 });
 
-// Multiple marketplaces
-const multiMarketplaceAttn = new Attn({
+// With identity publishing (kind 0 profile, kind 10002 relay list)
+const attnWithProfile = new Attn({
+  relays_noauth: ["wss://relay.example.com"],
   private_key: myPrivateKey,
-  node_pubkeys: [node_pubkey],
-  marketplace_pubkeys: [example_marketplace_pubkey, other_marketplace_pubkey],
+  profile: {
+    name: "My Marketplace",
+    about: "An ATTN Protocol marketplace",
+    nip05: "marketplace@example.com",
+  },
 });
 
 // Register hooks for event processing
@@ -105,10 +115,10 @@ The framework handles Nostr relay connections, including:
 - Optional pubkey filtering via `marketplace_pubkeys`, `billboard_pubkeys`, or `advertiser_pubkeys`
 - Emits hooks for each event type automatically
 
-You can import event kind constants from `@attn-protocol/core`:
+You can import event kind constants from `@attn/core`:
 
 ```typescript
-import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
+import { ATTN_EVENT_KINDS } from "@attn/core";
 
 // Use constants instead of hardcoded numbers
 if (event.kind === ATTN_EVENT_KINDS.PROMOTION) {
@@ -129,6 +139,7 @@ if (event.kind === ATTN_EVENT_KINDS.PROMOTION) {
 The framework provides hooks for all stages of the attention marketplace lifecycle. Each event type has `before_*_event`, `on_*_event`, and `after_*_event` hooks:
 
 - **Infrastructure**: `on_relay_connect`, `on_relay_disconnect`, `on_subscription`
+- **Identity Publishing**: `on_profile_published` (emitted after kind 0, 10002, and optionally kind 3 are published)
 - **Event Reception** (with before/after lifecycle):
   - `before_marketplace_event`, `on_marketplace_event`, `after_marketplace_event`
   - `before_billboard_event`, `on_billboard_event`, `after_billboard_event`
@@ -156,20 +167,61 @@ The framework also subscribes to standard Nostr events for enhanced functionalit
 
 ```typescript
 interface AttnConfig {
-  relays?: string[]; // Default: ['wss://relay.attnprotocol.org']
-  private_key: Uint8Array;
-  node_pubkeys: string[];
-  marketplace_pubkeys?: string[];
-  billboard_pubkeys?: string[];
-  advertiser_pubkeys?: string[];
+  // Relay Configuration
+  relays?: string[]; // @deprecated - use relays_auth/relays_noauth instead
+  relays_auth?: string[]; // Relays requiring NIP-42 authentication
+  relays_noauth?: string[]; // Relays not requiring authentication
+  // Default: ['wss://relay.attnprotocol.org'] (noauth)
+
+  // Write Relay Configuration (for publishing events)
+  relays_write_auth?: string[]; // Write relays requiring NIP-42 auth
+  relays_write_noauth?: string[]; // Write relays not requiring auth
+  // Default: uses subscription relays if not specified
+
+  // Authentication
+  private_key: Uint8Array; // 32-byte private key for signing
+
+  // Event Filtering (all optional)
+  node_pubkeys?: string[]; // Filter block events by trusted node pubkeys
+  marketplace_pubkeys?: string[]; // Filter by marketplace pubkeys
+  marketplace_d_tags?: string[]; // Filter marketplace events by d-tags
+  billboard_pubkeys?: string[]; // Filter by billboard pubkeys
+  advertiser_pubkeys?: string[]; // Filter by advertiser pubkeys
+
+  // Subscription Options
+  subscription_since?: number; // Unix timestamp to filter events from
+
+  // Identity Publishing
+  profile?: ProfileConfig; // Profile metadata for kind 0 event
+  follows?: string[]; // Pubkeys for kind 3 follow list
+  publish_identity_on_connect?: boolean; // Default: true if profile is set
+
+  // Connection Options
   auto_reconnect?: boolean; // Default: true
   deduplicate?: boolean; // Default: true
   connection_timeout_ms?: number; // Default: 30000
   reconnect_delay_ms?: number; // Default: 5000
   max_reconnect_attempts?: number; // Default: 10
   auth_timeout_ms?: number; // Default: 10000
+
+  // Logging
+  logger?: Logger; // Custom logger instance (defaults to Pino)
+}
+
+interface ProfileConfig {
+  name: string; // Display name (required)
+  about?: string; // Profile bio/description
+  picture?: string; // Avatar image URL
+  banner?: string; // Banner image URL
+  website?: string; // Website URL
+  nip05?: string; // NIP-05 identifier (e.g., 'user@domain.com')
+  lud16?: string; // Lightning address (e.g., 'user@getalby.com')
+  display_name?: string; // Alternative display name
+  bot?: boolean; // Whether this account is a bot
 }
 ```
+
+### Pubkey Filtering
 
 `marketplace_pubkeys`, `billboard_pubkeys`, and `advertiser_pubkeys` each scope only the event kinds that include those `p` tags (e.g., marketplace filters affect MARKETPLACE + MARKETPLACE_CONFIRMATION events, billboard filters apply to BILLBOARD + BILLBOARD_CONFIRMATION, etc.), so enabling one filter no longer hides unrelated traffic.
 
@@ -179,11 +231,11 @@ The framework validates configuration at runtime:
 
 - **Type Safety**: TypeScript interfaces ensure type correctness at compile time
 - **Runtime Validation**: The framework validates required fields when methods are called:
-  - `connect()` throws if no trusted `node_pubkeys` are supplied
-  - If `relays` is not provided, defaults to `['wss://relay.attnprotocol.org']`
-  - Each relay URL must be a valid WebSocket endpoint
   - `private_key` must be a `Uint8Array` (32 bytes) for NIP-42 authentication
-  - `node_pubkeys` and optional pubkey filters must be hex strings
+  - If no relays are provided, defaults to `['wss://relay.attnprotocol.org']`
+  - Each relay URL must be a valid WebSocket endpoint
+  - `node_pubkeys` is optional - if not provided, block events won't be filtered by node
+  - Pubkey filters must be hex strings when provided
   - Timing fields fall back to sane defaults if omitted
 
 Validation errors are thrown as exceptions with descriptive error messages.
@@ -217,28 +269,37 @@ All hooks provide typed context objects:
 
 ```typescript
 import type {
+  // Infrastructure
   RelayConnectContext,
   RelayDisconnectContext,
   SubscriptionContext,
+  // Identity Publishing
+  ProfilePublishedContext,
+  PublishResult,
+  // ATTN Protocol Events
   MarketplaceEventContext,
   BillboardEventContext,
   PromotionEventContext,
   AttentionEventContext,
   MatchEventContext,
   MatchPublishedContext,
+  // Confirmations
   BillboardConfirmationEventContext,
   AttentionConfirmationEventContext,
   MarketplaceConfirmationEventContext,
   AttentionPaymentConfirmationEventContext,
+  // Block Synchronization
   BlockEventContext,
   BlockData,
   BlockGapDetectedContext,
-  RateLimitContext,
-  HealthChangeContext,
+  // Standard Nostr Events
   ProfileEventContext,
   RelayListEventContext,
   Nip51ListEventContext,
-} from "@attn-protocol/framework";
+  // Error Handling
+  RateLimitContext,
+  HealthChangeContext,
+} from "@attn/framework";
 ```
 
 ## Lifecycle
@@ -280,7 +341,7 @@ attn.on_health_change(async (context) => {
 All hook handlers are fully typed with TypeScript:
 
 ```typescript
-import type { HookHandler, PromotionEventContext } from "@attn-protocol/framework";
+import type { HookHandler, PromotionEventContext } from "@attn/framework";
 
 const handler: HookHandler<PromotionEventContext> = async (context) => {
   // context is fully typed
@@ -291,17 +352,17 @@ const handler: HookHandler<PromotionEventContext> = async (context) => {
 
 ## Implementation Patterns
 
-### Pattern 3: Block-Synchronized Processing
+### Pattern 1: Block-Synchronized Processing
 
 The framework provides hooks for block-synchronized processing, ensuring all operations align with Bitcoin block boundaries:
 
 ```typescript
-import { Attn } from "@attn-protocol/framework";
+import { Attn } from "@attn/framework";
 
 const attn = new Attn({
+  relays_noauth: ["wss://relay.attnprotocol.org"],
   private_key,
-  node_pubkeys: [node_pubkey_hex],
-  // Uses default relay: wss://relay.attnprotocol.org
+  node_pubkeys: [node_pubkey_hex], // Optional: filter by trusted nodes
 });
 
 // Framework hook pattern for block-synchronized processing
@@ -341,11 +402,39 @@ This pattern ensures that:
 - Deterministic processing based on block height
 - Clean separation between block preparation, processing, and cleanup
 
+### Pattern 2: Direct Event Publishing
+
+For publishing events directly to relays, use the exported `Publisher` class:
+
+```typescript
+import { Publisher } from "@attn/framework";
+
+const publisher = new Publisher({
+  private_key,
+  write_relays: [
+    { url: "wss://relay.example.com", requires_auth: false },
+  ],
+  read_relays: ["wss://relay.example.com"],
+});
+
+// Publish profile (kind 0)
+const profile_result = await publisher.publish_profile({
+  name: "My Service",
+  about: "An ATTN Protocol service",
+});
+
+// Publish relay list (kind 10002)
+const relay_list_result = await publisher.publish_relay_list();
+
+// Publish follow list (kind 3)
+const follow_result = await publisher.publish_follow_list([pubkey1, pubkey2]);
+```
+
 ## Related Projects
 
-- **@attn-protocol/core**: Core constants and types shared across all ATTN Protocol packages
-- **@attn-protocol/sdk**: TypeScript SDK for creating and publishing ATTN Protocol events
-- **@attn-protocol/protocol**: ATTN Protocol specification and documentation
+- **@attn/core**: Core constants and types shared across all ATTN Protocol packages
+- **@attn/sdk**: TypeScript SDK for creating and publishing ATTN Protocol events
+- **@attn/marketplace**: Matching engine for PROMOTION and ATTENTION events
 
 ## License
 

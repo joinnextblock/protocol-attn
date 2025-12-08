@@ -48,6 +48,12 @@ Connection and subscription management:
 - **on_relay_disconnect**: Nostr relay disconnected
 - **on_subscription**: Subscription created or confirmed (fires when REQ sent or EOSE received)
 
+### 1.5. Identity Publishing Hooks
+
+Identity event publishing:
+
+- **on_profile_published**: Emitted after kind 0 (profile), kind 10002 (relay list), and optionally kind 3 (follow list) are published on connect. Provides event IDs and publish results for each relay.
+
 ### 2. ATTN Protocol Event Hooks
 
 Event reception and processing for the attention marketplace. Each event type has before/on/after lifecycle hooks:
@@ -150,6 +156,7 @@ Implementations register handlers that decide what to do when each hook fires. T
 
 **Fully Implemented Hooks:**
 - Infrastructure: `on_relay_connect`, `on_relay_disconnect`, `on_subscription`
+- Identity Publishing: `on_profile_published`
 - ATTN Protocol Events (with before/after lifecycle):
   - `before_marketplace_event`, `on_marketplace_event`, `after_marketplace_event`
   - `before_billboard_event`, `on_billboard_event`, `after_billboard_event`
