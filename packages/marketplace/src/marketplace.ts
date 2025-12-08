@@ -12,18 +12,25 @@
  * import { Marketplace } from '@attn/marketplace';
  *
  * const marketplace = new Marketplace({
- *   private_key: process.env.MARKETPLACE_KEY,
- *   d_tag: 'my-marketplace',
- *   name: 'My Marketplace',
- *   relays: { read: ['wss://...'], write: ['wss://...'] },
- * }, {
- *   // Required: implement storage hooks
- *   store_promotion: async (ctx) => { ... },
- *   store_attention: async (ctx) => { ... },
- *   query_promotions: async (ctx) => { ... },
- *   find_matches: async (ctx) => { ... },
- *   exists: async (ctx) => { ... },
+ *   private_key: process.env.MARKETPLACE_KEY!,
+ *   marketplace_id: 'my-marketplace',
+ *   node_pubkey: process.env.NODE_PUBKEY!,
+ *   relay_config: {
+ *     read_noauth: ['wss://relay.example.com'],
+ *     write_noauth: ['wss://relay.example.com'],
+ *   },
+ *   marketplace_params: { name: 'My Marketplace' },
  * });
+ *
+ * // Register required hooks
+ * marketplace.on('store_promotion', async (ctx) => { ... });
+ * marketplace.on('store_attention', async (ctx) => { ... });
+ * marketplace.on('store_billboard', async (ctx) => { ... });
+ * marketplace.on('store_match', async (ctx) => { ... });
+ * marketplace.on('query_promotions', async (ctx) => { ... });
+ * marketplace.on('find_matches', async (ctx) => { ... });
+ * marketplace.on('exists', async (ctx) => { ... });
+ * marketplace.on('get_aggregates', async (ctx) => { ... });
  *
  * await marketplace.start();
  * ```
