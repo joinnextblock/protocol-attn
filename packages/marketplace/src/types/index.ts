@@ -1,5 +1,10 @@
 /**
- * Type exports for @attn-protocol/marketplace
+ * Type exports for the ATTN Marketplace package.
+ *
+ * Re-exports types from core and defines marketplace-specific types
+ * for configuration and hook contexts.
+ *
+ * @module
  */
 
 // Re-export event content types from core

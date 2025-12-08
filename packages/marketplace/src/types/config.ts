@@ -1,12 +1,27 @@
 /**
- * Marketplace configuration types
+ * Configuration types for the ATTN Marketplace.
+ *
+ * Defines the structure for marketplace initialization including
+ * relay configuration, marketplace parameters, and identity settings.
+ *
+ * @module
  */
 
 import type { Pubkey, RelayUrl } from '@attn-protocol/core';
 import type { ProfileConfig } from '@attn-protocol/framework';
 
 /**
- * Relay configuration
+ * Relay configuration for reading and writing events.
+ *
+ * Separates relays by authentication requirements.
+ *
+ * @example
+ * ```ts
+ * const relays: RelayConfig = {
+ *   read_noauth: ['wss://relay.example.com'],
+ *   write_noauth: ['wss://relay.example.com'],
+ * };
+ * ```
  */
 export interface RelayConfig {
   /** Relay URLs for reading events (require auth) */
@@ -20,29 +35,58 @@ export interface RelayConfig {
 }
 
 /**
- * Marketplace parameters
+ * Parameters for the marketplace event content.
+ *
+ * These values are included in the marketplace event (kind 38188)
+ * published on each block boundary.
+ *
+ * @example
+ * ```ts
+ * const params: MarketplaceParams = {
+ *   name: 'NextBlock Marketplace',
+ *   description: 'Decentralized attention marketplace',
+ *   min_duration: 15000,
+ *   max_duration: 60000,
+ * };
+ * ```
  */
 export interface MarketplaceParams {
-  /** Marketplace name */
+  /** Marketplace display name */
   name: string;
   /** Marketplace description */
   description?: string;
-  /** Minimum duration in milliseconds */
+  /** Minimum duration in milliseconds (default: 15000) */
   min_duration?: number;
-  /** Maximum duration in milliseconds */
+  /** Maximum duration in milliseconds (default: 60000) */
   max_duration?: number;
-  /** Match fee in satoshis */
+  /** Fee charged per match in satoshis (default: 0) */
   match_fee_sats?: number;
-  /** Confirmation fee in satoshis */
+  /** Fee charged per confirmation in satoshis (default: 0) */
   confirmation_fee_sats?: number;
-  /** Supported content kinds */
+  /** Supported content kinds (default: [34236]) */
   kind_list?: number[];
-  /** Website URL */
+  /** Website URL for the marketplace */
   website_url?: string;
 }
 
 /**
- * Main marketplace configuration
+ * Main configuration for initializing a Marketplace.
+ *
+ * @example
+ * ```ts
+ * const config: MarketplaceConfig = {
+ *   private_key: process.env.MARKETPLACE_KEY!,
+ *   marketplace_id: 'my-marketplace',
+ *   node_pubkey: process.env.NODE_PUBKEY!,
+ *   relay_config: {
+ *     read_noauth: ['wss://relay.example.com'],
+ *     write_noauth: ['wss://relay.example.com'],
+ *   },
+ *   marketplace_params: {
+ *     name: 'My Marketplace',
+ *   },
+ * };
+ * ```
  */
 export interface MarketplaceConfig {
   /** Private key for signing events (hex or nsec) */

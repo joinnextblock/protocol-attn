@@ -1,5 +1,9 @@
 /**
- * Hook names and handler types for @attn-protocol/marketplace
+ * Hook names and handler types for the ATTN Marketplace.
+ *
+ * Defines the required and optional hooks that consumers must/can implement.
+ *
+ * @module
  */
 
 import type {
@@ -44,7 +48,23 @@ import type {
 } from '../types/hooks.js';
 
 /**
- * Required hooks - consumer MUST implement these
+ * Required hooks that consumers MUST implement.
+ *
+ * These hooks provide the storage and matching logic for the marketplace.
+ * The marketplace will throw `MissingHooksError` if any are not registered.
+ *
+ * @example
+ * ```ts
+ * // All of these must be implemented:
+ * marketplace.on('store_promotion', async (ctx) => { ... });
+ * marketplace.on('store_attention', async (ctx) => { ... });
+ * marketplace.on('store_billboard', async (ctx) => { ... });
+ * marketplace.on('store_match', async (ctx) => { ... });
+ * marketplace.on('query_promotions', async (ctx) => { ... });
+ * marketplace.on('find_matches', async (ctx) => { ... });
+ * marketplace.on('exists', async (ctx) => { ... });
+ * marketplace.on('get_aggregates', async (ctx) => { ... });
+ * ```
  */
 export const REQUIRED_HOOKS = [
   'store_promotion',
@@ -58,7 +78,9 @@ export const REQUIRED_HOOKS = [
 ] as const;
 
 /**
- * Optional hooks - consumer MAY implement these
+ * Optional hooks that consumers MAY implement.
+ *
+ * These hooks allow customization of the marketplace lifecycle.
  */
 export const OPTIONAL_HOOKS = [
   // Storage (optional)
@@ -90,12 +112,19 @@ export const OPTIONAL_HOOKS = [
   'validate_attention',
 ] as const;
 
+/** Type for required hook names */
 export type RequiredHook = typeof REQUIRED_HOOKS[number];
+
+/** Type for optional hook names */
 export type OptionalHook = typeof OPTIONAL_HOOKS[number];
+
+/** Type for all hook names (required and optional) */
 export type HookName = RequiredHook | OptionalHook;
 
 /**
- * Hook handler type mapping
+ * Type mapping from hook names to their handler signatures.
+ *
+ * Used internally for type-safe hook registration.
  */
 export interface HookHandlers {
   // Required hooks
@@ -144,6 +173,15 @@ export interface HookHandlers {
 }
 
 /**
- * Generic hook handler type
+ * Hook handler type for a specific hook name.
+ *
+ * @typeParam T - The hook name
+ *
+ * @example
+ * ```ts
+ * const handler: HookHandler<'store_promotion'> = async (ctx) => {
+ *   await db.promotions.insert(ctx.event);
+ * };
+ * ```
  */
 export type HookHandler<T extends HookName> = HookHandlers[T];
