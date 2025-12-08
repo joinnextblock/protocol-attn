@@ -1,6 +1,7 @@
 {
   "name": "@attn/sdk",
   "version": "0.8.0",
+  "description": "TypeScript SDK for creating and publishing ATTN Protocol events on Nostr - Bitcoin-native attention marketplace",
   "license": "MIT",
   "exports": "./src/index.ts",
   "imports": {

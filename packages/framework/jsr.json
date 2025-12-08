@@ -1,6 +1,7 @@
 {
   "name": "@attn/framework",
   "version": "0.8.0",
+  "description": "Hook-based framework for building Bitcoin-native attention marketplace implementations using ATTN Protocol on Nostr",
   "license": "MIT",
   "exports": "./src/index.ts",
   "imports": {
