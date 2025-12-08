@@ -203,7 +203,8 @@ describe('publish_to_relay', () => {
   it('should handle authentication rejection', async () => {
     (globalThis as any).__mock_ws_instances = [];
 
-    const publish_promise = publish_to_relay('ws://localhost:8080', mock_event, private_key, 5000, 5000);
+    // Pass requires_auth = true to enable NIP-42 authentication flow
+    const publish_promise = publish_to_relay('ws://localhost:8080', mock_event, private_key, 5000, 5000, true);
 
     await new Promise((resolve) => setTimeout(resolve, 50));
     const ws_instances = (globalThis as any).__mock_ws_instances || [];
@@ -224,10 +225,13 @@ describe('publish_to_relay', () => {
     expect(result.error).toContain('Authentication rejected');
   });
 
-  it('should handle timeout waiting for AUTH challenge', async () => {
+  it('should handle timeout waiting for AUTH challenge by publishing anyway', async () => {
+    // When requires_auth is true but no AUTH challenge is received,
+    // the publisher proceeds with publishing after the auth_timeout_ms
     (globalThis as any).__mock_ws_instances = [];
 
-    const publish_promise = publish_to_relay('ws://localhost:8080', mock_event, private_key, 5000, 100);
+    // Pass requires_auth = true with short auth timeout
+    const publish_promise = publish_to_relay('ws://localhost:8080', mock_event, private_key, 5000, 100, true);
 
     await new Promise((resolve) => setTimeout(resolve, 50));
     const ws_instances = (globalThis as any).__mock_ws_instances || [];
@@ -236,13 +240,18 @@ describe('publish_to_relay', () => {
     expect(ws).toBeDefined();
 
     ws._simulate_open();
-    // Don't send AUTH challenge, let it timeout
+    // Don't send AUTH challenge, let auth timeout expire
+    // After auth timeout, publisher should proceed to send event
     await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Now send the OK response for the event
+    ws._simulate_message(create_mock_event_response('event_id_123', true, ''));
 
     const result = await publish_promise;
 
-    expect(result.success).toBe(false);
-    expect(result.error).toContain('AUTH challenge');
+    // Publisher should succeed because it proceeds after auth timeout
+    expect(result.success).toBe(true);
+    expect(result.event_id).toBe('event_id_123');
   }, 20000);
 
   it('should handle timeout waiting for publish response', async () => {

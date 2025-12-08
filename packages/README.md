@@ -6,6 +6,7 @@
 | [`packages/core`](./core) | Core constants and types shared across all packages. | Provides `ATTN_EVENT_KINDS`, `NIP51_LIST_TYPES`, and core type definitions. |
 | [`packages/framework`](./framework) | Runtime primitives for building block-aligned services on ATTN Protocol. | Exposes hooks + relay wiring to keep block synchronization cadence. |
 | [`packages/sdk`](./sdk) | Client utilities for emitting and validating ATTN Protocol events. | Helps marketplaces and billboards stay snapshot-safe. |
+| [`packages/marketplace`](./marketplace) | Marketplace lifecycle layer with bring-your-own storage. | Wraps framework with marketplace hooks for matching, confirmations, and publishing. |
 | [`packages/node`](./node) | Bitcoin ZMQ to Nostr bridge that streams block events to relays. | Publishes kind 38088 block events, the timing primitive for the protocol. |
 | [`packages/relay`](./relay) | Open-source Nostr relay with ATTN Protocol plugin system. | Validates and stores ATTN events with rate limiting and auth. |
 

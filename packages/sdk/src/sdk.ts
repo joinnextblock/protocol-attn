@@ -55,6 +55,10 @@ export class AttnSdk {
             "Invalid hex private key: must be 64 hex characters"
           );
         }
+        // Validate hex characters
+        if (!/^[0-9a-fA-F]+$/.test(config.private_key)) {
+          throw new Error("Invalid hex private key format");
+        }
         // Convert hex string to Uint8Array
         const hex_bytes = config.private_key.match(/.{1,2}/g);
         if (!hex_bytes) {

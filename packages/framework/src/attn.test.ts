@@ -298,14 +298,16 @@ describe('Attn', () => {
       await expect(attn.connect()).rejects.toThrow('private_key');
     });
 
-    it('should throw error if node_pubkeys is missing', async () => {
-      const invalid_config = {
+    // node_pubkeys is now optional, so we just verify no error is thrown during construction
+    it('should allow empty node_pubkeys configuration', () => {
+      const config_without_nodes = {
         ...config,
         node_pubkeys: [],
       };
 
-      const attn = new Attn(invalid_config);
-      await expect(attn.connect()).rejects.toThrow('node_pubkeys');
+      // Should not throw - node_pubkeys is optional
+      const attn = new Attn(config_without_nodes);
+      expect(attn).toBeDefined();
     });
   });
 

@@ -1,0 +1,13 @@
+# @attn-protocol/marketplace
+
+## 0.0.1
+
+### Patch Changes
+
+- Initial release of the marketplace package. Provides a lifecycle layer on top of @attn-protocol/framework with bring-your-own storage architecture.
+  - Marketplace class for managing marketplace lifecycle
+  - HookEmitter for event-driven hook system
+  - Required hooks: store_billboard, store_promotion, store_attention, store_match, query_promotions, find_matches, exists, get_aggregates
+  - Optional hooks for confirmations, validation, and matching lifecycle
+  - Automatic matching when attention events arrive
+  - Auto-publish marketplace events on new blocks

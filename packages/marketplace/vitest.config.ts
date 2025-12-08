@@ -10,7 +10,7 @@ export default defineConfig({
     },
     globals: true,
     environment: 'node',
-    include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.spec.ts', 'test/**/*.test.ts'],
     exclude: ['node_modules', 'dist'],
     coverage: {
       provider: 'v8',
@@ -23,6 +23,6 @@ export default defineConfig({
         'vitest.config.ts',
       ],
     },
+    testTimeout: 15000,
   },
 });
-

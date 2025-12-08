@@ -2,6 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AttnSdk } from './sdk.js';
 import { create_block_event, create_marketplace_event, create_billboard_event } from './events/index.js';
 import { publish_to_relay, publish_to_multiple } from './relay/index.js';
+
+// Mock nostr-tools
+vi.mock('nostr-tools', () => ({
+  getPublicKey: vi.fn(() => 'a'.repeat(64)),
+  nip19: {
+    decode: vi.fn(),
+  },
+}));
+
+// Import after mock to get mocked versions
 import { getPublicKey, nip19 } from 'nostr-tools';
 
 // Mock event builders
@@ -319,7 +329,8 @@ describe('AttnSdk', () => {
         event,
         private_key,
         undefined,
-        undefined
+        undefined,
+        false
       );
       expect(result).toBe(mock_result);
     });
@@ -351,7 +362,8 @@ describe('AttnSdk', () => {
         event,
         private_key,
         5000,
-        3000
+        3000,
+        false
       );
     });
   });
@@ -388,7 +400,8 @@ describe('AttnSdk', () => {
         event,
         private_key,
         undefined,
-        undefined
+        undefined,
+        false
       );
       expect(result).toBe(mock_result);
     });
