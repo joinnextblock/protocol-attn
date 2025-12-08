@@ -1,5 +1,14 @@
 # @attn-protocol/framework
 
+## 0.9.4
+
+### Patch Changes
+
+- Fix docblock examples to use correct method names (on_promotion_event, on_attention_event, on_block_event, connect)
+- Add ATTENTION_PAYMENT_CONFIRMATION (kind 38988) to README event list
+- Fix HOOKS.md link path in README
+- Fix Type Safety example to use correct PromotionEventContext properties
+
 ## 0.9.3
 
 ### Patch Changes

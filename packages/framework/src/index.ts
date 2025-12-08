@@ -26,21 +26,21 @@
  * });
  *
  * // Handle incoming promotions
- * attn.on_promotion((ctx) => {
- *   console.log('Promotion received:', ctx.content);
+ * attn.on_promotion_event((ctx) => {
+ *   console.log('Promotion received:', ctx.event.id);
  * });
  *
  * // Handle attention offers
- * attn.on_attention((ctx) => {
- *   console.log('Attention offer:', ctx.content);
+ * attn.on_attention_event((ctx) => {
+ *   console.log('Attention offer:', ctx.event.id);
  * });
  *
  * // Handle block events for Bitcoin-synchronized timing
- * attn.on_block((ctx) => {
- *   console.log('Block height:', ctx.content.height);
+ * attn.on_block_event((ctx) => {
+ *   console.log('Block height:', ctx.block_height);
  * });
  *
- * await attn.start();
+ * await attn.connect();
  * ```
  *
  * ## Features

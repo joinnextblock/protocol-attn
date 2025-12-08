@@ -16,16 +16,16 @@
  * });
  *
  * // Register event handlers
- * attn.on_promotion((ctx) => {
+ * attn.on_promotion_event((ctx) => {
  *   console.log('New promotion:', ctx.event.id);
  * });
  *
- * attn.on_attention((ctx) => {
+ * attn.on_attention_event((ctx) => {
  *   console.log('New attention offer:', ctx.event.id);
  * });
  *
  * // Start listening
- * await attn.start();
+ * await attn.connect();
  * ```
  *
  * @module

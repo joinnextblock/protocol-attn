@@ -112,6 +112,7 @@ The framework handles Nostr relay connections, including:
   - `ATTN_EVENT_KINDS.ATTENTION_CONFIRMATION` (38688)
   - `ATTN_EVENT_KINDS.MARKETPLACE_CONFIRMATION` (38788)
   - `ATTN_EVENT_KINDS.MATCH` (38888)
+  - `ATTN_EVENT_KINDS.ATTENTION_PAYMENT_CONFIRMATION` (38988)
 - Optional pubkey filtering via `marketplace_pubkeys`, `billboard_pubkeys`, or `advertiser_pubkeys`
 - Emits hooks for each event type automatically
 
@@ -304,7 +305,7 @@ import type {
 
 ## Lifecycle
 
-The framework follows a deterministic lifecycle sequence. See [HOOKS.md](./HOOKS.md) for detailed documentation on the hook lifecycle sequence, execution order, and when each hook fires.
+The framework follows a deterministic lifecycle sequence. See [HOOKS.md](./docs/HOOKS.md) for detailed documentation on the hook lifecycle sequence, execution order, and when each hook fires.
 
 ## Bitcoin-Native Design
 
@@ -346,7 +347,9 @@ import type { HookHandler, PromotionEventContext } from "@attn/framework";
 const handler: HookHandler<PromotionEventContext> = async (context) => {
   // context is fully typed
   const event = context.event;
-  const block_height = context.block_height;
+  const event_id = context.event_id;
+  const pubkey = context.pubkey;
+  const promotion_data = context.promotion_data;
 };
 ```
 
