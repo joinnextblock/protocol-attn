@@ -25,9 +25,9 @@
   "author": "ATTN Protocol Contributors",
   "license": "MIT",
   "dependencies": {
-    "@attn-protocol/core": "file:../core",
-    "@attn-protocol/framework": "file:../framework",
-    "@attn-protocol/sdk": "file:../sdk",
+    "@attn/core": "file:../core",
+    "@attn/framework": "file:../framework",
+    "@attn/sdk": "file:../sdk",
     "nostr-tools": "^2.4.0"
   },
   "peerDependencies": {

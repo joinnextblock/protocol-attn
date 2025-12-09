@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { create_billboard_event } from './billboard.ts';
-import { ATTN_EVENT_KINDS } from '@attn-protocol/core';
+import { ATTN_EVENT_KINDS } from '@attn/core';
 import { finalizeEvent } from 'nostr-tools';
 
 // Mock nostr-tools

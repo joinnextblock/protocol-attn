@@ -107,6 +107,6 @@ export type { Logger } from './logger.ts';
 export { create_default_logger, create_noop_logger } from './logger.ts';
 
 // Re-export core constants and types for backward compatibility
-export { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from '@attn-protocol/core';
-export type { RelayUrl } from '@attn-protocol/core';
+export { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from '@attn/core';
+export type { RelayUrl } from '@attn/core';
 

@@ -28,7 +28,7 @@ export function create_default_logger(): Logger {
   return pino({
     level: process.env.LOG_LEVEL || 'info',
     base: {
-      name: '@attn-protocol/framework',
+      name: '@attn/framework',
     },
     formatters: {
       level: (label) => {

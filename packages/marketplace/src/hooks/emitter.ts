@@ -1,5 +1,5 @@
 /**
- * Hook emitter for @attn-protocol/marketplace
+ * Hook emitter for @attn/marketplace
  * Manages registration and emission of marketplace lifecycle hooks
  */
 

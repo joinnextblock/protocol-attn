@@ -3,7 +3,7 @@
  */
 
 import type { Event } from 'nostr-tools';
-import { ATTN_EVENT_KINDS } from '@attn-protocol/core';
+import { ATTN_EVENT_KINDS } from '@attn/core';
 
 export function create_mock_event(
   kind: number,

@@ -1,5 +1,5 @@
 /**
- * Hooks exports for @attn-protocol/marketplace
+ * Hooks exports for @attn/marketplace
  */
 
 export { HookEmitter } from './emitter.ts';

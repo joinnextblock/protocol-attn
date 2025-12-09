@@ -1,5 +1,5 @@
 /**
- * Utils exports for @attn-protocol/marketplace
+ * Utils exports for @attn/marketplace
  */
 
 export {

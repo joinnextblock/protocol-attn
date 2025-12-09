@@ -9,7 +9,7 @@
  */
 
 import type { Event } from 'nostr-tools';
-import type { BlockHeight, Pubkey, EventId } from '@attn-protocol/core';
+import type { BlockHeight, Pubkey, EventId } from '@attn/core';
 
 export type { BlockHeight, Pubkey, EventId };
 

@@ -8,7 +8,7 @@ import {
   create_mock_event_message,
   create_mock_eose,
 } from '../test/fixtures/events.js';
-import { ATTN_EVENT_KINDS } from '@attn-protocol/core';
+import { ATTN_EVENT_KINDS } from '@attn/core';
 import { HOOK_NAMES } from '../hooks/index.js';
 import { getPublicKey } from 'nostr-tools';
 

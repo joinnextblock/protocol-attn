@@ -43,9 +43,9 @@
  * @module
  */
 
-import { Attn } from '@attn-protocol/framework';
-import { AttnSdk } from '@attn-protocol/sdk';
-import { ATTN_EVENT_KINDS } from '@attn-protocol/core';
+import { Attn } from '@attn/framework';
+import { AttnSdk } from '@attn/sdk';
+import { ATTN_EVENT_KINDS } from '@attn/core';
 import { nip19 } from 'nostr-tools';
 import type { Event } from 'nostr-tools';
 import type {
@@ -58,7 +58,7 @@ import type {
   AttentionConfirmationData,
   MarketplaceConfirmationData,
   AttentionPaymentConfirmationData,
-} from '@attn-protocol/core';
+} from '@attn/core';
 import type { MarketplaceConfig } from './types/config.ts';
 import type { HookName, HookHandler, HookHandle } from './hooks/types.ts';
 import type {
@@ -132,7 +132,7 @@ function decode_private_key(key: string): Uint8Array {
 
 /**
  * Marketplace class
- * Layers marketplace-specific lifecycle hooks on top of @attn-protocol/framework
+ * Layers marketplace-specific lifecycle hooks on top of @attn/framework
  */
 export class Marketplace {
   private framework: Attn;
@@ -414,7 +414,7 @@ export class Marketplace {
   }
 
   /**
-   * Access underlying @attn-protocol/framework instance
+   * Access underlying @attn/framework instance
    */
   get attn(): Attn {
     return this.framework;

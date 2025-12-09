@@ -5,9 +5,9 @@
   "license": "MIT",
   "exports": "./src/index.ts",
   "imports": {
-    "@attn-protocol/core": "jsr:@attn/core@^0.7.1",
-    "@attn-protocol/framework": "jsr:@attn/framework@^0.9.1",
-    "@attn-protocol/sdk": "jsr:@attn/sdk@^0.9.1",
+    "@attn/core": "jsr:@attn/core@^0.7.1",
+    "@attn/framework": "jsr:@attn/framework@^0.9.1",
+    "@attn/sdk": "jsr:@attn/sdk@^0.9.1",
     "nostr-tools": "npm:nostr-tools@^2.4.0"
   },
   "publish": {

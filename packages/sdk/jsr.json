@@ -5,7 +5,7 @@
   "license": "MIT",
   "exports": "./src/index.ts",
   "imports": {
-    "@attn-protocol/core": "jsr:@attn/core@^0.7.1",
+    "@attn/core": "jsr:@attn/core@^0.7.1",
     "nostr-tools": "npm:nostr-tools@^2.4.0",
     "isomorphic-ws": "npm:isomorphic-ws@^5.0.0"
   },

@@ -25,7 +25,7 @@
   "author": "ATTN Protocol Contributors",
   "license": "MIT",
   "dependencies": {
-    "@attn-protocol/core": "file:../core",
+    "@attn/core": "file:../core",
     "isomorphic-ws": "^5.0.0",
     "nostr-tools": "^2.4.0",
     "pino": "^10.1.0"

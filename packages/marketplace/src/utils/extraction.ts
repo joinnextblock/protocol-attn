@@ -1,9 +1,9 @@
 /**
- * Event data extraction utilities for @attn-protocol/marketplace
+ * Event data extraction utilities for @attn/marketplace
  */
 
 import type { Event } from 'nostr-tools';
-import type { BlockHeight } from '@attn-protocol/core';
+import type { BlockHeight } from '@attn/core';
 
 /**
  * Extract block height from event t tag

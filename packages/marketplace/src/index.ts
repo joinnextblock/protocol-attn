@@ -111,10 +111,10 @@ export type {
   AttentionConfirmationData,
   MarketplaceConfirmationData,
   AttentionPaymentConfirmationData,
-} from '@attn-protocol/core';
+} from '@attn/core';
 
 // Profile config (re-exported from framework)
-export type { ProfileConfig } from '@attn-protocol/framework';
+export type { ProfileConfig } from '@attn/framework';
 
 // Hook types
 export type {

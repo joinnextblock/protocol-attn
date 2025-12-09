@@ -1,5 +1,5 @@
 {
-  "name": "@attn-protocol/node",
+  "name": "@attn/node",
   "version": "0.1.0",
   "description": "Streams Bitcoin ZeroMQ blocks to Nostr relays as ATTN-01 snapshots",
   "author": "NextBlock",
@@ -35,7 +35,7 @@
     "docker:rebuild": "docker compose up -d --build"
   },
   "dependencies": {
-    "@attn-protocol/sdk": "file:../sdk",
+    "@attn/sdk": "file:../sdk",
     "@dotenvx/dotenvx": "^1.51.1",
     "dotenv": "^17.2.3",
     "nostr-tools": "^2.17.0",

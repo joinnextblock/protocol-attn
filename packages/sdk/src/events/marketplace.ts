@@ -4,7 +4,7 @@
 
 import { finalizeEvent } from "nostr-tools";
 import type { Event } from "nostr-tools";
-import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
+import { ATTN_EVENT_KINDS } from "@attn/core";
 import type { MarketplaceEventParams } from "../types/index.js";
 import { format_d_tag, format_coordinate } from "../utils/formatting.js";
 

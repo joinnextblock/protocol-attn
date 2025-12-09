@@ -3,7 +3,7 @@
  * Handles creating, tracking, and closing subscriptions
  */
 
-import { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from '@attn-protocol/core';
+import { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from '@attn/core';
 import { HookEmitter } from '../hooks/emitter.js';
 import { HOOK_NAMES } from '../hooks/index.js';
 import type { Logger } from '../logger.js';
