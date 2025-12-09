@@ -1,5 +1,15 @@
 # @attn-protocol/sdk
 
+## 0.9.3
+
+### Patch Changes
+
+- dc5f3d8: Refactor: Extract shared WebSocket mock and private key decoding utilities
+  - Extract WebSocket mock to core package for reuse across framework and SDK
+  - Extract private key decoding utility to core package using nostr-tools
+  - Fix SDK README package name inconsistencies (@attn-protocol/_ → @attn/_)
+  - Update code review documentation
+
 ## 0.9.2
 
 ### Patch Changes
