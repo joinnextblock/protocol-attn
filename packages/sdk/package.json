@@ -1,6 +1,6 @@
 {
   "name": "@attn/sdk",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "TypeScript SDK for creating and publishing ATTN Protocol events",
   "private": true,
   "type": "module",

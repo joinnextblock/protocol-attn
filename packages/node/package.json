@@ -1,6 +1,6 @@
 {
   "name": "@attn/node",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Streams Bitcoin ZeroMQ blocks to Nostr relays as ATTN-01 snapshots",
   "author": "NextBlock",
   "license": "MIT",

@@ -1,5 +1,19 @@
 # @attn-protocol/relay
 
+## 0.4.1
+
+### Patch Changes
+
+- 4a1739f: chore: Standardize all package names to use @attn/ prefix
+
+  Renamed packages for consistency:
+  - `@attn-protocol/node` → `@attn/node`
+  - `@attn-protocol/protocol` → `@attn/protocol`
+  - `@attn-protocol/relay` → `@attn/relay`
+  - `@attn-protocol/sdk` → `@attn/sdk`
+
+  Updated all imports and dependencies across the monorepo to use the new `@attn/` namespace.
+
 ## 0.4.0
 
 ### Minor Changes
