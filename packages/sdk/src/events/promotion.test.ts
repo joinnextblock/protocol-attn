@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { create_promotion_event } from './promotion.ts';
+import { create_promotion_event } from './promotion.js';
 import { ATTN_EVENT_KINDS } from '@attn/core';
 import { finalizeEvent } from 'nostr-tools';
 

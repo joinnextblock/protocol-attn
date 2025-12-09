@@ -56,11 +56,11 @@
  */
 
 // Main Attn class (Rely-style API)
-export { Attn } from './attn.ts';
-export type { AttnConfig, ProfileConfig } from './attn.ts';
+export { Attn } from './attn.js';
+export type { AttnConfig, ProfileConfig } from './attn.js';
 
 // Hook name constants (for internal use)
-export { HOOK_NAMES } from './hooks/index.ts';
+export { HOOK_NAMES } from './hooks/index.js';
 export type {
   HookHandler,
   BeforeHookHandler,
@@ -93,18 +93,18 @@ export type {
   ProfileEventContext,
   RelayListEventContext,
   Nip51ListEventContext,
-} from './hooks/types.ts';
+} from './hooks/types.js';
 
 // Relay connection (internal, used by Attn)
-export type { RelayConnectionConfig } from './relay/index.ts';
+export type { RelayConnectionConfig } from './relay/index.js';
 
 // Publisher for writing events to relays
-export { Publisher } from './relay/index.ts';
-export type { PublisherConfig, WriteRelay, PublishResults } from './relay/index.ts';
+export { Publisher } from './relay/index.js';
+export type { PublisherConfig, WriteRelay, PublishResults } from './relay/index.js';
 
 // Logger interface and utilities
-export type { Logger } from './logger.ts';
-export { create_default_logger, create_noop_logger } from './logger.ts';
+export type { Logger } from './logger.js';
+export { create_default_logger, create_noop_logger } from './logger.js';
 
 // Re-export core constants and types for backward compatibility
 export { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from '@attn/core';

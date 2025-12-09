@@ -3,7 +3,8 @@
  * @module
  */
 
-import { getPublicKey, nip19 } from "nostr-tools";
+import { getPublicKey } from "nostr-tools";
+import { decode_private_key } from "@attn/core";
 import type { Event } from "nostr-tools";
 import {
   create_block_event,
@@ -12,8 +13,8 @@ import {
   create_promotion_event,
   create_attention_event,
   create_match_event,
-} from "./events/index.ts";
-import { publish_to_relay, publish_to_multiple } from "./relay/index.ts";
+} from "./events/index.js";
+import { publish_to_relay, publish_to_multiple } from "./relay/index.js";
 import type {
   MarketplaceEventParams,
   BillboardEventParams,
@@ -23,7 +24,7 @@ import type {
   BlockEventParams,
   PublishResult,
   PublishResults,
-} from "./types/index.ts";
+} from "./types/index.js";
 
 /**
  * Configuration options for the AttnSdk.
@@ -85,33 +86,7 @@ export class AttnSdk {
   constructor(config: AttnSdkConfig) {
     // Convert private key to Uint8Array if it's a string
     if (typeof config.private_key === "string") {
-      // Check if it's a nsec (nip19 encoded)
-      if (config.private_key.startsWith("nsec")) {
-        const decoded = nip19.decode(config.private_key);
-        if (decoded.type !== "nsec") {
-          throw new Error("Invalid nsec format");
-        }
-        this.private_key = decoded.data as Uint8Array;
-      } else {
-        // Assume it's hex (64 hex characters = 32 bytes)
-        if (config.private_key.length !== 64) {
-          throw new Error(
-            "Invalid hex private key: must be 64 hex characters"
-          );
-        }
-        // Validate hex characters
-        if (!/^[0-9a-fA-F]+$/.test(config.private_key)) {
-          throw new Error("Invalid hex private key format");
-        }
-        // Convert hex string to Uint8Array
-        const hex_bytes = config.private_key.match(/.{1,2}/g);
-        if (!hex_bytes) {
-          throw new Error("Invalid hex private key format");
-        }
-        this.private_key = Uint8Array.from(
-          hex_bytes.map((byte) => parseInt(byte, 16))
-        );
-      }
+      this.private_key = decode_private_key(config.private_key);
     } else {
       this.private_key = config.private_key;
     }

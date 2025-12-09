@@ -24,6 +24,9 @@
   ],
   "author": "ATTN Protocol Contributors",
   "license": "MIT",
+  "dependencies": {
+    "nostr-tools": "^2.4.0"
+  },
   "devDependencies": {
     "@types/node": "^22.7.5",
     "@vitest/coverage-v8": "^2.1.8",

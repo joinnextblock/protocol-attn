@@ -16,5 +16,5 @@ export type {
   MarketplaceConfirmationEventParams,
   PublishResult,
   PublishResults,
-} from "./events.ts";
+} from "./events.js";
 

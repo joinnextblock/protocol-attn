@@ -21,18 +21,99 @@ type ValidationResult struct {
 	Message string
 }
 
-// ValidateEvent validates an event based on its kind.
-// Routes to specific validation functions for custom event kinds:
+// AllowedEventKinds defines the set of event kinds accepted by the ATTN Protocol relay.
+// This relay only accepts event kinds that enhance the ATTN Protocol.
+//
+// ATTN Protocol kinds (38088-38988):
+//   - 38088: Block events (Bitcoin block arrival)
 //   - 38188: Marketplace events
 //   - 38288: Billboard events
 //   - 38388: Promotion events
 //   - 38488: Attention events
 //   - 38588: Billboard confirmation events
-//   - 38688: Viewer confirmation events
+//   - 38688: Attention confirmation events
 //   - 38788: Marketplace confirmation events
 //   - 38888: Match events
-//   - 38088: Block events
-//   - Other: Standard Nostr events (always valid)
+//   - 38988: Attention payment confirmation events
+//
+// Supporting Nostr kinds - Identity & Infrastructure:
+//   - 0: User metadata/profiles (NIP-01) - user identity
+//   - 3: Follow lists (NIP-02) - contact list / social graph
+//   - 5: Deletion events (NIP-09) - event deletion
+//   - 10002: Relay list metadata (NIP-65) - relay hints
+//   - 10003: Bookmarks (NIP-51) - simple bookmark list
+//   - 22242: Client authentication (NIP-42) - relay auth
+//   - 27235: HTTP Auth (NIP-98) - HTTP authentication
+//   - 30000: Categorized lists (NIP-51) - blocked/trusted lists required by ATTN-01
+//   - 30001: Bookmarks categorized (NIP-51) - organized bookmarks
+//   - 31989: Handler recommendation (NIP-89) - user app recommendations
+//   - 31990: Handler information (NIP-89) - app capabilities advertisement
+//
+// Supporting Nostr kinds - Content:
+//   - 1063: File metadata (NIP-94) - video file metadata
+//   - 30023: Long-form content (NIP-23) - articles/blogs
+//   - 30311: Live events (NIP-53) - live streaming
+//   - 34236: Video events - content being promoted
+//
+// Supporting Nostr kinds - Social interactions on promoted content:
+//   - 1: Text notes (NIP-01) - comments/replies on videos
+//   - 6: Reposts (NIP-18) - reposts of videos
+//   - 16: Generic reposts (NIP-18) - reposts of any event
+//   - 1111: Comments (NIP-22) - threaded comments
+//   - 9734: Zap requests (NIP-57) - zap request before payment
+//   - 9735: Zaps (NIP-57) - Lightning payments/tips on videos
+//
+// Supporting Nostr kinds - Moderation:
+//   - 1984: Reports (NIP-56) - reporting spam/abuse
+//   - 1985: Labels (NIP-32) - content categorization/tagging
+var AllowedEventKinds = map[int]bool{
+	// ATTN Protocol kinds
+	38088: true, // Block
+	38188: true, // Marketplace
+	38288: true, // Billboard
+	38388: true, // Promotion
+	38488: true, // Attention
+	38588: true, // Billboard Confirmation
+	38688: true, // Attention Confirmation
+	38788: true, // Marketplace Confirmation
+	38888: true, // Match
+	38988: true, // Attention Payment Confirmation
+
+	// Supporting Nostr kinds - Identity & Infrastructure
+	0:     true, // User metadata/profiles (NIP-01)
+	3:     true, // Follow lists (NIP-02)
+	5:     true, // Deletion events (NIP-09)
+	10002: true, // Relay list metadata (NIP-65)
+	10003: true, // Bookmarks (NIP-51)
+	22242: true, // Client authentication (NIP-42)
+	27235: true, // HTTP Auth (NIP-98)
+	30000: true, // Categorized lists (NIP-51)
+	30001: true, // Bookmarks categorized (NIP-51)
+	31989: true, // Handler recommendation (NIP-89)
+	31990: true, // Handler information (NIP-89)
+
+	// Supporting Nostr kinds - Content
+	1063:  true, // File metadata (NIP-94)
+	30023: true, // Long-form content (NIP-23)
+	30311: true, // Live events (NIP-53)
+	34236: true, // Video events (content being promoted)
+
+	// Supporting Nostr kinds - Social interactions on promoted content
+	1:    true, // Text notes (NIP-01) - comments/replies
+	6:    true, // Reposts (NIP-18)
+	16:   true, // Generic reposts (NIP-18)
+	1111: true, // Comments (NIP-22) - threaded comments
+	9734: true, // Zap requests (NIP-57)
+	9735: true, // Zaps (NIP-57) - Lightning payments
+
+	// Supporting Nostr kinds - Moderation
+	1984: true, // Reports (NIP-56)
+	1985: true, // Labels (NIP-32)
+}
+
+// ValidateEvent validates an event based on its kind.
+// First checks if the event kind is allowed, then routes to specific validation functions.
+// See AllowedEventKinds for the complete list of supported event kinds.
 //
 // Parameters:
 //   - event: The Nostr event to validate
@@ -44,6 +125,18 @@ func ValidateEvent(event *nostr.Event) ValidationResult {
 		Int("kind", event.Kind).
 		Str("pubkey", event.PubKey).
 		Msg("Validating event")
+
+	// First, check if event kind is allowed
+	if !AllowedEventKinds[event.Kind] {
+		logger.Debug().
+			Str("event_id", event.ID).
+			Int("kind", event.Kind).
+			Msg("Event kind not allowed")
+		return ValidationResult{
+			Valid:   false,
+			Message: fmt.Sprintf("Event kind %d is not supported by this relay. Only ATTN Protocol kinds (38088-38988) and supporting kinds are accepted. See relay documentation for full list.", event.Kind),
+		}
+	}
 
 	// For ATTN Protocol events, validate that only official Nostr tags are used
 	attnProtocolKinds := map[int]bool{
@@ -79,7 +172,8 @@ func ValidateEvent(event *nostr.Event) ValidationResult {
 	case 38988:
 		result = ValidateAttentionPaymentConfirmationEvent(event)
 	default:
-		result = ValidationResult{Valid: true, Message: "Standard event kind"}
+		// Supporting Nostr kinds (0, 5, 10002, 30000, 34236) - validated by AllowedEventKinds check above
+		result = ValidationResult{Valid: true, Message: "Valid supporting event kind"}
 	}
 
 	logger.Debug().
@@ -99,8 +193,10 @@ func ValidateEvent(event *nostr.Event) ValidationResult {
 //   - ask, min_duration, max_duration
 //   - ref_attention_pubkey, ref_attention_id, ref_marketplace_pubkey, ref_marketplace_id
 //   - blocked_promotions_id, blocked_promoters_id
+//
 // Optional content fields:
 //   - trusted_marketplaces_id, trusted_billboards_id
+//
 // Note: kind_list and relay_list are stored in k and r tags only, not in content.
 //
 // Returns a ValidationResult indicating if the event is valid.
@@ -218,6 +314,7 @@ func ValidateAttentionEvent(event *nostr.Event) ValidationResult {
 // Required content fields:
 //   - name, description, admin_pubkey, min_duration, max_duration, match_fee_sats, confirmation_fee_sats
 //   - ref_marketplace_pubkey, ref_marketplace_id, ref_node_pubkey, ref_block_id
+//
 // Note: kind_list and relay_list are stored in k and r tags only, not in content.
 //
 // Returns a ValidationResult indicating if the event is valid.
@@ -313,6 +410,7 @@ func ValidateMarketplaceEvent(event *nostr.Event) ValidationResult {
 // Required content fields:
 //   - name, confirmation_fee_sats
 //   - ref_billboard_pubkey, ref_billboard_id, ref_marketplace_pubkey, ref_marketplace_id
+//
 // Optional content fields:
 //   - description
 //
@@ -882,10 +980,10 @@ func ValidateAttentionConfirmationEvent(event *nostr.Event) ValidationResult {
 //   - t: Block height (numeric)
 //   - a: Marketplace, Billboard, Promotion, Attention, and Match coordinates (one each)
 //   - e: At least 7 event references with markers:
-//     * "match" marker
-//     * "billboard_confirmation" marker
-//     * "attention_confirmation" marker
-//     * References to marketplace, billboard, promotion, attention, match, billboard_confirmation, and attention_confirmation events
+//   - "match" marker
+//   - "billboard_confirmation" marker
+//   - "attention_confirmation" marker
+//   - References to marketplace, billboard, promotion, attention, match, billboard_confirmation, and attention_confirmation events
 //   - p: At least 4 pubkeys (marketplace_pubkey, promotion_pubkey, attention_pubkey, billboard_pubkey)
 //   - r: Relay URLs (at least one)
 //

@@ -133,3 +133,119 @@ func TestValidateMarketplaceEvent_Valid(t *testing.T) {
 	}
 }
 
+func TestValidateEvent_AllowedSupportingKinds(t *testing.T) {
+	pubkey := generateTestPubkey()
+
+	tests := []struct {
+		name string
+		kind int
+	}{
+		// Identity & Infrastructure
+		{"User metadata (kind 0)", 0},
+		{"Follow list (kind 3)", 3},
+		{"Deletion event (kind 5)", 5},
+		{"Bookmarks simple (kind 10003)", 10003},
+		{"Relay list metadata (kind 10002)", 10002},
+		{"Client auth (kind 22242)", 22242},
+		{"HTTP auth (kind 27235)", 27235},
+		{"NIP-51 categorized list (kind 30000)", 30000},
+		{"Bookmarks categorized (kind 30001)", 30001},
+		{"Handler recommendation (kind 31989)", 31989},
+		{"Handler information (kind 31990)", 31990},
+		// Content
+		{"File metadata (kind 1063)", 1063},
+		{"Long-form content (kind 30023)", 30023},
+		{"Live events (kind 30311)", 30311},
+		{"Video event (kind 34236)", 34236},
+		// Social interactions on promoted content
+		{"Text note/comment (kind 1)", 1},
+		{"Repost (kind 6)", 6},
+		{"Generic repost (kind 16)", 16},
+		{"Comment (kind 1111)", 1111},
+		{"Zap request (kind 9734)", 9734},
+		{"Zap (kind 9735)", 9735},
+		// Moderation
+		{"Report (kind 1984)", 1984},
+		{"Label (kind 1985)", 1985},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			event := &nostr.Event{
+				Kind:    tt.kind,
+				PubKey:  pubkey,
+				Content: "{}",
+				Tags:    nostr.Tags{},
+			}
+
+			result := ValidateEvent(event)
+			if !result.Valid {
+				t.Errorf("Expected %s to be valid, got: %s", tt.name, result.Message)
+			}
+		})
+	}
+}
+
+func TestValidateEvent_RejectedKinds(t *testing.T) {
+	pubkey := generateTestPubkey()
+
+	tests := []struct {
+		name string
+		kind int
+	}{
+		{"Encrypted DM (kind 4)", 4},
+		{"Reaction (kind 7)", 7},
+		{"Channel message (kind 42)", 42},
+		{"Badge definition (kind 30009)", 30009},
+		{"Random kind", 99999},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			event := &nostr.Event{
+				Kind:    tt.kind,
+				PubKey:  pubkey,
+				Content: "test content",
+				Tags:    nostr.Tags{},
+			}
+
+			result := ValidateEvent(event)
+			if result.Valid {
+				t.Errorf("Expected %s (kind %d) to be rejected, got valid", tt.name, tt.kind)
+			}
+			if !strings.Contains(result.Message, "not supported") {
+				t.Errorf("Expected rejection message to contain 'not supported', got: %s", result.Message)
+			}
+		})
+	}
+}
+
+func TestAllowedEventKinds_ATTNProtocolKinds(t *testing.T) {
+	attnKinds := []int{38088, 38188, 38288, 38388, 38488, 38588, 38688, 38788, 38888, 38988}
+
+	for _, kind := range attnKinds {
+		if !AllowedEventKinds[kind] {
+			t.Errorf("Expected ATTN Protocol kind %d to be allowed", kind)
+		}
+	}
+}
+
+func TestAllowedEventKinds_SupportingKinds(t *testing.T) {
+	supportingKinds := []int{0, 1, 3, 5, 6, 16, 1111, 9735, 10002, 22242, 30000, 34236}
+
+	for _, kind := range supportingKinds {
+		if !AllowedEventKinds[kind] {
+			t.Errorf("Expected supporting kind %d to be allowed", kind)
+		}
+	}
+}
+
+func TestAllowedEventKinds_TotalCount(t *testing.T) {
+	// 10 ATTN Protocol kinds + 12 supporting kinds = 22 total
+	expected := 22
+	actual := len(AllowedEventKinds)
+
+	if actual != expected {
+		t.Errorf("Expected %d allowed event kinds, got %d", expected, actual)
+	}
+}

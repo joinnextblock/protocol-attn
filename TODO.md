@@ -28,11 +28,17 @@ All tasks must include a milestone tag: `[M#]`
 
 ## 📝 Medium Priority (Address When Possible)
 
+- [ ] [M4] Fix SDK README package name inconsistency
+  - File: `packages/sdk/README.md`
+  - Issue: README references `@attn-protocol/core` but actual package name is `@attn/core` (lines 9, 21, 77, 80, 805)
+  - Impact: Confusing for developers trying to install dependencies
+  - Recommendation: Update all references from `@attn-protocol/core` to `@attn/core` to match actual package.json and code usage
+
 - [ ] [M4] Improve error handling for edge cases in relay connection
   - File: `packages/framework/src/relay/connection.ts`
-  - Issue: Some edge cases may not be fully handled (rapid connect/disconnect, timeout edge cases)
-  - Impact: Unexpected behavior during connection failures
-  - Recommendation: Review and improve error handling for all connection states
+  - Issue: Some edge cases may not be fully handled (rapid connect/disconnect, timeout edge cases, concurrent connection attempts, race conditions)
+  - Impact: Unexpected behavior during connection failures or race conditions
+  - Recommendation: Review and improve error handling for all connection states, add guards for concurrent operations
 
 - [ ] [M4] Create root-level examples directory
   - File: Create `examples/` directory at monorepo root
@@ -40,19 +46,29 @@ All tasks must include a milestone tag: `[M#]`
   - Impact: Slower onboarding for new developers
   - Recommendation: Add examples directory with sample marketplace implementations using framework + SDK + marketplace
 
-- [ ] [M4] Fix node package test setup
+- [ ] [M4] Configure test framework for node package
   - File: `packages/node/package.json`
-  - Issue: Jest is listed in devDependencies but tests fail to run (module not found)
-  - Impact: Node package tests cannot be executed
-  - Recommendation: Ensure devDependencies are properly installed; verify Jest configuration
+  - Issue: Jest is listed in devDependencies and test files use Jest, but Jest is not actually used. Test files exist but no test framework is configured.
+  - Impact: Node package tests cannot be executed - test files exist but are not runnable
+  - Recommendation: Either remove Jest dependencies and test files, or configure a test framework (Vitest recommended for consistency with other TypeScript packages, or Node.js built-in test runner for JavaScript)
 
 ## 💡 Low Priority (Nice to Have)
 
-- [ ] [M4] Refactor: Create shared test utilities package
-  - File: Create shared test utilities
-  - Issue: Each package manages its own test fixtures and mocks (WebSocket mocks duplicated in framework and SDK)
-  - Impact: Code duplication in tests, harder to maintain consistent test patterns
-  - Recommendation: Create `packages/test-utils/` with shared mocks and fixtures
+- ✅ [M4] Refactor: Extract shared WebSocket mock to test utilities (2025-01-28)
+  - File(s): `packages/framework/src/test/mocks/websocket.mock.ts`, `packages/sdk/src/test/mocks/websocket.mock.ts`
+  - Completion Note: Created shared `MockWebSocket` in `packages/core/src/test/mocks/websocket.mock.ts`. Updated framework and SDK test files to import from core package. Deleted duplicate mock files. All tests updated to use shared mock via `vi.hoisted()` pattern.
+
+- ✅ [M4] Refactor: Extract private key decoding to shared utility (2025-01-28)
+  - File(s): `packages/marketplace/src/marketplace.ts:117-131`, `packages/sdk/src/sdk.ts:86-116`
+  - Completion Note: Created `decode_private_key` utility in `packages/core/src/utils/private-key.ts` with full validation (hex length, format, nsec decoding). Updated marketplace and SDK to import and use shared utility. Added `nostr-tools` dependency to core package. Exported from core package index.
+
+- [ ] [M4] Refactor: Consider splitting Marketplace class
+  - File: `packages/marketplace/src/marketplace.ts` (1118 lines)
+  - Current: Large class with many responsibilities (hook registration, event handling, storage operations)
+  - Proposed: Split into smaller classes: `MarketplaceCore`, `MarketplaceEventHandlers`, `MarketplaceHooks`
+  - Benefit: Improved maintainability, easier to test individual components, clearer separation of concerns
+  - Effort: High (4+ hours)
+  - Risk: High (architectural change, touches many files)
 
 - [ ] [M4] Add performance benchmarks for hook system and event builders
   - File: Create `benchmarks/` directory
@@ -73,6 +89,22 @@ All tasks must include a milestone tag: `[M#]`
   - Recommendation: Set up automated dependency audits (npm audit, Dependabot, etc.)
 
 ## ✅ Recently Completed
+
+- ✅ [M4] Extract shared WebSocket mock to core package (2025-01-28)
+  - File: `packages/core/src/test/mocks/websocket.mock.ts`
+  - Created shared MockWebSocket factory function in core package
+  - Updated framework and SDK test files to import from core
+  - Deleted duplicate mock files from framework and SDK packages
+  - All tests now use shared mock via `vi.hoisted()` pattern
+
+- ✅ [M4] Extract private key decoding to core package (2025-01-28)
+  - File: `packages/core/src/utils/private-key.ts`
+  - Created `decode_private_key` utility with full validation
+  - Updated marketplace and SDK to use shared utility
+  - Added `nostr-tools` dependency to core package
+  - Exported from core package index
+
+## ✅ Recently Completed (Previous)
 
 - ✅ [M4] JSR publishing configuration complete (2025-12-08)
   - File: `packages/*/jsr.json`
@@ -146,8 +178,8 @@ All tasks must include a milestone tag: `[M#]`
 
 ---
 
-**Last Updated:** 2025-12-08 (JSR Publishing Preparation Complete)
-**Last Verified:** 2025-12-08 - All findings confirmed. JSR publishing preparation complete.
+**Last Updated:** 2025-01-28 (Full Code Review Complete)
+**Last Verified:** 2025-01-28 - Comprehensive code review completed. All findings documented in CODE_REVIEW_REPORT.md.
 
 **Project Description:** ATTN Protocol monorepo - Protocol specification, framework, SDK, marketplace, node service, and relay for Bitcoin-native attention marketplace
 

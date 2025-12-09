@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from './constants.ts';
+import { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from './constants.js';
 
 describe('ATTN_EVENT_KINDS', () => {
   it('should export all required event kinds', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { create_marketplace_event } from './marketplace.ts';
+import { create_marketplace_event } from './marketplace.js';
 import { ATTN_EVENT_KINDS } from '@attn/core';
 import { finalizeEvent } from 'nostr-tools';
 

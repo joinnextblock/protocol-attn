@@ -7,7 +7,7 @@
 import WebSocket from "isomorphic-ws";
 import type { Event } from "nostr-tools";
 import { finalizeEvent, getPublicKey, utils } from "nostr-tools";
-import type { PublishResult, PublishResults } from "../types/index.ts";
+import type { PublishResult, PublishResults } from "../types/index.js";
 
 /**
  * Publish event to a single relay with optional NIP-42 authentication

@@ -11,11 +11,11 @@ import { create_default_logger } from '../logger.js';
 import type { RelayConnectContext, RelayDisconnectContext } from '../hooks/types.js';
 
 // Import sub-modules
-import { get_websocket_impl, WS_READY_STATE } from './websocket.ts';
-import type { WebSocketWithOn } from './websocket.ts';
-import { AuthHandler } from './auth.ts';
-import { SubscriptionManager } from './subscriptions.ts';
-import { EventHandlers } from './handlers.ts';
+import { get_websocket_impl, WS_READY_STATE } from './websocket.js';
+import type { WebSocketWithOn } from './websocket.js';
+import { AuthHandler } from './auth.js';
+import { SubscriptionManager } from './subscriptions.js';
+import { EventHandlers } from './handlers.js';
 
 const WebSocket = get_websocket_impl();
 
@@ -137,9 +137,9 @@ export class RelayConnection {
           this.reconnect_attempts = 0;
 
           if (this.requires_auth) {
-            this.logger.info({ relay_url: this.config.relay_url }, 'WebSocket opened, waiting for AUTH challenge');
+            this.logger.debug({ relay_url: this.config.relay_url }, 'WebSocket opened, waiting for AUTH challenge');
           } else {
-            this.logger.info({ relay_url: this.config.relay_url }, 'WebSocket opened, no auth required');
+            this.logger.debug({ relay_url: this.config.relay_url }, 'WebSocket opened, no auth required');
           }
 
           // Set up message handler
@@ -168,7 +168,7 @@ export class RelayConnection {
         this.ws.on('close', (code, reason) => {
           clearTimeout(timeout);
           const reason_str = reason ? reason.toString() : undefined;
-          this.logger.info(
+          this.logger.debug(
             { relay_url: this.config.relay_url, code, reason: reason_str || 'none' },
             'Connection closed'
           );
@@ -358,7 +358,7 @@ export class RelayConnection {
       if (typeof notice === 'string' && notice.toLowerCase().includes('error')) {
         this.logger.error({ relay_url: this.config.relay_url, notice }, 'Relay error notice');
       } else {
-        this.logger.info({ relay_url: this.config.relay_url, notice }, 'Relay NOTICE');
+        this.logger.debug({ relay_url: this.config.relay_url, notice }, 'Relay NOTICE');
       }
     }
   }
@@ -440,7 +440,7 @@ export class RelayConnection {
     const delay = this.reconnect_delay_ms * Math.pow(2, this.reconnect_attempts);
     this.reconnect_attempts++;
 
-    this.logger.info(
+    this.logger.debug(
       {
         relay_url: this.config.relay_url,
         delay_ms: delay,

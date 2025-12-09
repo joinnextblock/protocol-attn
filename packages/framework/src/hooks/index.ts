@@ -7,7 +7,7 @@
  * @module
  */
 
-export { HookEmitter } from './emitter.ts';
+export { HookEmitter } from './emitter.js';
 export type {
   HookHandler,
   BeforeHookHandler,
@@ -39,7 +39,7 @@ export type {
   ProfileEventContext,
   RelayListEventContext,
   Nip51ListEventContext,
-} from './types.ts';
+} from './types.js';
 
 /**
  * Hook name constants for internal use.

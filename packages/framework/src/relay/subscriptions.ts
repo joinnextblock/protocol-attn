@@ -8,8 +8,8 @@ import { HookEmitter } from '../hooks/emitter.js';
 import { HOOK_NAMES } from '../hooks/index.js';
 import type { Logger } from '../logger.js';
 import type { SubscriptionContext } from '../hooks/types.js';
-import type { WebSocketWithOn } from './websocket.ts';
-import { WS_READY_STATE } from './websocket.ts';
+import type { WebSocketWithOn } from './websocket.js';
+import { WS_READY_STATE } from './websocket.js';
 
 /**
  * Subscription filter types
@@ -105,7 +105,7 @@ export class SubscriptionManager {
 
     const since_filter = this.config.subscription_since;
     if (since_filter) {
-      this.config.logger.info(
+      this.config.logger.debug(
         {
           relay_url: this.config.relay_url,
           since: since_filter,

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { create_attention_event } from './attention.ts';
+import { create_attention_event } from './attention.js';
 import { ATTN_EVENT_KINDS } from '@attn/core';
 import { finalizeEvent } from 'nostr-tools';
 

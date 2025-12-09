@@ -6,7 +6,14 @@
   "scripts": {
     "test": "go test ./...",
     "test:coverage": "go test -cover ./...",
-    "build": "go build -o relay ./cmd/relay"
+    "build": "go build -o relay ./cmd/relay",
+    "docker:build": "docker compose build",
+    "docker:rebuild": "docker compose build --no-cache",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:restart": "docker compose down && docker compose up -d",
+    "docker:logs": "docker compose logs -f",
+    "docker:fresh": "docker rm -f relay.attnprotocol.org 2>/dev/null; docker compose build --no-cache && docker compose up -d"
   },
   "keywords": [
     "attn-protocol",

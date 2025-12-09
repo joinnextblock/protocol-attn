@@ -109,4 +109,7 @@ export interface MarketplaceConfig {
 
   /** Auto-publish profile on connect (default: true if profile is set) */
   publish_profile_on_connect?: boolean;
+
+  /** Unix timestamp to filter events from (prevents infinite backlog on restart) */
+  subscription_since?: number;
 }

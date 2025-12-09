@@ -5,8 +5,8 @@
 
 import { finalizeEvent, getPublicKey, utils } from 'nostr-tools';
 import type { Logger } from '../logger.js';
-import type { WebSocketWithOn } from './websocket.ts';
-import { WS_READY_STATE } from './websocket.ts';
+import type { WebSocketWithOn } from './websocket.js';
+import { WS_READY_STATE } from './websocket.js';
 
 /**
  * Authentication state
@@ -216,7 +216,7 @@ export class AuthHandler {
     this.state.auth_event_id = null;
 
     if (accepted) {
-      this.config.logger.info({ relay_url: this.config.relay_url }, 'Authentication successful');
+      this.config.logger.debug({ relay_url: this.config.relay_url }, 'Authentication successful');
       this.state.is_authenticated = true;
       return { success: true };
     } else {
@@ -242,7 +242,7 @@ export class AuthHandler {
 
     this.auth_timeout = setTimeout(() => {
       if (!this.state.auth_challenge_received) {
-        this.config.logger.info(
+        this.config.logger.debug(
           { relay_url: this.config.relay_url, timeout_ms: this.config.auth_timeout_ms },
           'No AUTH challenge received - relay does not require authentication'
         );

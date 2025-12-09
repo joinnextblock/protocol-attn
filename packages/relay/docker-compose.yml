@@ -1,8 +1,8 @@
-name: attn-protocol
+name: attn_protocol
 
 services:
-  relay-attnprotocol:
-    container_name: relay.attnprotocol.org
+  relay-service:
+    container_name: org.attnprotocol.relay
     build: .
     ports:
       - "8010:8008"

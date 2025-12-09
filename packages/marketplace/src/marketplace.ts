@@ -45,7 +45,7 @@
 
 import { Attn } from '@attn/framework';
 import { AttnSdk } from '@attn/sdk';
-import { ATTN_EVENT_KINDS } from '@attn/core';
+import { ATTN_EVENT_KINDS, decode_private_key } from '@attn/core';
 import { nip19 } from 'nostr-tools';
 import type { Event } from 'nostr-tools';
 import type {
@@ -111,24 +111,6 @@ import {
   parse_content,
 } from './utils/extraction.ts';
 
-/**
- * Decode private key from hex or nsec format to Uint8Array
- */
-function decode_private_key(key: string): Uint8Array {
-  if (key.startsWith('nsec')) {
-    const decoded = nip19.decode(key);
-    if (decoded.type !== 'nsec') {
-      throw new Error('Invalid nsec format');
-    }
-    return decoded.data as Uint8Array;
-  }
-  // Assume hex string - convert to Uint8Array
-  const bytes = new Uint8Array(key.length / 2);
-  for (let i = 0; i < key.length; i += 2) {
-    bytes[i / 2] = parseInt(key.substring(i, i + 2), 16);
-  }
-  return bytes;
-}
 
 /**
  * Marketplace class
@@ -160,6 +142,7 @@ export class Marketplace {
       profile: config.profile,
       follows: config.follows,
       publish_identity_on_connect: config.publish_profile_on_connect,
+      subscription_since: config.subscription_since,
     });
 
     this.wire_framework_events();
@@ -934,7 +917,7 @@ export class Marketplace {
     const billboard_pubkey = billboard_parts[1] ?? '';
     const billboard_id = billboard_parts.slice(2).join(':').split(':').pop() ?? '';
 
-    // Create match ID
+    // Create match ID (deterministic from promotion + attention event IDs for idempotency)
     const match_id = `${candidate.promotion_event.id}-${candidate.attention_event.id}`;
 
     // Create match event using SDK

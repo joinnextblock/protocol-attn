@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AttnSdk } from './sdk.ts';
-import { create_block_event, create_marketplace_event, create_billboard_event } from './events/index.ts';
-import { publish_to_relay, publish_to_multiple } from './relay/index.ts';
+import { AttnSdk } from './sdk.js';
+import { create_block_event, create_marketplace_event, create_billboard_event } from './events/index.js';
+import { publish_to_relay, publish_to_multiple } from './relay/index.js';
 
 // Mock nostr-tools
 vi.mock('nostr-tools', () => ({

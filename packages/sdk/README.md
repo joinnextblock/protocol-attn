@@ -6,19 +6,19 @@ TypeScript SDK for creating and publishing ATTN Protocol events on Nostr.
 
 The ATTN SDK provides type-safe event creation and publishing for the ATTN Protocol. It complements the `attn` framework (which receives/processes events) by providing event creation and publishing capabilities.
 
-The SDK depends on `@attn-protocol/core` for shared constants and type definitions. Event kind constants are available from the core package and are used internally by all event builders to ensure consistency across the ATTN Protocol ecosystem.
+The SDK depends on `@attn/core` for shared constants and type definitions. Event kind constants are available from the core package and are used internally by all event builders to ensure consistency across the ATTN Protocol ecosystem.
 
 ## Installation
 
 ```bash
-npm install @attn-protocol/sdk
+npm install @attn/sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { AttnSdk } from "@attn-protocol/sdk";
-import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
+import { AttnSdk } from "@attn/sdk";
+import { ATTN_EVENT_KINDS } from "@attn/core";
 
 // Initialize SDK with private key (hex or nsec format)
 const sdk = new AttnSdk({
@@ -74,10 +74,10 @@ await sdk.publish_to_multiple(promotion_event, [
 
 Every builder implements the schemas and tag layout defined in `@attn-protocol/packages/protocol/docs/ATTN-01.md`. Content fields live in the JSON payload, while routing/indexing values (identifiers, block height, coordinates) ride inside Nostr tags. Always pass the current Bitcoin `block_height` so the SDK can emit the `t` tag that powers block-synchronized filtering.
 
-**Note:** All event builders use constants from `@attn-protocol/core` internally. You can import `ATTN_EVENT_KINDS` to reference event kinds in your code:
+**Note:** All event builders use constants from `@attn/core` internally. You can import `ATTN_EVENT_KINDS` to reference event kinds in your code:
 
 ```typescript
-import { ATTN_EVENT_KINDS } from "@attn-protocol/core";
+import { ATTN_EVENT_KINDS } from "@attn/core";
 
 // Check event kind
 if (event.kind === ATTN_EVENT_KINDS.PROMOTION) {
@@ -349,7 +349,7 @@ ATTN-01 tag requirements:
 - `["u", url]`
 
 ```typescript
-import { create_billboard_confirmation_event } from "@attn-protocol/sdk";
+import { create_billboard_confirmation_event } from "@attn/sdk";
 import { nip19 } from "nostr-tools";
 
 const decoded = nip19.decode("nsec1...");
@@ -399,7 +399,7 @@ ATTN-01 tag requirements:
 - `["u", url]`
 
 ```typescript
-import { create_attention_confirmation_event } from "@attn-protocol/sdk";
+import { create_attention_confirmation_event } from "@attn/sdk";
 import { nip19 } from "nostr-tools";
 
 const decoded = nip19.decode("nsec1...");
@@ -454,7 +454,7 @@ ATTN-01 tag requirements:
 - `["u", url]`
 
 ```typescript
-import { create_marketplace_confirmation_event } from "@attn-protocol/sdk";
+import { create_marketplace_confirmation_event } from "@attn/sdk";
 import { nip19 } from "nostr-tools";
 
 const decoded = nip19.decode("nsec1...");
@@ -560,9 +560,9 @@ All validation happens at construction time, ensuring the SDK instance is always
 
 ```typescript
 // Import SDK for creating events
-import { AttnSdk } from "@attn-protocol/sdk";
+import { AttnSdk } from "@attn/sdk";
 // Import framework for receiving/processing events
-import { Attn } from "@attn-protocol/framework";
+import { Attn } from "@attn/framework";
 
 // Initialize SDK with private key (hex or nsec format)
 const sdk = new AttnSdk({
@@ -621,7 +621,7 @@ try {
 ### Pattern 1: Creating a Complete Promotion Flow
 
 ```typescript
-import { AttnSdk } from "@attn-protocol/sdk";
+import { AttnSdk } from "@attn/sdk";
 
 const sdk = new AttnSdk({ private_key: "your_private_key" });
 
@@ -758,7 +758,7 @@ import {
   validate_block_height,
   validate_json_content,
   validate_pubkey,
-} from "@attn-protocol/sdk";
+} from "@attn/sdk";
 
 const result = validate_block_height(event);
 if (!result.valid) {
@@ -775,7 +775,7 @@ import type {
   PromotionEventParams,
   AttentionEventParams,
   MatchEventParams,
-} from "@attn-protocol/sdk";
+} from "@attn/sdk";
 ```
 
 ## Bitcoin Block Height Support
@@ -802,9 +802,9 @@ if (!result.success) {
 
 ## Related Projects
 
-- **@attn-protocol/core**: Core constants and types shared across all ATTN Protocol packages
-- **@attn-protocol/framework**: Hook-based framework for receiving and processing ATTN Protocol events
-- **@attn-protocol/protocol**: ATTN Protocol specification and documentation
+- **@attn/core**: Core constants and types shared across all ATTN Protocol packages
+- **@attn/framework**: Hook-based framework for receiving and processing ATTN Protocol events
+- **@attn/protocol**: ATTN Protocol specification and documentation
 
 ## License
 

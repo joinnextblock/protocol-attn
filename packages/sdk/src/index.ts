@@ -50,8 +50,8 @@
  */
 
 // Main SDK class
-export { AttnSdk } from "./sdk.ts";
-export type { AttnSdkConfig } from "./sdk.ts";
+export { AttnSdk } from "./sdk.js";
+export type { AttnSdkConfig } from "./sdk.js";
 
 // Event builders
 export {
@@ -65,7 +65,7 @@ export {
   create_attention_confirmation_event,
   create_marketplace_confirmation_event,
   create_attention_payment_confirmation_event,
-} from "./events/index.ts";
+} from "./events/index.js";
 
 // Types
 export type {
@@ -82,10 +82,10 @@ export type {
   AttentionPaymentConfirmationEventParams,
   PublishResult,
   PublishResults,
-} from "./types/index.ts";
+} from "./types/index.js";
 
 // Relay publishing
-export { publish_to_relay, publish_to_multiple } from "./relay/index.ts";
+export { publish_to_relay, publish_to_multiple } from "./relay/index.js";
 
 // Validation utilities
 export {
@@ -98,7 +98,7 @@ export {
   validate_d_tag_prefix,
   validate_a_tag_reference,
   validate_pubkey,
-} from "./utils/index.ts";
+} from "./utils/index.js";
 
-export type { ValidationResult } from "./utils/index.ts";
+export type { ValidationResult } from "./utils/index.js";
 

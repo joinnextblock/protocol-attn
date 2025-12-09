@@ -31,7 +31,7 @@
  */
 
 // Event kind constants
-export { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from './constants.ts';
+export { ATTN_EVENT_KINDS, NIP51_LIST_TYPES } from './constants.js';
 
 // Primitive type aliases
 export type {
@@ -39,7 +39,7 @@ export type {
   Pubkey,
   EventId,
   RelayUrl,
-} from './types.ts';
+} from './types.js';
 
 // Event content data types (parsed from JSON)
 export type {
@@ -53,5 +53,8 @@ export type {
   AttentionConfirmationData,
   MarketplaceConfirmationData,
   AttentionPaymentConfirmationData,
-} from './types.ts';
+} from './types.js';
+
+// Utility functions
+export { decode_private_key } from './utils/index.js';
 

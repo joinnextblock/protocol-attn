@@ -19,7 +19,20 @@
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,md}\"",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "publish-packages": "changeset publish"
+    "publish-packages": "changeset publish",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:restart": "docker compose restart",
+    "docker:reset": "docker compose down && docker compose up -d",
+    "docker:ps": "docker compose ps",
+    "docker:relay": "docker compose up -d relay",
+    "docker:relay:logs": "docker compose logs -f relay",
+    "docker:relay:build": "docker compose build relay",
+    "docker:node": "docker compose up -d node",
+    "docker:node:logs": "docker compose logs -f node",
+    "docker:node:build": "docker compose build node"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.2",

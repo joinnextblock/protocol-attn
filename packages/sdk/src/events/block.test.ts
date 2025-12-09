@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { create_block_event } from './block.ts';
+import { create_block_event } from './block.js';
 import { ATTN_EVENT_KINDS } from '@attn/core';
 import { finalizeEvent, getPublicKey } from 'nostr-tools';
 

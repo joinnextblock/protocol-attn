@@ -31,14 +31,14 @@
  * @module
  */
 
-import { HookEmitter } from './hooks/emitter.ts';
-import { HOOK_NAMES } from './hooks/index.ts';
-import { RelayConnection } from './relay/connection.ts';
-import { Publisher } from './relay/publisher.ts';
-import type { RelayConnectionConfig } from './relay/connection.ts';
-import type { WriteRelay } from './relay/publisher.ts';
-import type { Logger } from './logger.ts';
-import { create_default_logger } from './logger.ts';
+import { HookEmitter } from './hooks/emitter.js';
+import { HOOK_NAMES } from './hooks/index.js';
+import { RelayConnection } from './relay/connection.js';
+import { Publisher } from './relay/publisher.js';
+import type { RelayConnectionConfig } from './relay/connection.js';
+import type { WriteRelay } from './relay/publisher.js';
+import type { Logger } from './logger.js';
+import { create_default_logger } from './logger.js';
 import type {
   HookHandler,
   BeforeHookHandler,
@@ -66,7 +66,7 @@ import type {
   ProfileEventContext,
   RelayListEventContext,
   Nip51ListEventContext,
-} from './hooks/types.ts';
+} from './hooks/types.js';
 
 /**
  * Relay configuration with authentication requirement.
@@ -334,7 +334,7 @@ export class Attn {
     }
 
     const has_follows = this.config.follows && this.config.follows.length > 0;
-    this.logger.info(
+    this.logger.debug(
       { has_follows },
       `Publishing profile (kind 0, kind 10002${has_follows ? ', kind 3' : ''})`
     );
@@ -342,7 +342,7 @@ export class Attn {
     try {
       // Publish profile (kind 0)
       const profile_results = await this.publisher.publish_profile(this.config.profile);
-      this.logger.info(
+      this.logger.debug(
         {
           event_id: profile_results.event_id.substring(0, 16),
           success_count: profile_results.success_count,
@@ -353,7 +353,7 @@ export class Attn {
 
       // Publish relay list (kind 10002)
       const relay_list_results = await this.publisher.publish_relay_list();
-      this.logger.info(
+      this.logger.debug(
         {
           event_id: relay_list_results.event_id.substring(0, 16),
           success_count: relay_list_results.success_count,
@@ -366,7 +366,7 @@ export class Attn {
       let follow_list_results: typeof profile_results | null = null;
       if (has_follows) {
         follow_list_results = await this.publisher.publish_follow_list(this.config.follows!);
-        this.logger.info(
+        this.logger.debug(
           {
             event_id: follow_list_results.event_id.substring(0, 16),
             follows_count: this.config.follows!.length,
