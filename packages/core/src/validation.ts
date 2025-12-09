@@ -99,7 +99,7 @@ export const block_data_schema: z.ZodObject<{
 /**
  * MARKETPLACE event content schema (kind 38188)
  */
-export const marketplace_data_schema = z.object({
+export const marketplace_data_schema: z.ZodObject<z.ZodRawShape> = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
   admin_pubkey: pubkey_schema.optional(),
@@ -120,7 +120,7 @@ export const marketplace_data_schema = z.object({
 /**
  * BILLBOARD event content schema (kind 38288)
  */
-export const billboard_data_schema = z.object({
+export const billboard_data_schema: z.ZodObject<z.ZodRawShape> = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
   confirmation_fee_sats: nonnegative_fee_sats_schema.optional(),
@@ -133,7 +133,7 @@ export const billboard_data_schema = z.object({
 /**
  * PROMOTION event content schema (kind 38388)
  */
-export const promotion_data_schema = z.object({
+export const promotion_data_schema: z.ZodObject<z.ZodRawShape> = z.object({
   duration: positive_integer_schema.optional(), // Milliseconds
   bid: positive_sats_schema.optional(),
   event_id: event_id_schema.optional(),
@@ -151,7 +151,7 @@ export const promotion_data_schema = z.object({
 /**
  * ATTENTION event content schema (kind 38488)
  */
-export const attention_data_schema = z.object({
+export const attention_data_schema: z.ZodObject<z.ZodRawShape> = z.object({
   ask: positive_sats_schema.optional(),
   min_duration: positive_integer_schema.optional(), // Milliseconds
   max_duration: positive_integer_schema.optional(), // Milliseconds
@@ -169,7 +169,7 @@ export const attention_data_schema = z.object({
  * MATCH event content schema (kind 38888)
  * Per ATTN-01, MATCH events contain ONLY ref_* fields.
  */
-export const match_data_schema = z.object({
+export const match_data_schema: z.ZodObject<z.ZodRawShape> = z.object({
   ref_match_id: z.string().optional(),
   ref_marketplace_id: z.string().optional(),
   ref_billboard_id: z.string().optional(),
@@ -185,7 +185,7 @@ export const match_data_schema = z.object({
  * BILLBOARD_CONFIRMATION event content schema (kind 38588)
  * Per ATTN-01, contains ONLY ref_* fields.
  */
-export const billboard_confirmation_data_schema = z.object({
+export const billboard_confirmation_data_schema: z.ZodObject<z.ZodRawShape> = z.object({
   ref_match_event_id: event_id_schema.optional(),
   ref_match_id: z.string().optional(),
   ref_marketplace_pubkey: pubkey_schema.optional(),
@@ -202,7 +202,7 @@ export const billboard_confirmation_data_schema = z.object({
  * ATTENTION_CONFIRMATION event content schema (kind 38688)
  * Per ATTN-01, contains ONLY ref_* fields.
  */
-export const attention_confirmation_data_schema = z.object({
+export const attention_confirmation_data_schema: z.ZodObject<z.ZodRawShape> = z.object({
   ref_match_event_id: event_id_schema.optional(),
   ref_match_id: z.string().optional(),
   ref_marketplace_pubkey: pubkey_schema.optional(),
@@ -219,7 +219,7 @@ export const attention_confirmation_data_schema = z.object({
  * MARKETPLACE_CONFIRMATION event content schema (kind 38788)
  * Per ATTN-01, contains ONLY ref_* fields.
  */
-export const marketplace_confirmation_data_schema = z.object({
+export const marketplace_confirmation_data_schema: z.ZodObject<z.ZodRawShape> = z.object({
   ref_match_event_id: event_id_schema.optional(),
   ref_match_id: z.string().optional(),
   ref_billboard_confirmation_event_id: event_id_schema.optional(),
@@ -238,7 +238,7 @@ export const marketplace_confirmation_data_schema = z.object({
  * ATTENTION_PAYMENT_CONFIRMATION event content schema (kind 38988)
  * Per ATTN-01, contains sats_received, payment_proof, and ref_* fields.
  */
-export const attention_payment_confirmation_data_schema = z.object({
+export const attention_payment_confirmation_data_schema: z.ZodObject<z.ZodRawShape> = z.object({
   sats_received: positive_sats_schema.optional(),
   payment_proof: z.string().optional(),
   ref_match_event_id: event_id_schema.optional(),
