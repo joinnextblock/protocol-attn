@@ -5,6 +5,7 @@ go 1.24.3
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/joinnextblock/attn-protocol/go-core v0.0.0
+	github.com/joinnextblock/city-protocol/relay v0.0.0
 	github.com/nbd-wtf/go-nostr v0.52.3
 	github.com/pippellia-btc/rely v1.2.1
 	github.com/rs/zerolog v1.34.0
@@ -12,7 +13,11 @@ require (
 )
 
 // Use local path for development - remove for production
-replace github.com/joinnextblock/attn-protocol/go-core => ../go-core
+replace (
+	github.com/joinnextblock/attn-protocol/go-core => ../go-core
+	github.com/joinnextblock/city-protocol/go-core => ../../../protocol-city/packages/go-core
+	github.com/joinnextblock/city-protocol/relay => ../../../protocol-city/packages/relay
+)
 
 require (
 	github.com/ImVexed/fasturl v0.0.0-20230304231329-4e41488060f3 // indirect
@@ -30,6 +35,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
+	github.com/joinnextblock/city-protocol/go-core v0.0.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
