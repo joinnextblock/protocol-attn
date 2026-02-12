@@ -4,9 +4,9 @@
 
 | Package | Purpose | Notes |
 | --- | --- | --- |
-| [`packages/core`](./core) | Core constants and types shared across all packages. | Provides `ATTN_EVENT_KINDS`, `CITY_PROTOCOL_KINDS`, `NIP51_LIST_TYPES`, and core type definitions. Published as `@attn/ts-core`. |
+| [`packages/ts-core`](./core) | Core constants and types shared across all packages. | Provides `ATTN_EVENT_KINDS`, `CITY_PROTOCOL_KINDS`, `NIP51_LIST_TYPES`, and core type definitions. Published as `@attn/ts-core`. |
 | [`packages/framework`](./framework) | Runtime primitives for building block-aligned services on ATTN Protocol. | Exposes hooks + relay wiring to keep block synchronization cadence. Published as `@attn/ts-framework`. |
-| [`packages/sdk`](./sdk) | Client utilities for emitting and validating ATTN Protocol events. | Helps marketplaces and billboards stay snapshot-safe. Published as `@attn/ts-sdk`. |
+| [`packages/ts-sdk`](./sdk) | Client utilities for emitting and validating ATTN Protocol events. | Helps marketplaces and billboards stay snapshot-safe. Published as `@attn/ts-sdk`. |
 | [`packages/marketplace`](./marketplace) | Marketplace lifecycle layer with bring-your-own storage. | Wraps framework with marketplace hooks for matching, confirmations, and publishing. Published as `@attn/ts-marketplace`. |
 | [`packages/relay`](./relay) | Open-source Nostr relay with ATTN Protocol plugin system. | Validates and stores ATTN events with rate limiting and auth. |
 
