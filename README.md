@@ -77,8 +77,10 @@ Block Event Coordinate: 38808:<clock_pubkey>:org.cityprotocol:block:<height>:<ha
 | Package | Purpose |
 | --- | --- |
 | [`docs/`](./docs/) | ATTN-01 spec, diagrams, and documentation |
-| [`packages/ts-core`](./packages/ts-core/) | Core constants and type definitions |
-| [`packages/ts-sdk`](./packages/ts-sdk/) | Event builders and validators |
+| [`packages/ts-core`](./packages/ts-core/) | Core constants and type definitions (TypeScript) |
+| [`packages/ts-sdk`](./packages/ts-sdk/) | Event builders and validators (TypeScript) |
+| [`packages/go-core`](./packages/go-core/) | Core constants and validation (Go) |
+| [`packages/go-sdk`](./packages/go-sdk/) | Event builders and validators (Go) |
 
 
 ## License
