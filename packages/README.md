@@ -17,6 +17,5 @@
 | [`packages/go-core`](./go-core) | Core constants and types for Go applications. | Mirrors `@attn/ts-core` with `core.KindPromotion`, `core.PromotionData`, etc. |
 | [`packages/go-sdk`](./go-sdk) | Event builders for creating and publishing ATTN Protocol events. | Mirrors `@attn/ts-sdk` with `events.CreatePromotion()`, etc. |
 
-**Note:** Block events (kind 38808) are now published by City Protocol's `@city/clock` service. The `packages/node` package has been moved to City Protocol.
 
 Each package follows snake_case conventions, pins its own toolchain (via `package.json`, `bun.lock`, or `go.mod`), and must subscribe to City Protocol block events (kind 38808) before emitting state. When adding a new package, document it here so operations stay traceable per block.

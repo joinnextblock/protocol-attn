@@ -80,7 +80,6 @@ Block Event Coordinate: 38808:<clock_pubkey>:org.cityprotocol:block:<height>:<ha
 | [`packages/ts-core`](./packages/ts-core/) | Core constants and type definitions |
 | [`packages/ts-sdk`](./packages/ts-sdk/) | Event builders and validators |
 
-**Note:** The `packages/node` package (Bitcoin ZMQ to Nostr bridge) has been moved to City Protocol as `@city/clock`. Block events are now published by City Protocol.
 
 ## License
 
