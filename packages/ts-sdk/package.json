@@ -25,7 +25,7 @@
   "author": "ATTN Protocol Contributors",
   "license": "MIT",
   "dependencies": {
-    "@attn/ts-core": "file:../core",
+    "@attn/ts-core": "file:../ts-core",
     "isomorphic-ws": "^5.0.0",
     "nostr-tools": "^2.4.0"
   },
