@@ -796,7 +796,7 @@ This comprehensive analytics ecosystem enables PROMOTION Creators to continuousl
 
 - **Block Height (`t` tag)**: Bitcoin block number used as the universal clock for all ATTN Protocol events. Every event MUST include `["t", "<block_height>"]` tag. This enables block-synchronized operations where all services react to the same Bitcoin block events.
 
-- **Coordinate (`a` tag)**: Format `<kind>:<pubkey>:<identifier>` that uniquely identifies protocol entities (marketplaces, billboards, promotions, attention). For example: `38188:marketplace_pubkey:marketplace_001` identifies a specific marketplace instance.
+- **Coordinate (`a` tag)**: Format `<kind>:<pubkey>:<uuid>` that uniquely identifies protocol entities (marketplaces, billboards, promotions, attention). For example: `38188:marketplace_pubkey:7d1e3a2b-4c5f-6789-abcd-ef0123456789` identifies a specific marketplace instance. D-tags are UUIDs — NIP-33 parameterized replaceable events are already namespaced by `kind:pubkey:d-tag`, so no additional prefix is needed.
 
 - **Event Kind**: Numeric identifier for Nostr event types. ATTN Protocol uses kinds 38188-38988 for protocol events, plus kind 30000 for NIP-51 lists. Block events (kind 38808) are published by City Protocol.
 

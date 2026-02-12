@@ -56,15 +56,15 @@ The ATTN Protocol uses only official Nostr tags. All custom data is stored in th
 | Event Kind | Name | Published By | Key Content Fields | Key Tags |
 |------------|------|--------------|-------------------|----------|
 | 38808 | BLOCK | Bitcoin node operators | `block_height`, `block_hash`, `block_time`, `previous_hash`, `ref_clock_pubkey`, `ref_block_id` | `["d", "org.cityprotocol:block:<height>:<hash>"]`, `["p", "<clock_pubkey>"]` |
-| 38188 | MARKETPLACE | Marketplace operators | `name`, `description`, `admin_pubkey`, `min_duration`, `max_duration`, `match_fee_sats`, `confirmation_fee_sats`, `ref_block_id` | `["d", "org.attnprotocol:marketplace:<marketplace_id>"]`, `["a", "<block_coordinate>"]`, `["p", "<marketplace_pubkey>"]`, `["k", "<kind>"]`, `["r", "<relay_url>"]` |
-| 38288 | BILLBOARD | Billboard operators | `name`, `description?`, `confirmation_fee_sats` | `["d", "org.attnprotocol:billboard:<billboard_id>"]`, `["a", "<marketplace_coordinate>"]`, `["p", "<billboard_pubkey>"]` |
-| 38388 | PROMOTION | Promotion creators | `duration`, `bid`, `event_id`, `call_to_action`, `call_to_action_url`, `escrow_id_list` | `["d", "org.attnprotocol:promotion:<promotion_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<video_coordinate>"]`, `["a", "<billboard_coordinate>"]` |
-| 38488 | ATTENTION | Attention owners | `ask`, `min_duration`, `max_duration`, `blocked_promotions_id`, `blocked_promoters_id`, `trusted_marketplaces_id?`, `trusted_billboards_id?` | `["d", "org.attnprotocol:attention:<attention_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<blocked_promotions_coordinate>"]`, `["a", "<blocked_promoters_coordinate>"]`, `["a", "<trusted_marketplaces_coordinate>"]?`, `["a", "<trusted_billboards_coordinate>"]?` |
-| 38888 | MATCH | Marketplace operators | `ref_match_id`, `ref_promotion_id`, `ref_attention_id`, `ref_billboard_id`, `ref_marketplace_id`, `ref_*_pubkey` | `["d", "org.attnprotocol:match:<match_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<billboard_coordinate>"]` |
-| 38588 | BILLBOARD_CONFIRMATION | Billboard operators | `ref_match_event_id`, `ref_match_id`, `ref_*_pubkey`, `ref_*_id` | `["d", "org.attnprotocol:billboard-confirmation:<confirmation_id>"]`, `["t", "<block_height>"]`, `["e", "<match_event_id>"]`, `["e", "<marketplace_event_id>"]`, `["e", "<billboard_event_id>"]`, `["e", "<promotion_event_id>"]`, `["e", "<attention_event_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<billboard_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<match_coordinate>"]`, `["p", "<pubkey>"]`, `["r", "<relay_url>"]` |
-| 38688 | ATTENTION_CONFIRMATION | Attention owners | `ref_match_event_id`, `ref_match_id`, `ref_*_pubkey`, `ref_*_id` | `["d", "org.attnprotocol:attention-confirmation:<confirmation_id>"]`, `["t", "<block_height>"]`, `["e", "<match_event_id>"]`, `["e", "<marketplace_event_id>"]`, `["e", "<billboard_event_id>"]`, `["e", "<promotion_event_id>"]`, `["e", "<attention_event_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<billboard_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<match_coordinate>"]`, `["p", "<pubkey>"]`, `["r", "<relay_url>"]` |
-| 38788 | MARKETPLACE_CONFIRMATION | Marketplace operators | `ref_match_event_id`, `ref_*_confirmation_event_id`, `ref_*_pubkey`, `ref_*_id` | `["d", "org.attnprotocol:marketplace-confirmation:<confirmation_id>"]`, `["t", "<block_height>"]`, `["e", "<match_event_id>"]`, `["e", "<billboard_confirmation_event_id>"]`, `["e", "<attention_confirmation_event_id>"]`, `["e", "<marketplace_event_id>"]`, `["e", "<billboard_event_id>"]`, `["e", "<promotion_event_id>"]`, `["e", "<attention_event_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<billboard_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<match_coordinate>"]`, `["p", "<pubkey>"]`, `["r", "<relay_url>"]` |
-| 38988 | ATTENTION_PAYMENT_CONFIRMATION | Attention owners | `sats_received`, `payment_proof?`, `ref_match_event_id`, `ref_marketplace_confirmation_event_id`, `ref_*_pubkey`, `ref_*_id` | `["d", "org.attnprotocol:attention-payment-confirmation:<confirmation_id>"]`, `["t", "<block_height>"]`, `["e", "<marketplace_confirmation_event_id>", "", "marketplace_confirmation"]`, `["e", "<match_event_id>"]`, `["e", "<marketplace_event_id>"]`, `["e", "<billboard_event_id>"]`, `["e", "<promotion_event_id>"]`, `["e", "<attention_event_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<billboard_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<match_coordinate>"]`, `["p", "<pubkey>"]`, `["r", "<relay_url>"]` |
+| 38188 | MARKETPLACE | Marketplace operators | `name`, `description`, `admin_pubkey`, `min_duration`, `max_duration`, `match_fee_sats`, `confirmation_fee_sats`, `ref_block_id` | `["d", "<uuid>"]`, `["a", "<block_coordinate>"]`, `["p", "<marketplace_pubkey>"]`, `["k", "<kind>"]`, `["r", "<relay_url>"]` |
+| 38288 | BILLBOARD | Billboard operators | `name`, `description?`, `confirmation_fee_sats` | `["d", "<uuid>"]`, `["a", "<marketplace_coordinate>"]`, `["p", "<billboard_pubkey>"]` |
+| 38388 | PROMOTION | Promotion creators | `duration`, `bid`, `event_id`, `call_to_action`, `call_to_action_url`, `escrow_id_list` | `["d", "<uuid>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<video_coordinate>"]`, `["a", "<billboard_coordinate>"]` |
+| 38488 | ATTENTION | Attention owners | `ask`, `min_duration`, `max_duration`, `blocked_promotions_id`, `blocked_promoters_id`, `trusted_marketplaces_id?`, `trusted_billboards_id?` | `["d", "<uuid>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<blocked_promotions_coordinate>"]`, `["a", "<blocked_promoters_coordinate>"]`, `["a", "<trusted_marketplaces_coordinate>"]?`, `["a", "<trusted_billboards_coordinate>"]?` |
+| 38888 | MATCH | Marketplace operators | `ref_match_id`, `ref_promotion_id`, `ref_attention_id`, `ref_billboard_id`, `ref_marketplace_id`, `ref_*_pubkey` | `["d", "<uuid>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<billboard_coordinate>"]` |
+| 38588 | BILLBOARD_CONFIRMATION | Billboard operators | `ref_match_event_id`, `ref_match_id`, `ref_*_pubkey`, `ref_*_id` | `["d", "<uuid>"]`, `["t", "<block_height>"]`, `["e", "<match_event_id>"]`, `["e", "<marketplace_event_id>"]`, `["e", "<billboard_event_id>"]`, `["e", "<promotion_event_id>"]`, `["e", "<attention_event_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<billboard_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<match_coordinate>"]`, `["p", "<pubkey>"]`, `["r", "<relay_url>"]` |
+| 38688 | ATTENTION_CONFIRMATION | Attention owners | `ref_match_event_id`, `ref_match_id`, `ref_*_pubkey`, `ref_*_id` | `["d", "<uuid>"]`, `["t", "<block_height>"]`, `["e", "<match_event_id>"]`, `["e", "<marketplace_event_id>"]`, `["e", "<billboard_event_id>"]`, `["e", "<promotion_event_id>"]`, `["e", "<attention_event_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<billboard_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<match_coordinate>"]`, `["p", "<pubkey>"]`, `["r", "<relay_url>"]` |
+| 38788 | MARKETPLACE_CONFIRMATION | Marketplace operators | `ref_match_event_id`, `ref_*_confirmation_event_id`, `ref_*_pubkey`, `ref_*_id` | `["d", "<uuid>"]`, `["t", "<block_height>"]`, `["e", "<match_event_id>"]`, `["e", "<billboard_confirmation_event_id>"]`, `["e", "<attention_confirmation_event_id>"]`, `["e", "<marketplace_event_id>"]`, `["e", "<billboard_event_id>"]`, `["e", "<promotion_event_id>"]`, `["e", "<attention_event_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<billboard_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<match_coordinate>"]`, `["p", "<pubkey>"]`, `["r", "<relay_url>"]` |
+| 38988 | ATTENTION_PAYMENT_CONFIRMATION | Attention owners | `sats_received`, `payment_proof?`, `ref_match_event_id`, `ref_marketplace_confirmation_event_id`, `ref_*_pubkey`, `ref_*_id` | `["d", "<uuid>"]`, `["t", "<block_height>"]`, `["e", "<marketplace_confirmation_event_id>", "", "marketplace_confirmation"]`, `["e", "<match_event_id>"]`, `["e", "<marketplace_event_id>"]`, `["e", "<billboard_event_id>"]`, `["e", "<promotion_event_id>"]`, `["e", "<attention_event_id>"]`, `["a", "<marketplace_coordinate>"]`, `["a", "<billboard_coordinate>"]`, `["a", "<promotion_coordinate>"]`, `["a", "<attention_coordinate>"]`, `["a", "<match_coordinate>"]`, `["p", "<pubkey>"]`, `["r", "<relay_url>"]` |
 
 ---
 
@@ -185,7 +185,7 @@ interface MarketplaceContent {
 
 ```typescript
 [
-  ["d", "org.attnprotocol:marketplace:<marketplace_id>"],
+  ["d", "<uuid>"],  // UUID identifier (e.g., "7d1e3a2b-4c5f-6789-abcd-ef0123456789")
   ["t", "<block_height>"],
   ["a", "38808:<clock_pubkey>:org.cityprotocol:block:<height>:<hash>"],  // City Protocol block event coordinate
   ["k", "<kind>"],  // Multiple - supported content kinds
@@ -204,7 +204,7 @@ interface MarketplaceContent {
   "pubkey": "marketplace_pubkey_hex",
   "created_at": 1234567890,
   "tags": [
-    ["d", "org.attnprotocol:marketplace:nextblock.city"],
+    ["d", "7d1e3a2b-4c5f-6789-abcd-ef0123456789"],
     ["t", "862626"],
     ["a", "38808:clock_pubkey_hex:org.cityprotocol:block:862626:00000000000000000001a7c..."],
     ["k", "34236"],
@@ -222,7 +222,7 @@ interface MarketplaceContent {
     "match_fee_sats": 0,
     "confirmation_fee_sats": 0,
     "ref_marketplace_pubkey": "marketplace_pubkey_hex",
-    "ref_marketplace_id": "nextblock.city",
+    "ref_marketplace_id": "7d1e3a2b-4c5f-6789-abcd-ef0123456789",
     "ref_clock_pubkey": "clock_pubkey_hex",
     "ref_block_id": "org.cityprotocol:block:862626:00000000000000000001a7c...",
     "billboard_count": 5,
@@ -276,9 +276,9 @@ interface BillboardContent {
 
 ```typescript
 [
-  ["d", "org.attnprotocol:billboard:<billboard_id>"],
+  ["d", "<uuid>"],  // UUID identifier (e.g., "a1b2c3d4-e5f6-7890-abcd-ef0123456789")
   ["t", "<block_height>"],
-  ["a", "38188:<marketplace_pubkey>:org.attnprotocol:marketplace:<marketplace_id>"],
+  ["a", "38188:<marketplace_pubkey>:<marketplace_uuid>"],
   ["p", "<billboard_pubkey>"],
   ["p", "<marketplace_pubkey>"],
   ["r", "<relay_url>"],  // Multiple
@@ -295,9 +295,9 @@ interface BillboardContent {
   "pubkey": "billboard_pubkey_hex",
   "created_at": 1234567890,
   "tags": [
-    ["d", "org.attnprotocol:billboard:nextblock-billboard-001"],
+    ["d", "a1b2c3d4-e5f6-7890-abcd-ef0123456789"],
     ["t", "862626"],
-    ["a", "38188:marketplace_pubkey_hex:org.attnprotocol:marketplace:nextblock.city"],
+    ["a", "38188:marketplace_pubkey_hex:7d1e3a2b-4c5f-6789-abcd-ef0123456789"],
     ["p", "billboard_pubkey_hex"],
     ["p", "marketplace_pubkey_hex"],
     ["r", "wss://relay.nextblock.city"],
@@ -309,9 +309,9 @@ interface BillboardContent {
     "description": "Free billboard service",
     "confirmation_fee_sats": 0,
     "ref_billboard_pubkey": "billboard_pubkey_hex",
-    "ref_billboard_id": "nextblock-billboard-001",
+    "ref_billboard_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789",
     "ref_marketplace_pubkey": "marketplace_pubkey_hex",
-    "ref_marketplace_id": "nextblock.city"
+    "ref_marketplace_id": "7d1e3a2b-4c5f-6789-abcd-ef0123456789"
   }
 }
 ```
@@ -356,10 +356,10 @@ interface PromotionContent {
 
 ```typescript
 [
-  ["d", "org.attnprotocol:promotion:<promotion_id>"],
+  ["d", "<uuid>"],  // UUID identifier (e.g., "b2c3d4e5-f6a7-8901-bcde-f01234567890")
   ["t", "<block_height>"],
-  ["a", "38188:<marketplace_pubkey>:org.attnprotocol:marketplace:<marketplace_id>"],
-  ["a", "38288:<billboard_pubkey>:org.attnprotocol:billboard:<billboard_id>"],
+  ["a", "38188:<marketplace_pubkey>:<marketplace_uuid>"],
+  ["a", "38288:<billboard_pubkey>:<billboard_uuid>"],
   ["a", "34236:<video_author_pubkey>:<video_d_tag>"],  // Content being promoted
   ["p", "<marketplace_pubkey>"],
   ["p", "<billboard_pubkey>"],
@@ -378,10 +378,10 @@ interface PromotionContent {
   "pubkey": "promotion_pubkey_hex",
   "created_at": 1234567890,
   "tags": [
-    ["d", "org.attnprotocol:promotion:promotion-001"],
+    ["d", "b2c3d4e5-f6a7-8901-bcde-f01234567890"],
     ["t", "862626"],
-    ["a", "38188:marketplace_pubkey_hex:org.attnprotocol:marketplace:nextblock.city"],
-    ["a", "38288:billboard_pubkey_hex:org.attnprotocol:billboard:nextblock-billboard-001"],
+    ["a", "38188:marketplace_pubkey_hex:7d1e3a2b-4c5f-6789-abcd-ef0123456789"],
+    ["a", "38288:billboard_pubkey_hex:a1b2c3d4-e5f6-7890-abcd-ef0123456789"],
     ["a", "34236:video_author_pubkey:video_d_tag"],
     ["p", "marketplace_pubkey_hex"],
     ["p", "billboard_pubkey_hex"],
@@ -398,11 +398,11 @@ interface PromotionContent {
     "call_to_action_url": "https://example.com/watch",
     "escrow_id_list": ["strike_tx_abc123"],
     "ref_promotion_pubkey": "promotion_pubkey_hex",
-    "ref_promotion_id": "promotion-001",
+    "ref_promotion_id": "b2c3d4e5-f6a7-8901-bcde-f01234567890",
     "ref_marketplace_pubkey": "marketplace_pubkey_hex",
-    "ref_marketplace_id": "nextblock.city",
+    "ref_marketplace_id": "7d1e3a2b-4c5f-6789-abcd-ef0123456789",
     "ref_billboard_pubkey": "billboard_pubkey_hex",
-    "ref_billboard_id": "nextblock-billboard-001"
+    "ref_billboard_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789"
   }
 }
 ```
@@ -446,9 +446,9 @@ interface AttentionContent {
 
 ```typescript
 [
-  ["d", "org.attnprotocol:attention:<attention_id>"],
+  ["d", "<uuid>"],  // UUID identifier (e.g., "c3d4e5f6-a7b8-9012-cdef-012345678901")
   ["t", "<block_height>"],
-  ["a", "38188:<marketplace_pubkey>:org.attnprotocol:marketplace:<marketplace_id>"],
+  ["a", "38188:<marketplace_pubkey>:<marketplace_uuid>"],
   ["a", "30000:<attention_pubkey>:<blocked_promotions_id>"],  // Required
   ["a", "30000:<attention_pubkey>:<blocked_promoters_id>"],  // Required
   ["a", "30000:<attention_pubkey>:<trusted_marketplaces_id>"],  // Optional
@@ -468,9 +468,9 @@ interface AttentionContent {
   "pubkey": "attention_pubkey_hex",
   "created_at": 1234567890,
   "tags": [
-    ["d", "org.attnprotocol:attention:attention-001"],
+    ["d", "c3d4e5f6-a7b8-9012-cdef-012345678901"],
     ["t", "862626"],
-    ["a", "38188:marketplace_pubkey_hex:org.attnprotocol:marketplace:nextblock.city"],
+    ["a", "38188:marketplace_pubkey_hex:7d1e3a2b-4c5f-6789-abcd-ef0123456789"],
     ["a", "30000:attention_pubkey_hex:org.attnprotocol:promotion:blocked"],
     ["a", "30000:attention_pubkey_hex:org.attnprotocol:promoter:blocked"],
     ["a", "30000:attention_pubkey_hex:org.attnprotocol:marketplace:trusted"],
@@ -489,9 +489,9 @@ interface AttentionContent {
     "trusted_marketplaces_id": "org.attnprotocol:marketplace:trusted",
     "trusted_billboards_id": "org.attnprotocol:billboard:trusted",
     "ref_attention_pubkey": "attention_pubkey_hex",
-    "ref_attention_id": "attention-001",
+    "ref_attention_id": "c3d4e5f6-a7b8-9012-cdef-012345678901",
     "ref_marketplace_pubkey": "marketplace_pubkey_hex",
-    "ref_marketplace_id": "nextblock.city"
+    "ref_marketplace_id": "7d1e3a2b-4c5f-6789-abcd-ef0123456789"
   }
 }
 ```
@@ -539,12 +539,12 @@ interface MatchContent {
 
 ```typescript
 [
-  ["d", "org.attnprotocol:match:<match_id>"],
+  ["d", "<uuid>"],  // UUID identifier (e.g., "d4e5f6a7-b8c9-0123-def0-123456789012")
   ["t", "<block_height>"],
-  ["a", "38188:<marketplace_pubkey>:org.attnprotocol:marketplace:<marketplace_id>"],
-  ["a", "38288:<billboard_pubkey>:org.attnprotocol:billboard:<billboard_id>"],
-  ["a", "38388:<promotion_pubkey>:org.attnprotocol:promotion:<promotion_id>"],
-  ["a", "38488:<attention_pubkey>:org.attnprotocol:attention:<attention_id>"],
+  ["a", "38188:<marketplace_pubkey>:<marketplace_uuid>"],
+  ["a", "38288:<billboard_pubkey>:<billboard_uuid>"],
+  ["a", "38388:<promotion_pubkey>:<promotion_uuid>"],
+  ["a", "38488:<attention_pubkey>:<attention_uuid>"],
   ["p", "<marketplace_pubkey>"],
   ["p", "<billboard_pubkey>"],
   ["p", "<promotion_pubkey>"],
@@ -562,12 +562,12 @@ interface MatchContent {
   "pubkey": "marketplace_pubkey_hex",
   "created_at": 1234567890,
   "tags": [
-    ["d", "org.attnprotocol:match:match-001"],
+    ["d", "d4e5f6a7-b8c9-0123-def0-123456789012"],
     ["t", "862626"],
-    ["a", "38188:marketplace_pubkey_hex:org.attnprotocol:marketplace:nextblock.city"],
-    ["a", "38288:billboard_pubkey_hex:org.attnprotocol:billboard:nextblock-billboard-001"],
-    ["a", "38388:promotion_pubkey_hex:org.attnprotocol:promotion:promotion-001"],
-    ["a", "38488:attention_pubkey_hex:org.attnprotocol:attention:attention-001"],
+    ["a", "38188:marketplace_pubkey_hex:7d1e3a2b-4c5f-6789-abcd-ef0123456789"],
+    ["a", "38288:billboard_pubkey_hex:a1b2c3d4-e5f6-7890-abcd-ef0123456789"],
+    ["a", "38388:promotion_pubkey_hex:b2c3d4e5-f6a7-8901-bcde-f01234567890"],
+    ["a", "38488:attention_pubkey_hex:c3d4e5f6-a7b8-9012-cdef-012345678901"],
     ["p", "marketplace_pubkey_hex"],
     ["p", "billboard_pubkey_hex"],
     ["p", "promotion_pubkey_hex"],
@@ -576,11 +576,11 @@ interface MatchContent {
     ["k", "34236"]
   ],
   "content": {
-    "ref_match_id": "match-001",
-    "ref_promotion_id": "promotion-001",
-    "ref_attention_id": "attention-001",
-    "ref_billboard_id": "nextblock-billboard-001",
-    "ref_marketplace_id": "nextblock.city",
+    "ref_match_id": "d4e5f6a7-b8c9-0123-def0-123456789012",
+    "ref_promotion_id": "b2c3d4e5-f6a7-8901-bcde-f01234567890",
+    "ref_attention_id": "c3d4e5f6-a7b8-9012-cdef-012345678901",
+    "ref_billboard_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789",
+    "ref_marketplace_id": "7d1e3a2b-4c5f-6789-abcd-ef0123456789",
     "ref_marketplace_pubkey": "marketplace_pubkey_hex",
     "ref_promotion_pubkey": "promotion_pubkey_hex",
     "ref_attention_pubkey": "attention_pubkey_hex",
@@ -657,18 +657,18 @@ interface BillboardConfirmationContent {
 
 ```typescript
 [
-  ["d", "org.attnprotocol:billboard-confirmation:<confirmation_id>"],
+  ["d", "<uuid>"],  // UUID identifier (e.g., "e5f6a7b8-c9d0-1234-ef01-234567890123")
   ["t", "<block_height>"],
   ["e", "<match_event_id>", "", "match"],  // With marker
   ["e", "<marketplace_event_id>"],
   ["e", "<billboard_event_id>"],
   ["e", "<promotion_event_id>"],
   ["e", "<attention_event_id>"],
-  ["a", "38188:<marketplace_pubkey>:org.attnprotocol:marketplace:<marketplace_id>"],
-  ["a", "38288:<billboard_pubkey>:org.attnprotocol:billboard:<billboard_id>"],
-  ["a", "38388:<promotion_pubkey>:org.attnprotocol:promotion:<promotion_id>"],
-  ["a", "38488:<attention_pubkey>:org.attnprotocol:attention:<attention_id>"],
-  ["a", "38888:<marketplace_pubkey>:org.attnprotocol:match:<match_id>"],
+  ["a", "38188:<marketplace_pubkey>:<marketplace_uuid>"],
+  ["a", "38288:<billboard_pubkey>:<billboard_uuid>"],
+  ["a", "38388:<promotion_pubkey>:<promotion_uuid>"],
+  ["a", "38488:<attention_pubkey>:<attention_uuid>"],
+  ["a", "38888:<marketplace_pubkey>:<match_uuid>"],
   ["p", "<marketplace_pubkey>"],
   ["p", "<billboard_pubkey>"],
   ["p", "<promotion_pubkey>"],
@@ -685,18 +685,18 @@ interface BillboardConfirmationContent {
   "pubkey": "billboard_pubkey_hex",
   "created_at": 1234567890,
   "tags": [
-    ["d", "org.attnprotocol:billboard-confirmation:confirmation-001"],
+    ["d", "e5f6a7b8-c9d0-1234-ef01-234567890123"],
     ["t", "862626"],
     ["e", "match_event_id_hex", "", "match"],
     ["e", "marketplace_event_id_hex"],
     ["e", "billboard_event_id_hex"],
     ["e", "promotion_event_id_hex"],
     ["e", "attention_event_id_hex"],
-    ["a", "38188:marketplace_pubkey_hex:org.attnprotocol:marketplace:nextblock.city"],
-    ["a", "38288:billboard_pubkey_hex:org.attnprotocol:billboard:nextblock-billboard-001"],
-    ["a", "38388:promotion_pubkey_hex:org.attnprotocol:promotion:promotion-001"],
-    ["a", "38488:attention_pubkey_hex:org.attnprotocol:attention:attention-001"],
-    ["a", "38888:marketplace_pubkey_hex:org.attnprotocol:match:match-001"],
+    ["a", "38188:marketplace_pubkey_hex:7d1e3a2b-4c5f-6789-abcd-ef0123456789"],
+    ["a", "38288:billboard_pubkey_hex:a1b2c3d4-e5f6-7890-abcd-ef0123456789"],
+    ["a", "38388:promotion_pubkey_hex:b2c3d4e5-f6a7-8901-bcde-f01234567890"],
+    ["a", "38488:attention_pubkey_hex:c3d4e5f6-a7b8-9012-cdef-012345678901"],
+    ["a", "38888:marketplace_pubkey_hex:d4e5f6a7-b8c9-0123-def0-123456789012"],
     ["p", "marketplace_pubkey_hex"],
     ["p", "billboard_pubkey_hex"],
     ["p", "promotion_pubkey_hex"],
@@ -705,15 +705,15 @@ interface BillboardConfirmationContent {
   ],
   "content": {
     "ref_match_event_id": "match_event_id_hex",
-    "ref_match_id": "match-001",
+    "ref_match_id": "d4e5f6a7-b8c9-0123-def0-123456789012",
     "ref_marketplace_pubkey": "marketplace_pubkey_hex",
     "ref_billboard_pubkey": "billboard_pubkey_hex",
     "ref_promotion_pubkey": "promotion_pubkey_hex",
     "ref_attention_pubkey": "attention_pubkey_hex",
-    "ref_marketplace_id": "nextblock.city",
-    "ref_billboard_id": "nextblock-billboard-001",
-    "ref_promotion_id": "promotion-001",
-    "ref_attention_id": "attention-001"
+    "ref_marketplace_id": "7d1e3a2b-4c5f-6789-abcd-ef0123456789",
+    "ref_billboard_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789",
+    "ref_promotion_id": "b2c3d4e5-f6a7-8901-bcde-f01234567890",
+    "ref_attention_id": "c3d4e5f6-a7b8-9012-cdef-012345678901"
   }
 }
 ```
@@ -754,18 +754,18 @@ interface AttentionConfirmationContent {
 
 ```typescript
 [
-  ["d", "org.attnprotocol:attention-confirmation:<confirmation_id>"],
+  ["d", "<uuid>"],  // UUID identifier (e.g., "f6a7b8c9-d0e1-2345-f012-345678901234")
   ["t", "<block_height>"],
   ["e", "<match_event_id>", "", "match"],  // With marker
   ["e", "<marketplace_event_id>"],
   ["e", "<billboard_event_id>"],
   ["e", "<promotion_event_id>"],
   ["e", "<attention_event_id>"],
-  ["a", "38188:<marketplace_pubkey>:org.attnprotocol:marketplace:<marketplace_id>"],
-  ["a", "38288:<billboard_pubkey>:org.attnprotocol:billboard:<billboard_id>"],
-  ["a", "38388:<promotion_pubkey>:org.attnprotocol:promotion:<promotion_id>"],
-  ["a", "38488:<attention_pubkey>:org.attnprotocol:attention:<attention_id>"],
-  ["a", "38888:<marketplace_pubkey>:org.attnprotocol:match:<match_id>"],
+  ["a", "38188:<marketplace_pubkey>:<marketplace_uuid>"],
+  ["a", "38288:<billboard_pubkey>:<billboard_uuid>"],
+  ["a", "38388:<promotion_pubkey>:<promotion_uuid>"],
+  ["a", "38488:<attention_pubkey>:<attention_uuid>"],
+  ["a", "38888:<marketplace_pubkey>:<match_uuid>"],
   ["p", "<marketplace_pubkey>"],
   ["p", "<billboard_pubkey>"],
   ["p", "<promotion_pubkey>"],
@@ -782,18 +782,18 @@ interface AttentionConfirmationContent {
   "pubkey": "attention_pubkey_hex",
   "created_at": 1234567890,
   "tags": [
-    ["d", "org.attnprotocol:attention-confirmation:confirmation-001"],
+    ["d", "f6a7b8c9-d0e1-2345-f012-345678901234"],
     ["t", "862626"],
     ["e", "match_event_id_hex", "", "match"],
     ["e", "marketplace_event_id_hex"],
     ["e", "billboard_event_id_hex"],
     ["e", "promotion_event_id_hex"],
     ["e", "attention_event_id_hex"],
-    ["a", "38188:marketplace_pubkey_hex:org.attnprotocol:marketplace:nextblock.city"],
-    ["a", "38288:billboard_pubkey_hex:org.attnprotocol:billboard:nextblock-billboard-001"],
-    ["a", "38388:promotion_pubkey_hex:org.attnprotocol:promotion:promotion-001"],
-    ["a", "38488:attention_pubkey_hex:org.attnprotocol:attention:attention-001"],
-    ["a", "38888:marketplace_pubkey_hex:org.attnprotocol:match:match-001"],
+    ["a", "38188:marketplace_pubkey_hex:7d1e3a2b-4c5f-6789-abcd-ef0123456789"],
+    ["a", "38288:billboard_pubkey_hex:a1b2c3d4-e5f6-7890-abcd-ef0123456789"],
+    ["a", "38388:promotion_pubkey_hex:b2c3d4e5-f6a7-8901-bcde-f01234567890"],
+    ["a", "38488:attention_pubkey_hex:c3d4e5f6-a7b8-9012-cdef-012345678901"],
+    ["a", "38888:marketplace_pubkey_hex:d4e5f6a7-b8c9-0123-def0-123456789012"],
     ["p", "marketplace_pubkey_hex"],
     ["p", "billboard_pubkey_hex"],
     ["p", "promotion_pubkey_hex"],
@@ -802,15 +802,15 @@ interface AttentionConfirmationContent {
   ],
   "content": {
     "ref_match_event_id": "match_event_id_hex",
-    "ref_match_id": "match-001",
+    "ref_match_id": "d4e5f6a7-b8c9-0123-def0-123456789012",
     "ref_marketplace_pubkey": "marketplace_pubkey_hex",
     "ref_billboard_pubkey": "billboard_pubkey_hex",
     "ref_promotion_pubkey": "promotion_pubkey_hex",
     "ref_attention_pubkey": "attention_pubkey_hex",
-    "ref_marketplace_id": "nextblock.city",
-    "ref_billboard_id": "nextblock-billboard-001",
-    "ref_promotion_id": "promotion-001",
-    "ref_attention_id": "attention-001"
+    "ref_marketplace_id": "7d1e3a2b-4c5f-6789-abcd-ef0123456789",
+    "ref_billboard_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789",
+    "ref_promotion_id": "b2c3d4e5-f6a7-8901-bcde-f01234567890",
+    "ref_attention_id": "c3d4e5f6-a7b8-9012-cdef-012345678901"
   }
 }
 ```
@@ -853,7 +853,7 @@ interface MarketplaceConfirmationContent {
 
 ```typescript
 [
-  ["d", "org.attnprotocol:marketplace-confirmation:<confirmation_id>"],
+  ["d", "<uuid>"],  // UUID identifier (e.g., "a7b8c9d0-e1f2-3456-0123-456789012345")
   ["t", "<block_height>"],
   ["e", "<match_event_id>", "", "match"],
   ["e", "<billboard_confirmation_event_id>", "", "billboard_confirmation"],
@@ -862,11 +862,11 @@ interface MarketplaceConfirmationContent {
   ["e", "<billboard_event_id>"],
   ["e", "<promotion_event_id>"],
   ["e", "<attention_event_id>"],
-  ["a", "38188:<marketplace_pubkey>:org.attnprotocol:marketplace:<marketplace_id>"],
-  ["a", "38288:<billboard_pubkey>:org.attnprotocol:billboard:<billboard_id>"],
-  ["a", "38388:<promotion_pubkey>:org.attnprotocol:promotion:<promotion_id>"],
-  ["a", "38488:<attention_pubkey>:org.attnprotocol:attention:<attention_id>"],
-  ["a", "38888:<marketplace_pubkey>:org.attnprotocol:match:<match_id>"],
+  ["a", "38188:<marketplace_pubkey>:<marketplace_uuid>"],
+  ["a", "38288:<billboard_pubkey>:<billboard_uuid>"],
+  ["a", "38388:<promotion_pubkey>:<promotion_uuid>"],
+  ["a", "38488:<attention_pubkey>:<attention_uuid>"],
+  ["a", "38888:<marketplace_pubkey>:<match_uuid>"],
   ["p", "<marketplace_pubkey>"],
   ["p", "<billboard_pubkey>"],
   ["p", "<promotion_pubkey>"],
@@ -883,7 +883,7 @@ interface MarketplaceConfirmationContent {
   "pubkey": "marketplace_pubkey_hex",
   "created_at": 1234567890,
   "tags": [
-    ["d", "org.attnprotocol:marketplace-confirmation:confirmation-001"],
+    ["d", "a7b8c9d0-e1f2-3456-0123-456789012345"],
     ["t", "862626"],
     ["e", "match_event_id_hex", "", "match"],
     ["e", "billboard_confirmation_event_id_hex", "", "billboard_confirmation"],
@@ -892,11 +892,11 @@ interface MarketplaceConfirmationContent {
     ["e", "billboard_event_id_hex"],
     ["e", "promotion_event_id_hex"],
     ["e", "attention_event_id_hex"],
-    ["a", "38188:marketplace_pubkey_hex:org.attnprotocol:marketplace:nextblock.city"],
-    ["a", "38288:billboard_pubkey_hex:org.attnprotocol:billboard:nextblock-billboard-001"],
-    ["a", "38388:promotion_pubkey_hex:org.attnprotocol:promotion:promotion-001"],
-    ["a", "38488:attention_pubkey_hex:org.attnprotocol:attention:attention-001"],
-    ["a", "38888:marketplace_pubkey_hex:org.attnprotocol:match:match-001"],
+    ["a", "38188:marketplace_pubkey_hex:7d1e3a2b-4c5f-6789-abcd-ef0123456789"],
+    ["a", "38288:billboard_pubkey_hex:a1b2c3d4-e5f6-7890-abcd-ef0123456789"],
+    ["a", "38388:promotion_pubkey_hex:b2c3d4e5-f6a7-8901-bcde-f01234567890"],
+    ["a", "38488:attention_pubkey_hex:c3d4e5f6-a7b8-9012-cdef-012345678901"],
+    ["a", "38888:marketplace_pubkey_hex:d4e5f6a7-b8c9-0123-def0-123456789012"],
     ["p", "marketplace_pubkey_hex"],
     ["p", "billboard_pubkey_hex"],
     ["p", "promotion_pubkey_hex"],
@@ -905,17 +905,17 @@ interface MarketplaceConfirmationContent {
   ],
   "content": {
     "ref_match_event_id": "match_event_id_hex",
-    "ref_match_id": "match-001",
+    "ref_match_id": "d4e5f6a7-b8c9-0123-def0-123456789012",
     "ref_billboard_confirmation_event_id": "billboard_confirmation_event_id_hex",
     "ref_attention_confirmation_event_id": "attention_confirmation_event_id_hex",
     "ref_marketplace_pubkey": "marketplace_pubkey_hex",
     "ref_billboard_pubkey": "billboard_pubkey_hex",
     "ref_promotion_pubkey": "promotion_pubkey_hex",
     "ref_attention_pubkey": "attention_pubkey_hex",
-    "ref_marketplace_id": "nextblock.city",
-    "ref_billboard_id": "nextblock-billboard-001",
-    "ref_promotion_id": "promotion-001",
-    "ref_attention_id": "attention-001"
+    "ref_marketplace_id": "7d1e3a2b-4c5f-6789-abcd-ef0123456789",
+    "ref_billboard_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789",
+    "ref_promotion_id": "b2c3d4e5-f6a7-8901-bcde-f01234567890",
+    "ref_attention_id": "c3d4e5f6-a7b8-9012-cdef-012345678901"
   }
 }
 ```
@@ -961,7 +961,7 @@ interface AttentionPaymentConfirmationContent {
 
 ```typescript
 [
-  ["d", "org.attnprotocol:attention-payment-confirmation:<confirmation_id>"],
+  ["d", "<uuid>"],  // UUID identifier (e.g., "b8c9d0e1-f2a3-4567-1234-567890123456")
   ["t", "<block_height>"],
   ["e", "<marketplace_confirmation_event_id>", "", "marketplace_confirmation"],
   ["e", "<match_event_id>"],
@@ -969,11 +969,11 @@ interface AttentionPaymentConfirmationContent {
   ["e", "<billboard_event_id>"],
   ["e", "<promotion_event_id>"],
   ["e", "<attention_event_id>"],
-  ["a", "38188:<marketplace_pubkey>:org.attnprotocol:marketplace:<marketplace_id>"],
-  ["a", "38288:<billboard_pubkey>:org.attnprotocol:billboard:<billboard_id>"],
-  ["a", "38388:<promotion_pubkey>:org.attnprotocol:promotion:<promotion_id>"],
-  ["a", "38488:<attention_pubkey>:org.attnprotocol:attention:<attention_id>"],
-  ["a", "38888:<marketplace_pubkey>:org.attnprotocol:match:<match_id>"],
+  ["a", "38188:<marketplace_pubkey>:<marketplace_uuid>"],
+  ["a", "38288:<billboard_pubkey>:<billboard_uuid>"],
+  ["a", "38388:<promotion_pubkey>:<promotion_uuid>"],
+  ["a", "38488:<attention_pubkey>:<attention_uuid>"],
+  ["a", "38888:<marketplace_pubkey>:<match_uuid>"],
   ["p", "<marketplace_pubkey>"],
   ["p", "<billboard_pubkey>"],
   ["p", "<promotion_pubkey>"],
@@ -990,7 +990,7 @@ interface AttentionPaymentConfirmationContent {
   "pubkey": "attention_pubkey_hex",
   "created_at": 1234567890,
   "tags": [
-    ["d", "org.attnprotocol:attention-payment-confirmation:payment-confirmation-001"],
+    ["d", "b8c9d0e1-f2a3-4567-1234-567890123456"],
     ["t", "862626"],
     ["e", "marketplace_confirmation_event_id_hex", "", "marketplace_confirmation"],
     ["e", "match_event_id_hex"],
@@ -998,11 +998,11 @@ interface AttentionPaymentConfirmationContent {
     ["e", "billboard_event_id_hex"],
     ["e", "promotion_event_id_hex"],
     ["e", "attention_event_id_hex"],
-    ["a", "38188:marketplace_pubkey_hex:org.attnprotocol:marketplace:nextblock.city"],
-    ["a", "38288:billboard_pubkey_hex:org.attnprotocol:billboard:nextblock-billboard-001"],
-    ["a", "38388:promotion_pubkey_hex:org.attnprotocol:promotion:promotion-001"],
-    ["a", "38488:attention_pubkey_hex:org.attnprotocol:attention:attention-001"],
-    ["a", "38888:marketplace_pubkey_hex:org.attnprotocol:match:match-001"],
+    ["a", "38188:marketplace_pubkey_hex:7d1e3a2b-4c5f-6789-abcd-ef0123456789"],
+    ["a", "38288:billboard_pubkey_hex:a1b2c3d4-e5f6-7890-abcd-ef0123456789"],
+    ["a", "38388:promotion_pubkey_hex:b2c3d4e5-f6a7-8901-bcde-f01234567890"],
+    ["a", "38488:attention_pubkey_hex:c3d4e5f6-a7b8-9012-cdef-012345678901"],
+    ["a", "38888:marketplace_pubkey_hex:d4e5f6a7-b8c9-0123-def0-123456789012"],
     ["p", "marketplace_pubkey_hex"],
     ["p", "billboard_pubkey_hex"],
     ["p", "promotion_pubkey_hex"],
@@ -1013,16 +1013,16 @@ interface AttentionPaymentConfirmationContent {
     "sats_received": 5000,
     "payment_proof": "lnbc50u1p3example...",
     "ref_match_event_id": "match_event_id_hex",
-    "ref_match_id": "match-001",
+    "ref_match_id": "d4e5f6a7-b8c9-0123-def0-123456789012",
     "ref_marketplace_confirmation_event_id": "marketplace_confirmation_event_id_hex",
     "ref_marketplace_pubkey": "marketplace_pubkey_hex",
     "ref_billboard_pubkey": "billboard_pubkey_hex",
     "ref_promotion_pubkey": "promotion_pubkey_hex",
     "ref_attention_pubkey": "attention_pubkey_hex",
-    "ref_marketplace_id": "nextblock.city",
-    "ref_billboard_id": "nextblock-billboard-001",
-    "ref_promotion_id": "promotion-001",
-    "ref_attention_id": "attention-001"
+    "ref_marketplace_id": "7d1e3a2b-4c5f-6789-abcd-ef0123456789",
+    "ref_billboard_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789",
+    "ref_promotion_id": "b2c3d4e5-f6a7-8901-bcde-f01234567890",
+    "ref_attention_id": "c3d4e5f6-a7b8-9012-cdef-012345678901"
   }
 }
 ```
@@ -1062,7 +1062,7 @@ Blocks specific promotion events by their coordinates.
   "tags": [
     ["d", "org.attnprotocol:promotion:blocked"],
     ["t", "862626"],
-    ["a", "38388:promotion_pubkey:org.attnprotocol:promotion:promotion-001", "wss://relay.example.com"],
+    ["a", "38388:promotion_pubkey:b2c3d4e5-f6a7-8901-bcde-f01234567890", "wss://relay.example.com"],
     ["e", "promotion_event_id", "wss://relay.example.com"]
   ],
   "content": "{\"description\": \"Promotions I don't want to see\"}"
@@ -1100,7 +1100,7 @@ Trusts specific marketplace instances or all marketplaces operated by a pubkey.
   "tags": [
     ["d", "org.attnprotocol:marketplace:trusted"],
     ["t", "862626"],
-    ["a", "38188:marketplace_pubkey:org.attnprotocol:marketplace:nextblock.city", "wss://relay.nextblock.city"],
+    ["a", "38188:marketplace_pubkey:7d1e3a2b-4c5f-6789-abcd-ef0123456789", "wss://relay.nextblock.city"],
     ["p", "nextblock_operator_pubkey", "wss://relay.nextblock.city"]
   ],
   "content": "{\"description\": \"Marketplaces I trust for fair payment\"}"
@@ -1119,7 +1119,7 @@ Trusts specific billboard instances or all billboards operated by a pubkey.
   "tags": [
     ["d", "org.attnprotocol:billboard:trusted"],
     ["t", "862626"],
-    ["a", "38288:billboard_pubkey:org.attnprotocol:billboard:nextblock-billboard-001", "wss://relay.nextblock.city"],
+    ["a", "38288:billboard_pubkey:a1b2c3d4-e5f6-7890-abcd-ef0123456789", "wss://relay.nextblock.city"],
     ["p", "nextblock_operator_pubkey", "wss://relay.nextblock.city"]
   ],
   "content": "{\"description\": \"Billboards I trust for accurate view reporting\"}"
@@ -1172,9 +1172,9 @@ All events use these reference fields consistently (ref_ prefix):
 
 All events include:
 - `["t", "<block_height>"]` - Block height for synchronization
-- `["d", "org.attnprotocol:<event_type>:<identifier>"]` - For ATTN Protocol events (38188, 38288, 38388, 38488, 38588, 38688, 38788, 38888, 38988). Format: `org.attnprotocol:` prefix, followed by event type (marketplace, billboard, promotion, attention, billboard-confirmation, attention-confirmation, marketplace-confirmation, match, attention-payment-confirmation), followed by unique identifier.
+- `["d", "<uuid>"]` - For ATTN Protocol events (38188, 38288, 38388, 38488, 38588, 38688, 38788, 38888, 38988). D-tags are UUIDs (e.g., `7d1e3a2b-4c5f-6789-abcd-ef0123456789`). NIP-33 parameterized replaceable events are already namespaced by `kind:pubkey:d-tag`, so the `org.attnprotocol` prefix is redundant.
 - `["d", "org.cityprotocol:<event_type>:<identifier>"]` - For City Protocol events (38808 block). Format: `org.cityprotocol:` prefix, followed by event type (block), followed by unique identifier.
-- `["a", "kind:pubkey:org.attnprotocol:event_type:identifier"]` - For referencing ATTN Protocol events (format: `kind:pubkey:org.attnprotocol:event_type:identifier`).
+- `["a", "kind:pubkey:<uuid>"]` - For referencing ATTN Protocol events (format: `kind:pubkey:uuid`).
 - `["a", "kind:pubkey:org.cityprotocol:event_type:identifier"]` - For referencing City Protocol events (format: `kind:pubkey:org.cityprotocol:event_type:identifier`).
 - For non-protocol events (e.g., video content kind 34236), the format is `kind:pubkey:d_tag` without namespace prefix.
 - `["p", "<pubkey>"]` - For all party pubkeys

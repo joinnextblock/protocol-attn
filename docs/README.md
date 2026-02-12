@@ -32,7 +32,7 @@ It also functions as the Bitcoin-native attention interchange for block-synced m
 | 38888 | MATCH | Match between promotion and attention. Created when bid ≥ ask and duration is compatible. | Marketplace operators |
 | 38988 | ATTENTION_PAYMENT_CONFIRMATION | Attention owner attestation of payment receipt. Published after receiving payment following MARKETPLACE_CONFIRMATION. | Attention owners |
 
-All builders stamp the canonical coordinate/tag layout (`["d", "<identifier>"]`, `["t", "<block_height>"]`) so relays and analytics can filter by block height only.
+All builders stamp the canonical coordinate/tag layout (`["d", "<uuid>"]`, `["t", "<block_height>"]`) so relays and analytics can filter by block height only. D-tags are UUIDs — NIP-33 parameterized replaceable events are already namespaced by `kind:pubkey:d-tag`, so no additional prefix is needed.
 
 ## Documentation
 
