@@ -6,7 +6,7 @@ Thank you for your interest in contributing to the ATTN Protocol! This document 
 
 By submitting a pull request or other contribution to this repository, you agree to the following:
 
-1. **MIT License**: Your contribution will be licensed under the [MIT License](./packages/protocol/LICENCE), the same license that covers the rest of this project.
+1. **MIT License**: Your contribution will be licensed under the [MIT License](./LICENCE), the same license that covers the rest of this project.
 
 2. **Commercial Use**: You grant NextBlock Inc. and its affiliates the right to use, modify, and incorporate your contribution into related commercial products and services without restriction.
 

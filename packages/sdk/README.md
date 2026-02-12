@@ -60,7 +60,7 @@ await sdk.publish_to_multiple(promotion_event, [
 ]);
 ```
 
-Every builder implements the schemas and tag layout defined in `@attn-protocol/packages/protocol/docs/ATTN-01.md`. Content fields live in the JSON payload, while routing/indexing values (identifiers, block height, coordinates) ride inside Nostr tags. Always pass the current Bitcoin `block_height` so the SDK can emit the `t` tag that powers block-synchronized filtering.
+Every builder implements the schemas and tag layout defined in `PROTOCOL.md`. Content fields live in the JSON payload, while routing/indexing values (identifiers, block height, coordinates) ride inside Nostr tags. Always pass the current Bitcoin `block_height` so the SDK can emit the `t` tag that powers block-synchronized filtering.
 
 **Note:** All event builders use constants from `@attn/ts-core` internally. You can import `ATTN_EVENT_KINDS` to reference event kinds in your code:
 

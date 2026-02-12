@@ -10,7 +10,7 @@
 
 import { finalizeEvent, getPublicKey } from "nostr-tools";
 import type { Event } from "nostr-tools";
-import { CITY_PROTOCOL_KINDS } from "@attn/ts-core";
+import { CITY_PROTOCOL_KINDS } from "@attn/core";
 import type { BlockEventParams } from "../types/index.js";
 import { format_d_tag } from "../utils/formatting.js";
 

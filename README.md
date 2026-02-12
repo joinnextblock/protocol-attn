@@ -52,7 +52,6 @@ Block Event Coordinate: 38808:<clock_pubkey>:org.cityprotocol:block:<height>:<ha
 | [User Guide](./docs/USER_GUIDE.md) | Trust model, value proposition, and FAQ |
 | [Framework](./packages/framework/README.md) | Hook system and event processing |
 | [SDK](./packages/sdk/README.md) | Event builders, type reference, and examples |
-| [Marketplace](./packages/marketplace/README.md) | Marketplace lifecycle layer with bring-your-own storage |
 
 ## Event Kinds
 
@@ -82,8 +81,6 @@ Block Event Coordinate: 38808:<clock_pubkey>:org.cityprotocol:block:<height>:<ha
 | [`packages/core`](./packages/core/) | Core constants and type definitions |
 | [`packages/framework`](./packages/framework/) | Hook runtime and relay adapters |
 | [`packages/sdk`](./packages/sdk/) | Event builders and validators |
-| [`packages/marketplace`](./packages/marketplace/) | Marketplace lifecycle layer (bring your own storage) |
-| [`packages/relay`](./packages/relay/) | Open-source Nostr relay with plugin system |
 
 **Note:** The `packages/node` package (Bitcoin ZMQ to Nostr bridge) has been moved to City Protocol as `@city/clock`. Block events are now published by City Protocol.
 

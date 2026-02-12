@@ -3,14 +3,14 @@ import { create_block_event } from './block.js';
 import { finalizeEvent, getPublicKey } from 'nostr-tools';
 
 // Mock @attn/core
-vi.mock('@attn/ts-core', () => ({
+vi.mock('@attn/core', () => ({
   CITY_PROTOCOL_KINDS: {
     BLOCK: 38808,
   },
 }));
 
 // Import after mock
-import { CITY_PROTOCOL_KINDS } from '@attn/ts-core';
+import { CITY_PROTOCOL_KINDS } from '@attn/core';
 
 // Mock nostr-tools
 vi.mock('nostr-tools', async () => {

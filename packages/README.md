@@ -4,7 +4,6 @@
 
 | Package | Purpose | Notes |
 | --- | --- | --- |
-| [`packages/protocol`](./protocol) | Canonical ATTN Protocol reference (specs, docs, assets). | Source of block-synced rules for Billboard operators. |
 | [`packages/core`](./core) | Core constants and types shared across all packages. | Provides `ATTN_EVENT_KINDS`, `CITY_PROTOCOL_KINDS`, `NIP51_LIST_TYPES`, and core type definitions. Published as `@attn/ts-core`. |
 | [`packages/framework`](./framework) | Runtime primitives for building block-aligned services on ATTN Protocol. | Exposes hooks + relay wiring to keep block synchronization cadence. Published as `@attn/ts-framework`. |
 | [`packages/sdk`](./sdk) | Client utilities for emitting and validating ATTN Protocol events. | Helps marketplaces and billboards stay snapshot-safe. Published as `@attn/ts-sdk`. |

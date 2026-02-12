@@ -4,7 +4,7 @@
  */
 
 import { getPublicKey } from "nostr-tools";
-import { decode_private_key } from "@attn/ts-core";
+import { decode_private_key } from "@attn/core";
 import type { Event } from "nostr-tools";
 import {
   create_block_event,

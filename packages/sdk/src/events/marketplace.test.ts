@@ -3,14 +3,14 @@ import { create_marketplace_event } from './marketplace.js';
 import { finalizeEvent } from 'nostr-tools';
 
 // Mock @attn/core
-vi.mock('@attn/ts-core', () => ({
+vi.mock('@attn/core', () => ({
   ATTN_EVENT_KINDS: {
     MARKETPLACE: 38188,
   },
 }));
 
 // Import after mock
-import { ATTN_EVENT_KINDS } from '@attn/ts-core';
+import { ATTN_EVENT_KINDS } from '@attn/core';
 
 // Mock nostr-tools
 vi.mock('nostr-tools', async () => {

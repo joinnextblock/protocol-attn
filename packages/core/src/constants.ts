@@ -13,7 +13,7 @@
  * const filter = { kinds: [ATTN_EVENT_KINDS.PROMOTION] };
  * ```
  *
- * @see https://github.com/joinnextblock/attn-protocol/blob/main/packages/protocol/docs/ATTN-01.md
+ * @see https://github.com/joinnextblock/attn-protocol/blob/main/PROTOCOL.md
  */
 export const ATTN_EVENT_KINDS = {
   /** Marketplace registration/update event (kind 38188) */

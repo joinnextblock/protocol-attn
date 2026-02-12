@@ -3,7 +3,7 @@
  */
 
 import type { Event } from 'nostr-tools';
-import { ATTN_EVENT_KINDS, CITY_PROTOCOL_KINDS } from '@attn/ts-core';
+import { ATTN_EVENT_KINDS, CITY_PROTOCOL_KINDS } from '@attn/core';
 
 export function create_mock_block_event(
   block_height: number = 850000,

@@ -83,6 +83,15 @@ func ValidateMarketplaceEvent(event *nostr.Event) ValidationResult {
 		}
 	}
 
+	// Check for required count metrics (per ATTN-01.md)
+	// These are required fields that track marketplace statistics
+	required_count_fields := []string{"billboard_count", "promotion_count", "attention_count", "match_count"}
+	for _, field := range required_count_fields {
+		if _, ok := content_data[field]; !ok {
+			return ValidationResult{Valid: false, Message: fmt.Sprintf("Content must include %s", field)}
+		}
+	}
+
 	// Validate min_duration and max_duration
 	if min_dur, ok := content_data["min_duration"].(float64); !ok || min_dur <= 0 {
 		return ValidationResult{Valid: false, Message: "min_duration must be a positive number"}
