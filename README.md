@@ -2,7 +2,37 @@
 
 A decentralized framework enabling paid content promotion within the Nostr ecosystem. Standardized communication methods unlock new economic opportunities while preserving privacy, permissionless access, and user sovereignty.
 
-## Block Synchronization
+## Protocol Integration
+
+### NextBlock City Integration
+
+ATTN Protocol is integrated into NextBlock City through the `AttnAdapter`. When enabled, the city automatically subscribes to ATTN Protocol events (kinds 38188-38988) and provides hooks for marketplace, billboard, promotion, attention, and match events.
+
+**Configuration:**
+```typescript
+const city = new NextBlockCity({
+  signer: window.nostr,
+  protocols: {
+    attn: true,  // Enable ATTN Protocol hooks (default: true)
+  },
+});
+
+await city.enter();
+
+// Access ATTN adapter (if you need direct access)
+// Note: Most apps use the attn pattern instead
+```
+
+**Integration Details:**
+- Adapter: `AttnAdapter` in `@nextblock/city/packages/city/src/adapters/attn.ts`
+- Event Kinds: 38188 (Marketplace), 38288 (Billboard), 38388 (Promotion), 38488 (Attention), 38588 (Billboard Confirmation), 38688 (Attention Confirmation), 38788 (Marketplace Confirmation), 38888 (Match), 38988 (Attention Payment Confirmation)
+- Hooks: `on_marketplace_event()`, `on_billboard_event()`, `on_promotion_event()`, `on_attention_event()`, `on_match_event()`
+
+**Note:** Most NextBlock City applications use the `attn` pattern (`city.attn("naddr1...")`) for content engagement rather than directly subscribing to ATTN Protocol events. The adapter is available for advanced use cases.
+
+See [NextBlock City Protocol Integration Guide](../nextblock-city/PROTOCOL_INTEGRATION.md) for details on how protocols integrate.
+
+### Block Synchronization
 
 ATTN Protocol uses **City Protocol** for block synchronization. City Protocol's clock service broadcasts each new block height (kind 38808), services react in lockstep, and marketplace state freezes so every snapshot stays truthful.
 
@@ -12,14 +42,17 @@ Block events are published by City Protocol, not ATTN Protocol. This allows the 
 Block Event Coordinate: 38808:<clock_pubkey>:org.cityprotocol:block:<height>:<hash>
 ```
 
-## Quick Links
+## Documentation
 
-- **[Protocol Documentation](./packages/protocol/README.md)**: Overview, event kinds, and protocol details
-- **[Protocol Specification](./packages/protocol/docs/ATTN-01.md)**: Complete event definitions with standardized schema format
-- **[User Guide](./packages/protocol/docs/README.md)**: User-facing documentation, glossary, and quick reference
-- **[Framework Documentation](./packages/framework/README.md)**: Hook system and event processing
-- **[SDK Documentation](./packages/sdk/README.md)**: Event builders, type reference, and examples
-- **[Marketplace Documentation](./packages/marketplace/README.md)**: Marketplace lifecycle layer with bring-your-own storage
+| Document | Description |
+|----------|-------------|
+| [Overview](./docs/README.md) | What ATTN Protocol is and why it exists |
+| [Specification](./docs/SPEC.md) | Event kinds, schemas, and tag definitions |
+| [Event Flow](./docs/EVENT_FLOW.md) | Event lifecycle and protocol integration |
+| [User Guide](./docs/USER_GUIDE.md) | Trust model, value proposition, and FAQ |
+| [Framework](./packages/framework/README.md) | Hook system and event processing |
+| [SDK](./packages/sdk/README.md) | Event builders, type reference, and examples |
+| [Marketplace](./packages/marketplace/README.md) | Marketplace lifecycle layer with bring-your-own storage |
 
 ## Event Kinds
 
@@ -45,7 +78,7 @@ Block Event Coordinate: 38808:<clock_pubkey>:org.cityprotocol:block:<height>:<ha
 
 | Package | Purpose |
 | --- | --- |
-| [`packages/protocol`](./packages/protocol/) | ATTN-01 spec, diagrams, and documentation |
+| [`docs/`](./docs/) | ATTN-01 spec, diagrams, and documentation |
 | [`packages/core`](./packages/core/) | Core constants and type definitions |
 | [`packages/framework`](./packages/framework/) | Hook runtime and relay adapters |
 | [`packages/sdk`](./packages/sdk/) | Event builders and validators |
