@@ -50,7 +50,6 @@ Block Event Coordinate: 38808:<clock_pubkey>:org.cityprotocol:block:<height>:<ha
 | [Specification](./docs/SPEC.md) | Event kinds, schemas, and tag definitions |
 | [Event Flow](./docs/EVENT_FLOW.md) | Event lifecycle and protocol integration |
 | [User Guide](./docs/USER_GUIDE.md) | Trust model, value proposition, and FAQ |
-| [Framework](./packages/framework/README.md) | Hook system and event processing |
 | [SDK](./packages/sdk/README.md) | Event builders, type reference, and examples |
 
 ## Event Kinds
@@ -79,7 +78,6 @@ Block Event Coordinate: 38808:<clock_pubkey>:org.cityprotocol:block:<height>:<ha
 | --- | --- |
 | [`docs/`](./docs/) | ATTN-01 spec, diagrams, and documentation |
 | [`packages/core`](./packages/core/) | Core constants and type definitions |
-| [`packages/framework`](./packages/framework/) | Hook runtime and relay adapters |
 | [`packages/sdk`](./packages/sdk/) | Event builders and validators |
 
 **Note:** The `packages/node` package (Bitcoin ZMQ to Nostr bridge) has been moved to City Protocol as `@city/clock`. Block events are now published by City Protocol.
