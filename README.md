@@ -56,6 +56,46 @@ A citizen publishes a kind 38488 event to offer their attention to a marketplace
 
 The citizen is saying: "I'll look at promotions in this marketplace for 3,000 sats." Blocked promoters and trusted billboards are managed via [NIP-51](https://github.com/nostr-protocol/nips/blob/master/51.md) lists — the citizen controls who they won't see.
 
+## Example: Promotion
+
+A promoter publishes a kind 38388 event to promote content on a billboard:
+
+```json
+{
+  "kind": 38388,
+  "pubkey": "<promoter_pubkey>",
+  "tags": [
+    ["d", "b2c3d4e5-f6a7-8901-bcde-f01234567890"],
+    ["t", "936237"],
+    ["a", "38188:<marketplace_pubkey>:7d1e3a2b-4c5f-6789-abcd-ef0123456789"],
+    ["a", "38288:<billboard_pubkey>:a1b2c3d4-e5f6-7890-abcd-ef0123456789"],
+    ["a", "34236:<video_author_pubkey>:<video_d_tag>"],
+    ["p", "<marketplace_pubkey>"],
+    ["p", "<billboard_pubkey>"],
+    ["p", "<promoter_pubkey>"],
+    ["r", "wss://relay.nextblock.city"],
+    ["k", "34236"],
+    ["u", "https://example.com/watch"]
+  ],
+  "content": {
+    "duration": 30000,
+    "bid": 3000,
+    "event_id": "<video_event_id>",
+    "call_to_action": "Watch Now",
+    "call_to_action_url": "https://example.com/watch",
+    "escrow_id_list": ["strike_tx_abc123"],
+    "ref_promotion_pubkey": "<promoter_pubkey>",
+    "ref_promotion_id": "b2c3d4e5-f6a7-8901-bcde-f01234567890",
+    "ref_marketplace_pubkey": "<marketplace_pubkey>",
+    "ref_marketplace_id": "7d1e3a2b-4c5f-6789-abcd-ef0123456789",
+    "ref_billboard_pubkey": "<billboard_pubkey>",
+    "ref_billboard_id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789"
+  }
+}
+```
+
+The promoter is saying: "I'll pay 3,000 sats for 30 seconds of attention on this video, through this billboard and marketplace." The `escrow_id_list` proves funds are locked before any match happens.
+
 ## Block Synchronization
 
 ATTN runs on Bitcoin time via [City Protocol](https://github.com/joinnextblock/city-protocol). Each new block (kind 38808) is the heartbeat — marketplace state snapshots are anchored to block heights, not wall clocks.
