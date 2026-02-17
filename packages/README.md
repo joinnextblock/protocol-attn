@@ -4,11 +4,8 @@
 
 | Package | Purpose | Notes |
 | --- | --- | --- |
-| [`packages/ts-core`](./core) | Core constants and types shared across all packages. | Provides `ATTN_EVENT_KINDS`, `CITY_PROTOCOL_KINDS`, `NIP51_LIST_TYPES`, and core type definitions. Published as `@attn/ts-core`. |
-| [`packages/framework`](./framework) | Runtime primitives for building block-aligned services on ATTN Protocol. | Exposes hooks + relay wiring to keep block synchronization cadence. Published as `@attn/ts-framework`. |
-| [`packages/ts-sdk`](./sdk) | Client utilities for emitting and validating ATTN Protocol events. | Helps marketplaces and billboards stay snapshot-safe. Published as `@attn/ts-sdk`. |
-| [`packages/marketplace`](./marketplace) | Marketplace lifecycle layer with bring-your-own storage. | Wraps framework with marketplace hooks for matching, confirmations, and publishing. Published as `@attn/ts-marketplace`. |
-| [`packages/relay`](./relay) | Open-source Nostr relay with ATTN Protocol plugin system. | Validates and stores ATTN events with rate limiting and auth. |
+| [`packages/ts-core`](./ts-core) | Core constants and types shared across all packages. | Provides `ATTN_EVENT_KINDS`, `CITY_PROTOCOL_KINDS`, `NIP51_LIST_TYPES`, and core type definitions. Published as `@attn/ts-core`. |
+| [`packages/ts-sdk`](./ts-sdk) | Client utilities for emitting and validating ATTN Protocol events. | Helps marketplaces and billboards stay snapshot-safe. Published as `@attn/ts-sdk`. |
 
 ## Go Packages
 
@@ -16,6 +13,5 @@
 | --- | --- | --- |
 | [`packages/go-core`](./go-core) | Core constants and types for Go applications. | Mirrors `@attn/ts-core` with `core.KindPromotion`, `core.PromotionData`, etc. |
 | [`packages/go-sdk`](./go-sdk) | Event builders for creating and publishing ATTN Protocol events. | Mirrors `@attn/ts-sdk` with `events.CreatePromotion()`, etc. |
-
 
 Each package follows snake_case conventions, pins its own toolchain (via `package.json`, `bun.lock`, or `go.mod`), and must subscribe to City Protocol block events (kind 38808) before emitting state. When adding a new package, document it here so operations stay traceable per block.
